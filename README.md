@@ -31,7 +31,7 @@ make clean && make
 To run the ldp-btf program, use the following command:
 
 ```bash
-./ldp-btf <epsilon> <data_directory> <num_iterations> <privacy_level> <output_directory>
+./ldp-btf <epsilon> <data_directory> <num_iterations> <algorithm_switch> <motif_type>
 ```
 
 ## Data Format for Bipartite Graphs
