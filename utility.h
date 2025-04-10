@@ -16,14 +16,21 @@
 #include <queue>
 #include <map>
 // #include <string>
+#include <sqlite3.h>
+
+#include <set>
+#include <tuple>
+
+#include <iomanip> 
+#include <climits> 
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <cstring>
 #include <vector>
-#include <unordered_set>
 #include <fstream>
+#include <bitset> // this is to enumerate subsets 
 #include <iterator>
 #include <cassert>
 #include <queue> 
@@ -46,6 +53,8 @@ using namespace std;
 #define MIN(a, b) (a <= b ? a : b)
 #define MAX(a, b) (a >= b ? a : b)
 
+extern unsigned long long int binomial_coefficient(unsigned long long int X, int k) ; 
+
 extern long double power(long double base, int exponent) ;
 
 extern double compute_epsilon(double exposure_risk, int m, int n1, int n2); 
@@ -60,7 +69,7 @@ extern double computeStd(const std::vector<double>& numbers) ;
 
 extern double computeCovariance(const std::vector<double>& x, const std::vector<double>& y);
 
-extern double computeVariance(const std::vector<double>& numbers);
+extern double computeVariance(const std::vector<long double>& numbers);
 
 // extern double calculateMean(const std::vector<int>& vector);
 // template <typename T>
@@ -77,7 +86,8 @@ long double calculateMean(const std::vector<T>& vector) {
 
 extern double calculateCorrelation(const std::vector<int>& vectorX, const std::vector<int>& vectorY);
 
-
+extern void generate_combinations(const std::vector<int>& set, int combination_size, std::vector<std::vector<int>>& combinations);
+  
 extern double manhattanDistance(const std::vector<double>& vectorA, const std::vector<double>& vectorB); 
 
 // linked list
@@ -208,8 +218,6 @@ extern double n_choose_k(int n, int k);
 enum class Index_update { withlimit, withlimit_base_opt, withlimit_parallel, withlimit_dfs, withlimit_dfs_parallel, withoutlimit };
 
 extern std::ostream& operator<<(std::ostream& out, const Index_update value);
-
-extern void get_anchor_groups(std::vector<vid_t> candidates, int budget, std::vector<std::vector<vid_t>>& result);
 
 extern void zip( const std::vector<vid_t> &a, const std::vector<int> &b, std::vector<std::pair<vid_t,int>> &zipped);
 

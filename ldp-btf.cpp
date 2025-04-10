@@ -14,14 +14,52 @@ extern vector<long double> naive_estis;
 extern int priv_dmax_1, priv_dmax_2;
 extern vector<vector<int>> up_options, lo_options;
 extern int iteration;
-bool one_round = false, edge_clipping = true, count_cate = false, 
+
+
+extern unsigned long long int real; 
+
+
+extern long double avg_estimated_variance ;
+
+bool one_round = false, 
+    // multiR= false, wedge_based = false, 
+    edge_clipping = true, count_cate = false, 
 	sampling_noisy_graph = false, eva_comm = false;
+
+bool count_cc = false ;  // this is computing the bipartite clustering coefficient. 
 double p____ = 0.5;  // sampling ratio.
 int alpha = 10; 
 stats::rand_engine_t engine(std::time(0));  // used to be 1776 
 
+bool vertex_pair_reduction = true; 
+
+// bool averaging_f_estimates = true;
+bool averaging_f_estimates = true;  
+
+extern vector<vector<int>> up_options, lo_options; 
+
+
 extern long double RR_time, server_side_time, naive_server_side, 
 	local_count_time, deg_esti_time;
+
+
+long double gamma__;
+
+bool efficient_RR = true;
+
+bool skip_neg_deg = false ;
+// why cannot we skip negative vertices
+
+void randomized_response_single_bit(int u, int v, BiGraph& g, BiGraph& g2) {
+	double keep_probability = g.has(u, v) ? 1 - p : p;
+	// if(sampling_noisy_graph){
+	// 	keep_probability *= p____;
+	// }
+	assert(u!=v);
+	g2.edge_vector[min(u, v)][max(u, v)] = (genrand_real2() < keep_probability);
+	// it is either 1 or 0
+}
+
 
 void private_estimate_of_degrees(BiGraph& g) {
     // private estimate degrees.
@@ -39,7 +77,6 @@ void private_estimate_of_degrees(BiGraph& g) {
             priv_dmax_2 = priv_dmax_2 > priv_deg[i] ? priv_dmax_2 : priv_deg[i];
         }
     }
-
 }
 
 double my_genrand_real2() { return genrand_real2(); }
@@ -93,16 +130,66 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
 
     communication_cost += flip1 * sizeof(int);
 
-    long double expected_E =
-        g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
-
-    // long double expected_E = (g.num_edges * (1 - p)) + ((static_cast<long
-    // double>(g.num_v1) * static_cast<long double>(g.num_v2) - g.num_edges) *
-    // p);
-
+    long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
     cout << "expected E = " << expected_E << endl;
 
-    g2.computePriority();
+    // g2.computePriority();
+}
+
+// applying RR to lower vertices 
+void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
+    const int range_from = g2.num_v1;
+    const int range_to = g2.num_nodes() - 1;
+    std::random_device rand_dev;
+    std::mt19937 generator(rand_dev());
+    std::uniform_int_distribution<int> distr(range_from, range_to);
+
+    init_genrand(seed);
+    int flip1 = 0;
+    int visited_vertices = 0;
+    int total_vertices = g2.num_v1;
+    int ten_percent = total_vertices / 5;
+    long double max_time_per_user = -1;
+
+    // applying RR on U(G)
+    // for (int i = 0; i < g2.num_v1; i++) {
+
+    // now applying RR to L(G)
+    for (int i = g2.num_v1; i < g2.num_nodes(); i++) {
+        visited_vertices++;
+        double tx = omp_get_wtime();
+
+        // for (int j = g2.num_v1; j < g2.num_nodes(); j++) {
+        for (int j = 0; j < g2.num_v1; j++) {
+            if (std::find(g.neighbor[i].begin(), g.neighbor[i].end(), j) !=
+                g.neighbor[i].end()) {
+                if (genrand_real2() >= p) {  // 1  --> 1
+                    g2.addEdge(i, j);
+                    flip1++;
+                }
+            } else {
+                if (genrand_real2() < p) {  // 0 --> 1
+                    g2.addEdge(i, j);
+                    flip1++;
+                }
+            }
+        }
+        double ty = omp_get_wtime();
+        max_time_per_user =
+            max_time_per_user > (ty - tx) ? max_time_per_user : (ty - tx);
+    }
+    // RR_time += max_time_per_user;
+    // the dominating cost is incurred in server side butterfly counting on the
+    // dense noisy graph
+
+    cout << "noisy edges = " << flip1 << endl;
+
+    communication_cost += flip1 * sizeof(int);
+
+    long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
+    cout << "expected E = " << expected_E << endl;
+
+    // g2.computePriority();
 }
 
 long double two_round_btf(BiGraph& g, unsigned long seed) {
@@ -188,7 +275,9 @@ long double two_round_btf(BiGraph& g, unsigned long seed) {
     for (int u = 0; u < g.num_nodes(); u++) {
         // if(g.degree[u]==0) continue;
 
-        if (edge_clipping && priv_deg[u] <= 0) continue;
+        if (edge_clipping && priv_deg[u] <= 0){
+            continue;
+        }
 
         // when edge clipping is inplace, we can only visit at most priv_deg[u]
         // neighbors for u
@@ -222,9 +311,9 @@ long double two_round_btf(BiGraph& g, unsigned long seed) {
         for (auto ele : count_wedge) {
             // only execute this for butterfly counting
             if ((!count_cate) && (ele.second >= 2)) {
-                s1 += (ele.second - 1) * ele.second / 2;
+                s1 += (ele.second - 1) * ele.second / 2; // noisy butterfly counting 
             }
-            s2 += ele.second * (du - 1);
+            s2 += ele.second * (du - 1); // noisy caterpillar counting 
         }
 
         int deg_up = edge_clipping ? priv_deg[u] : g.degree[u];
@@ -249,10 +338,14 @@ long double two_round_btf(BiGraph& g, unsigned long seed) {
                                      p * sum_deg_v +
                                      p * p * deg_up * (g.num_v2 - 1);
             }
+
+            // question: why cannot we make GS smaller? 
+            // i.e., g2.v1_max_degree seems pretty large 
             sum += s1 - p * s2 + p * p * s3;
         }
-        sum += stats::rlaplace(0.0, (global_sensitivity / Eps2),
-                               engine);  // add calibrated noise
+
+        // I  think it is effectively counting the number of butterflies containing u. 
+        sum += stats::rlaplace(0.0, (global_sensitivity / Eps2), engine);  // add calibrated noise
         // communication_cost += sizeof(long double);
     }
     // return sum/(4*(1-2*p)*(1-2*p));
@@ -261,15 +354,121 @@ long double two_round_btf(BiGraph& g, unsigned long seed) {
     RR_time += t2 - t1;
     deg_esti_time += t1 - t0;
     local_count_time += t3 - t2;
-
+    
     if (count_cate) {
         if (sampling_noisy_graph) sum /= p____;
         return sum / (2 * (1 - 2 * p));
     } else {
-        if (sampling_noisy_graph) sum /= p____ * p____;
+        if (sampling_noisy_graph){
+            sum /= p____ * p____;
+        }
         return sum / (4 * (1 - 2 * p) * (1 - 2 * p));
     }
 }
+
+
+// I think this is a bad idea. 
+// because we need to construct an unbiased estimator for every possible wegde. 
+// wheras in common neighbor counts, these information are compressed 
+/*
+long double total_exploration_two_round_btf(BiGraph& g, unsigned long seed) {
+
+    edge_clipping = true; 
+
+    // Phase 0. deg_esti_time records the maximum degree perturbation time.
+    double t0 = omp_get_wtime();
+    cout << "private_estimate_of_degrees(g); " << endl;
+    Eps0 = Eps * 0.05;
+    private_estimate_of_degrees(g);
+
+    // upload noisy degrees
+    // if (eva_comm) communication_cost += g.num_nodes() * sizeof(int);
+
+    // Phase 1. RR
+    double t1 = omp_get_wtime();
+    cout << "construct_noisy_graph(g); " << endl;
+    Eps1 = Eps * 0.6;
+    p = 1.0 / (exp(Eps1) + 1.0);
+
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);  // upload noisy edges
+    
+
+    // Phase 2. local counting records the counting time
+    double t2 = omp_get_wtime();
+    cout << "local counting" << endl;
+    Eps2 = Eps - Eps0 - Eps1; 
+
+    // use eps2
+    long double global_sensitivity, sum = 0;
+
+    for (int u = 0; u < g.num_nodes(); u++) {
+
+        // priv_deg[u] represents an upper bound 
+        if (edge_clipping && priv_deg[u] <= 0){
+            continue;
+        }
+
+        // long double s1 = 0, s2 = 0, s3 = 0;
+        long double local_res = 0; 
+        // unordered_map<vid_t, int> count_wedge(0);
+        long double du = g.degree[u];
+        if (edge_clipping && (du > priv_deg[u])) {
+            du = priv_deg[u];
+        }
+
+        int visited_nb = 0;
+
+        for (auto v : g.neighbor[u]) {
+            // apply edge clipping on N(u)
+            if (edge_clipping && visited_nb == priv_deg[u]) {
+                break;
+            }
+            for (auto w : g2.neighbor[v]) {
+                if(u==w) continue;
+                    // we are looking at wedge <v, u, w>
+                    // need to go through all possible x vertex here: 
+                for (int x = 0; x < g.num_nodes(); x++) {
+                    if (x == u) continue;
+
+                    bool a = g2.has(x, v);
+                    bool b = g2.has(x, v);
+
+                    double factor1 = (1 - p) / (1 - 2 * p);
+                    double factor2 = (0 - p) / (1 - 2 * p);
+
+                    if (a && b) {
+                        local_res += pow(factor1, 2);
+                    } else if (a || b) {
+                        local_res += factor1 * factor2;
+                    } else {
+                        local_res += pow(factor2, 2);
+                    }
+                }
+            }
+            if (edge_clipping) visited_nb++;
+        }
+
+        int deg_up = edge_clipping ? priv_deg[u] : g.degree[u];
+
+        // for buttrfly counting:
+        if (g.is_upper(u)) {
+            global_sensitivity = deg_up * (g.num_v1 - 1) * pow((1 - p) / (1 - 2 * p),2) ;
+        } else {
+            global_sensitivity = deg_up * (g.num_v2 - 1) * pow((1 - p) / (1 - 2 * p),2) ;
+        }
+        local_res += stats::rlaplace(0.0, (global_sensitivity / Eps2), engine);  
+        // I  think it is effectively counting the number of butterflies containing u. 
+        sum += local_res; 
+    }
+    double t3 = omp_get_wtime();
+
+    
+
+    return sum / 4;
+    
+}
+*/
 
 void compute_m3_m2(long double& m4, long double& m3, long double& m2,
                    long double& m1, long double& m0, BiGraph& g2) {
@@ -385,14 +584,35 @@ long double one_round_btf(BiGraph& g, unsigned long seed) {
 
     cout << "computing m3, m2, m1, m0" << endl;
 
-    if (count_cate) {
-        cout << "\tcaterpillar estimation: " << endl;
-        estimate = -4 * mu * mu * mu * m4 + mu * mu * (mu * mu + 3) * m3 -
+    // this actually means getting bipartite clustering coefficient
+    /*
+    if(count_cc){
+        long double cate_estimate = -4 * mu * mu * mu * m4 + mu * mu * (mu * mu + 3) * m3 -
                    2 * mu * (mu * mu + 1) * m2 + (3 * mu * mu + 1) * m1 -
                    4 * mu * m0;
+        cate_estimate /= ((mu - 1) * (mu - 1) * (mu - 1) * (mu - 1));
+        // 
+        long double btf_estimate = mu * mu * mu * mu * m4 - mu * mu * mu * m3 + mu * mu * m2 -
+                   mu * m1 + m0;
+        btf_estimate /= ((mu - 1) * (mu - 1) * (mu - 1) * (mu - 1));
+        estimate = 4 * btf_estimate / cate_estimate; 
+
+        naive_estis[iteration] = m4 * 4/(m4 * 4 + m3);
+
+
+    }else 
+    */
+    if (count_cate) {
+        cout << "\tcaterpillar estimation: " << endl;
+        estimate = -4 * mu * mu * mu * m4 
+                   + mu * mu * (mu * mu + 3) * m3 -
+                   2 * mu * (mu * mu + 1) * m2 
+                   + (3 * mu * mu + 1) * m1 
+                   -4 * mu * m0;
         estimate /= ((mu - 1) * (mu - 1) * (mu - 1) * (mu - 1));
         naive_estis[iteration] = m4 * 4 + m3;
-    } else {
+    } 
+    else {
         cout << "\tbtf estimation: " << endl;
         estimate = mu * mu * mu * mu * m4 - mu * mu * mu * m3 + mu * mu * m2 -
                    mu * m1 + m0;
@@ -402,7 +622,6 @@ long double one_round_btf(BiGraph& g, unsigned long seed) {
         naive_server_side += t1x - t1;
     }
     long double t2 = omp_get_wtime();
-
     // record time elapsed.
     // RR_time += t1-t0; // compute the total time from randomized response.
     server_side_time += t2 - t1;
@@ -464,4 +683,2028 @@ long double get_cate(BiGraph& g) {
         }
     }
     return caterpillar;
+}
+
+// new approach: 
+// we might also need to adopt some budget optimization strategy here. 
+// this is a two phase algorithm. 
+// first construct the whole noisy graph, and then use it
+// is it possible to combine this with the two-round algorithm? 
+
+extern int K___ ; 
+long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
+    // Phase 0. deg_esti_time records the maximum degree perturbation time.
+    // double t0 = omp_get_wtime();
+    // cout << "private_estimate_of_degrees(g); " << endl;
+    Eps0 = Eps * 0.05;
+    // private_estimate_of_degrees(g);
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+	for(int i=0;i<g.num_nodes();i++){
+		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
+        // there is a chance that deg_estis is negative 
+	}
+    // upload noisy degrees
+    // if (eva_comm) communication_cost += g.num_nodes() * sizeof(int);
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+    // Eps1 = (Eps -Eps0) * 0.6 ;
+    // Eps2 = (Eps -Eps0) * 0.4 ;
+
+    // Phase 1. RR
+    double t1 = omp_get_wtime();
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+    BiGraph g2(g);
+	construct_noisy_graph(g, g2, seed);  // upload noisy edges
+    // unfortunately, this step cannot be run in parallel
+
+    // Phase 2. local counting, this step can benefit from parallism 
+	// each vertex u download the noisy graph. 
+    double t2 = omp_get_wtime();
+    cout << "local counting" << endl;
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	gamma__ = (1-p) / (1-2*p);
+    // use eps2
+    // long double global_sensitivity, sum = 0;
+	long double res___ = 0; 
+
+	// what if we only consider upper vertices ?  --> better efficiency and effect  
+	// #pragma omp parallel for reduction(+:res___)
+
+    // when K = 5, exact counting is slightly off
+    // when K = 6, exact counting is way off
+
+	int K = K___;  // we are considering (2, K)-biclique right now
+
+    cout<<"K___ = "<<K___ <<endl;
+
+	int start__, end__;
+
+	start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
+	end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
+
+	#pragma omp parallel
+	{
+	#pragma omp for schedule(static)
+		for(int u =start__ ; u <end__ ; u++) {
+
+			for(int w =start__ ; w <end__ ; w++) {
+				if(u<=w) continue;
+
+                // if(w!=w_target) continue;
+
+                
+                // we only consider each pair once
+                // how do we get the common neighbors of u and we in g? 
+
+
+                // computing the ground truth
+                unsigned long long int real_f_u_w = 0;
+                real_f_u_w = count_if(g.neighbor[u].begin(), g.neighbor[u].end(), [&](auto xx){ return g.has(xx,w); });
+
+                // compute the number of common neighbors
+				long double f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
+                long double f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+                long double diff1 =0, diff2 = 0;
+
+
+                // aggregate local biclique number 
+
+                if(real_f_u_w>=K){
+                    unsigned long long int binomial__ = binomial_coefficient(real_f_u_w, K); 
+                    // cout<<"real_f_u_w = "<<real_f_u_w<<endl;
+                    // cout<<"val = "<<binomial__ <<endl;
+                    // cout<<endl;
+                    #pragma omp critical   
+                    real += binomial__ ; 
+                    // cout<<"real "<<real <<endl;
+                }
+
+    
+                /*
+                if ((u == u_target) && (w == w_target)) {
+
+                    cout << " u = " << u << endl;
+                    cout << " w = " << w << endl;
+                    cout << " C2(u,w) = " << real_f_u_w << endl;
+                    cout << " f^3 = " << pow(real_f_u_w,3) << endl;
+                    cout << "f1 = " << f_u_w << endl;
+                    cout << "f2 = " << f_w_u << endl;
+
+                    // real = real_f_u_w;
+                    // real = real_f_u_w * (real_f_u_w-1)/2;
+
+                    // real = pow(real_f_u_w, 3); 
+                    // real = (real_f_u_w * (real_f_u_w - 1) * (real_f_u_w - 2)) / 6;
+
+                    real += (real_f_u_w * (real_f_u_w - 1) * (real_f_u_w - 2)) / 6;
+
+                    cout<<"f choose 3 = "<<real <<endl;
+
+
+                    // res___ = (f_u_w + f_w_u )/ 2;
+                    // res___ = f_u_w * f_u_w; 
+                    // res___ = f_w_u * f_w_u; 
+
+                    // need to compute estimate of var
+                    // long double esti_var = 0; 
+                    // esti_var = p * (1 - p) * (g.degree[u] + g.degree[w]) / (4*(1 - 2 * p) * (1 - 2 * p)); 
+                    // esti_var += (1 - p)*(1 - p) / (Eps2 * Eps2*(1 - 2 * p) * (1 - 2 * p)); 
+                    // cout<<"estimated var = "<<esti_var <<endl;
+
+                    // compute variance of f1^2 
+                    long double esti_var_f_u = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                    esti_var_f_u += p * (1 - p) * g.degree[u] / ((1 - 2 * p) * (1 - 2 * p));
+                    long double esti_moment_2_1  = esti_var_f_u + real_f_u_w * real_f_u_w ; 
+                    long double esti_var_f_sqaure_1 = esti_var_f_u * esti_var_f_u + 2 * esti_moment_2_1 * esti_var_f_u ; 
+
+                    // compute variance of f2^2 
+                    long double esti_var_f_w = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                    esti_var_f_w += p * (1 - p) * g.degree[w] / ((1 - 2 * p) * (1 - 2 * p));
+                    long double esti_moment_2_2  = esti_var_f_w + real_f_u_w * real_f_u_w ; 
+                    long double esti_var_f_sqaure_2 = esti_var_f_w * esti_var_f_w + 2 * esti_moment_2_2 * esti_var_f_w ; 
+
+
+                    // cout << "Estimated var(f1^2) = " << esti_var_f_sqaure_1 << endl;
+                    // cout << "Estimated var(f2^2) = " << esti_var_f_sqaure_2 << endl;
+
+                    long double var_btf_u_w = (esti_var_f_sqaure_1 + esti_var_f_sqaure_2)/16; 
+
+                    var_btf_u_w += (esti_var_f_u * esti_var_f_w)/2; 
+
+                    var_btf_u_w += real_f_u_w * real_f_u_w * (esti_var_f_u + esti_var_f_w)/4; 
+
+
+                    // challenge: now need to estimate E(f_u^3) and E(f_w^3).
+                    // long double cov1 = pow(f_u_w,3)*real_f_u_w - f_u_w*f_u_w*real_f_u_w*real_f_u_w; 
+                    // long double cov2 = pow(f_w_u,3)*real_f_u_w - f_w_u*f_w_u*real_f_u_w*real_f_u_w; 
+
+                    // I think this is still underestimate the covariances
+                    long double cov1 = (pow(real_f_u_w,3)+3*real_f_u_w*esti_var_f_u )*real_f_u_w - (esti_var_f_u + pow(real_f_u_w,2))*real_f_u_w*real_f_u_w; 
+                    long double cov2 = (pow(real_f_u_w,3)+3*real_f_u_w*esti_var_f_w )*real_f_u_w - (esti_var_f_w + pow(real_f_u_w,2))*real_f_u_w*real_f_u_w; 
+                    var_btf_u_w += cov1/8;
+                    var_btf_u_w += cov2/8;
+
+                    // laplacian is not dominant
+                    // var_btf_u_w += p*p*(1-p)*(1-p)/ (4*Eps1*Eps1*(1 - 2 * p) * (1 - 2 * p)*(1 - 2 * p) * (1 - 2 * p));
+                    
+                    // cout << "Estimated var(btf(u,w)) = " << var_btf_u_w <<endl;
+                    avg_estimated_variance += var_btf_u_w;
+                    // break;
+                }
+                */
+               
+
+                
+                // averaging the local estimators from u and w 
+                f_u_w = (f_u_w + f_w_u)/2;
+				
+				
+                long double esti_var_f = 0;
+
+                // Compute variance of f_u
+                long double variance_f_u = 2 * pow(gamma__, 2) / pow(Eps2, 2) + 
+                                        p * (1 - p) * deg_estis[u] / pow(1 - 2 * p, 2);
+
+                long double variance_f_w = 2 * pow(gamma__, 2) / pow(Eps2, 2) + 
+                                        p * (1 - p) * deg_estis[w] / pow(1 - 2 * p, 2);
+
+                // Variance of f' = (var(f_u) + var(f_w)) / 4
+                esti_var_f = (variance_f_u + variance_f_w) / 4;
+
+                // (2,3)-biclique need these moments of 
+                // the unbiased estimate of f^2:
+
+                // we need these moments
+                std::vector<long double> moment(K + 1, 0); 
+
+                moment[1] = f_u_w;  // f^1
+
+                moment[2] = pow(f_u_w, 2) - esti_var_f; // f^2
+
+                long double local_res = 0;
+
+                
+                if (K == 2) {
+                    local_res =  (moment[2] - f_u_w)/2 ;
+                }
+                else if (K <= 3) {
+                    // this works very well.
+                    // if we assume skewness is zero,(we can observe that it is pretty symmetric)
+                    // we can get rid of E((\theta -f )^3). 
+                    moment[3] =  pow(f_u_w, 3) 
+                                    - 3 * f_u_w * esti_var_f; // this correction term is important
+
+                    if (K == 3) {
+                        local_res = (moment[3] - 3 * moment[2] + 2 * f_u_w) / 6;
+                    }
+                } 
+                else if (K <= 4) {
+                    // the formula here is still reasonable. 
+                    // assuming normal here: 
+                    moment[4] = pow(f_u_w,4) 
+                                - 6 * moment[2]* esti_var_f 
+                                - 3 * pow(esti_var_f ,2 );
+
+                    if (K == 4){
+                        local_res = (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * f_u_w) / 24;
+                    }
+                }
+                else if (K <= 5) {
+                    // this formula needs some work!
+                    // zero skewness assumption
+                    // to do: fix u and w, look at the result in 10K runs. see if it is normal.
+                    moment[5] = pow(f_u_w, 5) 
+                                - 10 * moment[3] * esti_var_f 
+                                - 15 * f_u_w * pow(esti_var_f, 2);
+                    // old formula
+                    // moment[5] = pow(f_u_w, 5) 
+                    //             - 10 * moment[3] * esti_var_f 
+                    //             - 10 * moment[2] * pow(esti_var_f, 2);
+
+                    if (K == 5) local_res = (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * f_u_w) / 120;
+                }
+                else if (K <= 6) {
+                    // the two approach are not too different, not very good 
+                    moment[6] = pow(f_u_w, 6) 
+                                - 15 * moment[4] * esti_var_f ;
+                                - 45 * moment[2] * pow(esti_var_f, 2) 
+                                - 15 * pow(esti_var_f, 3);
+                    // old 
+                    // moment[6] = pow(f_u_w, 6) 
+                    //             - 15 * moment[4] * esti_var_f ;
+                    //             - 25 * moment[3] * pow(esti_var_f, 2) 
+                    //             - 10 * moment[2] * pow(esti_var_f, 3);
+
+
+                    if (K == 6){
+                        local_res = (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3] + 274 * moment[2] - 120 * f_u_w) / 720;
+                    }
+                }
+                else if (K <= 7) {
+                    // 7,21,35,35,21,7
+                    // skewness based:
+                    // this makes much more sense
+                    moment[7] = pow(f_u_w, 7)
+                                + 21 * moment[5] * esti_var_f
+                                + 105 * moment[3] * pow(esti_var_f, 2)
+                                + 105 * f_u_w * pow(esti_var_f, 3);
+
+                    if (K == 7) local_res = (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4] + 252 * moment[3] - 140 * moment[2] + 24 * f_u_w) / 5040;
+                }
+                else if (K <= 8) {
+
+                    moment[8] = pow(f_u_w, 8) 
+                                - 28 * moment[6] * esti_var_f 
+                                - 140 * moment[4] * pow(esti_var_f, 2) 
+                                - 210 * moment[2] * pow(esti_var_f, 3)
+                                - 105 *pow(esti_var_f, 4);
+
+
+                    if (K == 8) local_res = (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5] 
+                                + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * f_u_w) / 40320;
+                }
+                else if (K <= 9) {
+                    moment[9] = pow(f_u_w, 9)
+                                - 36 * moment[7] * esti_var_f
+                                - 210 * moment[5] * pow(esti_var_f, 2)
+                                - 420 * moment[3] * pow(esti_var_f, 3)
+                                - 315 * moment[1] * pow(esti_var_f, 4); 
+
+                    if (K == 9){
+                        local_res = (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6] 
+                                + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3] 
+                                - 2016 * moment[2] + 504 * f_u_w) / 362880;
+                    }
+                }
+                else if (K <= 10) {
+                    // on higher moments, with or without is the same.
+                    moment[10] = pow(f_u_w, 10);
+                                // - 45 * moment[8] * esti_var_f
+                                // - 315 * moment[6] * pow(esti_var_f, 2)
+                                // - 735 * moment[4] * pow(esti_var_f, 3)
+                                // - 945 * moment[2] * pow(esti_var_f, 4)
+                                // - 315 * pow(esti_var_f, 5);
+
+                    // old formula, this is much worse
+                    // moment[10] = pow(f_u_w, 10) 
+                    //             - 45 * moment[9] * esti_var_f
+                    //             - 120 * moment[8] * pow(esti_var_f, 2)
+                    //             - 210 * moment[7] * pow(esti_var_f, 3)
+                    //             - 252 * moment[6] * pow(esti_var_f, 4)
+                    //             - 210 * moment[5] * pow(esti_var_f, 5)
+                    //             - 120 * moment[4] * pow(esti_var_f, 6)
+                    //             - 45 * moment[3] * pow(esti_var_f, 7)
+                    //             - 10 * moment[2] * pow(esti_var_f, 8);
+
+                    // cout<<"moment[9] = "<<moment[9] <<endl;
+                    // big issue: we are not computng
+                    if (K == 10){
+                    // this is just the expansion of (X choose K).
+                    local_res = (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7] 
+                                + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4] 
+                                - 2520 * moment[3] + 1260 * moment[2] - 210 * f_u_w) / 3628800;
+                    }
+                }
+
+                // challenge: how to generalize this formula for all K/ 
+                
+                // Calculate higher order moments (1, 2, ..., K)
+
+
+
+                // question, can we generate these formulas automatically?
+
+                /*
+                if ((u == u_target) && (w == w_target)) {
+                    // res___ = local_res; // report butterfly count 
+
+                    // we are trying to test whether this is the unbiased estimator of f^3.
+                    // res___ = pow(f_u_w,3) - 3*f_u_w*esti_var_f;
+
+                    long double moment_3 = pow(f_u_w,3) - 3*f_u_w*esti_var_f;
+
+                    cout<<"estimator of f^3 = "<<moment_3 <<endl;
+
+                    long double moment_2  = esti_var_f + pow(real_f_u_w,2);
+
+                    cout<<"estimator of f^2 = "<<moment_2 <<endl;
+
+                    // x^3 -3x^2 + 2 x
+                    res___ = moment_3 - 3 * moment_2 + 2 * f_u_w; 
+
+
+                    res___ /=6 ; 
+
+                    cout<<"res  = "<<res___<<endl;
+
+                    // f choose 3 = (x^3 - 3x^2 +2x)/6
+
+                    // estimate the variance of per-vertex-pair butterfly estimates
+
+                    // long double X = p * (1 - p) * (g.degree[u] + g.degree[w]) / (4*(1 - 2 * p) * (1 - 2 * p)); 
+                    // X += (1 - p)*(1 - p) / (Eps2 * Eps2*(1 - 2 * p) * (1 - 2 * p)); 
+
+                    // long double F = real_f_u_w; 
+
+                    // long double var_btf_u_w = 0.75 * X * X; 
+
+                    // var_btf_u_w += (2 * F * F+1)*X/4; 
+
+
+                    // cout << "Estimated var(btf(u,w)) = " << var_btf_u_w <<endl;
+                    break;
+                }
+
+                */
+				// if the degree estimate of u is more accurate then it's better
+
+
+
+				#pragma omp critical
+				res___ += local_res; // incrementing butterfly(u,w)
+
+			}
+
+		}
+	}
+
+    return res___;
+
+}
+
+
+// seems like this works better for dense subgraphs
+// this function is here to handle when p = 3
+long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
+    double t1 = omp_get_wtime();
+
+    Eps0 = Eps * 0.05;
+
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+	for(int i=0;i<g.num_nodes();i++){
+		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
+	}
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    // Phase 1. RR
+    
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+    BiGraph g2(g);
+	construct_noisy_graph(g, g2, seed);  
+
+
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	long double res___ = 0; 
+
+
+	int K = K___;  // we are considering (2, K)-biclique right now
+
+    cout<<"p = "<<3 <<endl;
+    cout<<"q = "<<K___ <<endl;
+
+
+    // Calculate the size of the smaller partition
+    int smaller_partition_size = std::min(g.num_v1, g.num_v2);
+
+    // Calculate the total number of possible triples in the smaller partition
+    long long total_triples = static_cast<long long>(smaller_partition_size) * 
+                            (smaller_partition_size - 1) * 
+                            (smaller_partition_size - 2) / 6; 
+
+
+    // Determine how many triples to sample based on the fraction
+    // double sample_fraction = 1e-4;
+
+    // sample size 
+    long double T = pow(10,6);
+
+    double sample_fraction = T / total_triples;
+    
+    long long num_triples_to_sample = static_cast<long long>(total_triples * sample_fraction);
+
+    // Random number generation
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(0.0, 1.0);
+
+    // Sample the triples
+    cout<<"total triplets: "<<total_triples <<endl;
+    cout << "Sample size = " << num_triples_to_sample <<endl;
+
+    bool is_upper_smaller = (g.num_v1 < g.num_v2 );
+    gamma__ = (1-p) / (1-2*p);
+
+    long double res = 0; 
+
+    // Determine the start and end bounds based on partition sizes
+    // by default, right now we only consider upper layer.
+    int start__ = 0; 
+    int end__ = g.num_v1; 
+
+    // to do: we need a smart way of getting the ground truth. 
+    // then. we can 
+
+    // reject sampling:
+    // Random number generator
+    // std::random_device rd;
+    // std::mt19937 gen(rd());
+    /*
+    std::uniform_int_distribution<> dis2(start__, end__ - 1);  // Inclusive range [start__, end__-1]
+    
+    std::vector<std::tuple<int, int, int>> tripletVec;           // To store unique triplets
+    std::set<std::tuple<int, int, int>> tripletSet;              // For uniqueness checks
+
+    int count = 0;
+    cout<<"reject sampling start.";
+    while (count < T) {
+        // Generate a triplet
+        int v1 = dis2(gen);
+        int v2 = dis2(gen);
+        int v3 = dis2(gen);
+
+        if (v1 == v2 || v1 == v3 || v2 == v3) {
+            continue;  // Skip if not distinct
+        }
+
+        // Sort the triplet to ensure consistent ordering
+        std::vector<int> vals = {v1, v2, v3};
+        std::sort(vals.begin(), vals.end());
+        auto triplet = std::make_tuple(vals[0], vals[1], vals[2]);
+
+        // Check if triplet is unique and add it
+        if (tripletSet.insert(triplet).second) {
+            tripletVec.push_back(triplet);
+            count++;
+            // Optional: std::cout << "Generated Triplet: (" << vals[0] << ", " << vals[1] << ", " << vals[2] << ")\n";
+        }
+    }
+    cout<<"reject sampling done.";
+    */
+
+
+    #pragma omp parallel
+	{
+        // #pragma omp for schedule(static)
+        // for (size_t i = 0; i < tripletVec.size(); ++i) {
+        //     const auto& triplet = tripletVec[i];
+        //     auto [v1, v2, v3] = triplet;
+    #pragma omp for schedule(static)
+    for (int v1 = start__; v1 < end__ - 2; ++v1) {
+        for (int v2 = v1 + 1; v2 < end__ - 1; ++v2) {
+            for (int v3 = v2 + 1; v3 < end__; ++v3) {
+
+                if (dis(gen) >= sample_fraction) continue;
+
+            // process each triplet
+            unsigned long long int real_fuvw = 0;
+            // from the neighbors of v1:
+            long double f1 = 0, f2= 0, f3 = 0; 
+            
+            long double f12 = 0, f13=0;
+            for(auto nb: g.neighbor[v1]){
+                long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                A1 = (A1-p) / (1-2*p); 
+
+                long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                A2 = (A2-p) / (1-2*p); 
+
+                f1 += A1 * A2; 
+
+                f12 += A1; 
+                f13 += A2; 
+            }
+
+            f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+            f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            long double f21 = 0, f23=0;
+            for(auto nb: g.neighbor[v2]){
+                long double A1 = g2.has(nb, v1) ? 1 : 0 ; 
+                A1 = (A1-p) / (1-2*p); 
+                long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                A2 = (A2-p) / (1-2*p); 
+                f2 += A1 * A2; 
+
+                f21 += A1; 
+                f23 += A2;          
+            }
+            f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
+            f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+            long double f31 = 0, f32=0;
+            for(auto nb: g.neighbor[v3]){
+                long double A1 = g2.has(nb, v1) ? 1 : 0 ; 
+                A1 = (A1-p) / (1-2*p); 
+                long double A2 = g2.has(nb, v2) ? 1 : 0 ; 
+                A2 = (A2-p) / (1-2*p); 
+                f3 += A1 * A2; 
+
+                f31 += A1; 
+                f32 += A2;    
+
+            }
+            f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+            f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+            // averaging
+            long double fuvw = (f1 + f2 + f3 )/3 ; 
+
+
+
+            /*
+            int real_f12 = std::count_if(
+                g.neighbor[v1].begin(), g.neighbor[v1].end(),
+                [&](auto x) { return g.has(v2, x); }
+            );
+            int real_f13 = std::count_if(
+                g.neighbor[v1].begin(), g.neighbor[v1].end(),
+                [&](auto x) { return g.has(v3, x); }
+            );
+            int real_f23 = std::count_if(
+                g.neighbor[v2].begin(), g.neighbor[v2].end(),
+                [&](auto x) { return g.has(v3, x); }
+            );
+            */
+
+            long double local_res = 0 ;
+            
+            
+
+            // estimate the variance of f(u, v, w)
+            // this step is tricky.
+            long double esti_var_f_uvw = 0 ;
+
+            long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+
+            long double esti_var_f1 = var_phi * (f12 + f13) ; 
+            esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+            esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+            long double esti_var_f2 = var_phi * (f12 + f23) ; 
+            esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+            esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+            long double esti_var_f3 = var_phi * (f13 + f23) ; 
+            esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+            esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+
+            // include C2(vi, vj)
+            f12 = (f12 + f21)/2;
+            f13 = (f13 + f31)/2;
+            f23 = (f23 + f32)/2;
+
+            // compute the variance of fuvw
+            esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3);
+
+            // consider the co-variance: 
+            // esti_var_f_uvw += 2 * var_phi * (real_f12 + real_f13 + real_f23); 
+            esti_var_f_uvw += 2 * var_phi * (f12 + f13 + f23); 
+            
+            esti_var_f_uvw /= 9;
+
+            // observed fuvw is still slightly higher than our formula
+            // I think there exists covariance between f1 f2 and f3.
+            std::vector<long double> moment(K + 1, 0); 
+            moment[1] = fuvw;  // f^1
+            moment[2] = pow(fuvw, 2) - esti_var_f_uvw; // f^2
+
+            if (K == 2) {
+                local_res =  (moment[2] - fuvw)/2 ;
+            }
+            else if (K <= 3) {
+                moment[3] =  pow(fuvw, 3) - 3 * fuvw * esti_var_f_uvw; // this correction term is important
+                if (K == 3) {
+                    local_res = (moment[3] - 3 * moment[2] + 2 * fuvw) / 6;
+                }
+            } 
+            else if (K <= 4) {
+                // the formula here is still reasonable. 
+                // assuming normal here: 
+                moment[4] = pow(fuvw,4) 
+                            - 6 * moment[2]* esti_var_f_uvw 
+                            - 3 * pow(esti_var_f_uvw ,2 );
+
+                if (K == 4){
+                    local_res = (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * fuvw) / 24;
+                }
+            }
+            else if (K <= 5) {
+                // this formula needs some work!
+                // zero skewness assumption
+                // to do: fix u and w, look at the result in 10K runs. see if it is normal.
+                moment[5] = pow(fuvw, 5) 
+                            - 10 * moment[3] * esti_var_f_uvw 
+                            - 15 * fuvw * pow(esti_var_f_uvw, 2);
+                if (K == 5) local_res = (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * fuvw) / 120;
+            }
+            else if (K <= 6) {
+                // the two approach are not too different, not very good 
+                moment[6] = pow(fuvw, 6) 
+                            - 15 * moment[4] * esti_var_f_uvw ;
+                            - 45 * moment[2] * pow(esti_var_f_uvw, 2) 
+                            - 15 * pow(esti_var_f_uvw, 3);
+
+                if (K == 6){
+                    local_res = (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3] + 274 * moment[2] - 120 * fuvw) / 720;
+                }
+            }
+            else if (K <= 7) {
+                moment[7] = pow(fuvw, 7)
+                            + 21 * moment[5] * esti_var_f_uvw
+                            + 105 * moment[3] * pow(esti_var_f_uvw, 2)
+                            + 105 * fuvw * pow(esti_var_f_uvw, 3);
+
+                if (K == 7) local_res = (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4] + 252 * moment[3] - 140 * moment[2] + 24 * fuvw) / 5040;
+            }
+            else if (K <= 8) {
+
+                moment[8] = pow(fuvw, 8) 
+                            - 28 * moment[6] * esti_var_f_uvw 
+                            - 140 * moment[4] * pow(esti_var_f_uvw, 2) 
+                            - 210 * moment[2] * pow(esti_var_f_uvw, 3)
+                            - 105 *pow(esti_var_f_uvw, 4);
+
+
+                if (K == 8) local_res = (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5] 
+                            + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * fuvw) / 40320;
+            }
+            else if (K <= 9) {
+                moment[9] = pow(fuvw, 9)
+                            - 36 * moment[7] * esti_var_f_uvw
+                            - 210 * moment[5] * pow(esti_var_f_uvw, 2)
+                            - 420 * moment[3] * pow(esti_var_f_uvw, 3)
+                            - 315 * moment[1] * pow(esti_var_f_uvw, 4); 
+
+                if (K == 9){
+                    local_res = (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6] 
+                            + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3] 
+                            - 2016 * moment[2] + 504 * fuvw) / 362880;
+                }
+            }
+            else if (K <= 10) {
+                // on higher moments, with or without is the same.
+                moment[10] = pow(fuvw, 10);
+                if (K == 10){
+                // this is just the expansion of (X choose K).
+                local_res = (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7] 
+                            + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4] 
+                            - 2520 * moment[3] + 1260 * moment[2] - 210 * fuvw) / 3628800;
+                }
+            }
+            #pragma omp critical
+            res += local_res; 
+        }
+        }
+    }
+        
+    }
+
+    // assert(count == num_triples_to_sample);
+    double t2 = omp_get_wtime();
+    cout<<"time  = "<<t2 - t1 <<endl;
+    return res / sample_fraction;
+
+}
+
+// need to implement the version for P in general. 
+long double wedge_based_two_round_general_biclique(BiGraph& g, 
+    unsigned long seed, int P___, int K___ ) {
+    double t1 = omp_get_wtime();
+
+    Eps0 = Eps * 0.05;
+
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+	for(int i=0;i<g.num_nodes();i++){
+		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
+	}
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    // Phase 1. RR
+    
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+    gamma__ = (1-p) / (1-2*p);
+    BiGraph g2(g);
+	construct_noisy_graph(g, g2, seed);  
+
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	long double res___ = 0; 
+
+    int N = g.num_v1 ; 
+
+    // prepare the subsets
+    vector<vector<int>> subsets;
+    vector<int> subset(P___);
+
+    // Initialize the first subset
+    for (int i = 0; i < P___; ++i) subset[i] = i;
+    while (true) {
+        subsets.push_back(subset); // Store the current subset
+        int i;
+        for (i = P___ - 1; i >= 0; --i) {
+            if (subset[i] != i + N - P___) {
+                ++subset[i];
+                for (int j = i + 1; j < P___; ++j) {
+                    subset[j] = subset[j - 1] + 1;
+                }
+                break;
+            }
+        }
+        if (i < 0) break; // Finished all combinations
+    }
+
+
+
+    #pragma omp parallel
+	{
+    #pragma omp for schedule(static)
+    for (int i__ = 0;  i__ < subsets.size(); ++i__) {
+        const auto& subset = subsets[i__];
+
+
+        // if(!(subset == std::vector<int>{6, 9, 36, 39, 46})) continue;
+        int v1 = subset[0];
+        long double min_deg = deg_estis[v1];
+        for (int i = 1; i < P___; ++i) {
+            if (deg_estis[subset[i]] < min_deg) {
+                min_deg = deg_estis[subset[i]];
+                v1 = subset[i];
+            }
+        }
+        // std::cout << "Min deg vertex (v1): " << v1 << ", deg_est: " << min_deg << "\n";
+
+        // given a central vertex v1 and construct its sup set: X
+
+        // construct the X set (everything minus v1)
+        vector<int> X;
+        for (int i = 0; i < P___; ++i) {
+            if (subset[i] != v1){
+                X.emplace_back(subset[i]);
+            }
+        }
+
+        // we will construct estimators using v1
+        // step 1: estimate the number of common neighbors among all vertices in subset
+        long double f1 = 0;
+        // long double real_f1 = 0; 
+
+        for(auto nb: g.neighbor[v1]){
+            long double fv1 = 1.0; 
+            // long double real_fv1 = 1.0;
+            for(auto xx : X){
+                long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
+                A_ = (A_-p) / (1-2*p); 
+                fv1 = fv1 * A_;
+                // real_fv1 = real_fv1 * (g.has(nb, xx) ? 1 : 0 );
+            }
+            f1 += fv1; 
+            // real_f1 += real_fv1;
+        }
+        f1 += stats::rlaplace(0.0, (pow(gamma__,X.size())/Eps2), engine); 
+
+
+
+        // step 2: estimate the variance of f1.
+        long double esti_var_f = 0; 
+        long double theta = p * (1-p) / pow(1-2*p, 2); 
+        // X is the set excluding \ v1.
+        /*
+        for(auto x: g.neighbor[v1]){
+            // Compute d_x: number of connections from x to X (V_U')
+            int d_x = 0;
+            for (int vj : X) {
+                // this step needs to be substituted by estimator 
+                if (g.has(x,vj)) {
+                    d_x++;
+                }
+            }
+            // this step needs to be substituted by estimator 
+            long double I_x = (d_x == P___-1) ? 1.0 : 0.0;
+            // Compute Var(g_x) = (theta + 1)^d_x * theta^(k - d_x) - I_x^2
+            long double var_gx = powl(theta + 1, d_x) * powl(theta, P___-1 - d_x) - powl(I_x, 2);
+            // cout<<"\tval = "<<var_gx<<endl;
+            esti_var_f += var_gx;
+        }
+        cout<<"\nesti_var_f (real dx): "<<esti_var_f <<endl;
+        */
+        
+
+
+        // Y is any proper subset of X. need to go through all Y
+        
+
+
+        long double esti_var_f_noisy = 0; 
+        int X_size = X.size();
+        // for (int mask = 0; mask < (1 << X_size); ++mask) { 
+        for (int mask = 0; mask < (1 << X_size) - 1; ++mask) {
+            // Include all subsets, from 0 to (1 << X_size) - 1
+            vector<int> Y;
+            for (int i = 0; i < X_size; ++i) {
+                if (mask & (1 << i)) {
+                    Y.push_back(X[i]);
+                }
+            }
+            // cout<<"X.size = "<<X.size()<<endl;
+            // cout<<"subset : "<<endl;
+            // cout<<"Y.size = "<<Y.size()<<endl;
+            // for(auto yyy:Y){
+            //     cout<<yyy<<" ";
+            // }
+            // cout<<endl;
+            // processing subset Y:
+            // estimate the number of common neighbors among Y \cup v1.
+            long double f1Y = 0; 
+            if(Y.size()==0){
+                f1Y = 1; 
+            }else{
+                // what if I make f1Y deterministic. 
+                for(auto nb: g.neighbor[v1]){
+                    long double fv1 = 1.0; 
+                    // long double real_fv1 = 1.0; 
+                    for(auto xx : Y){
+                        long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
+                        A_ = (A_-p) / (1-2*p); 
+                        fv1 = fv1 * A_; 
+
+                        // real_fv1 *= (g.has(nb, xx) ? 1 : 0);
+                    }
+                    f1Y += fv1; 
+                    // f1Y += real_fv1; 
+                }
+                // f1Y += stats::rlaplace(0.0, (pow(gamma__,Y.size())/Eps2), engine); 
+            }
+            // cout<<"theta = "<<theta <<endl;
+            // cout<<"P___-1-Y.size() = "<<P___-1-Y.size() <<endl;
+            // cout<<"f1Y = "<<f1Y <<endl;
+            // cout<<"pow(theta, P___-1-Y.size()) = "<<pow(theta, P___-1-Y.size()) <<endl;
+            // cout<<"\tval = "<<pow(theta, P___-1-Y.size()) * f1Y<<endl;
+            esti_var_f_noisy += pow(theta, P___-1-Y.size()) * f1Y;
+
+        }
+        // cout<<"estimated var f w.o. Lap = " << esti_var_f <<endl;
+        // add laplace variance
+        esti_var_f_noisy += 2 *pow(gamma__,2*P___-2) / pow(Eps2, 2);
+
+        // cout<<"estimated var = " << esti_var_f_noisy <<endl;
+
+        esti_var_f = esti_var_f_noisy;
+
+
+
+        // this is not estimating the variance correctly either 
+        // long double esti_var_f_2 = 0;
+        // for(auto x: g.neighbor[v1]){
+        //     long double product_1 = 1, product_2 = 1;
+        //     for(auto vj : X){
+        //         long double A_x_vj = g.has(x, vj) ? 1 : 0 ; 
+        //         product_1 = product_1 * (A_x_vj + theta); 
+        //         product_2 = product_2 * (A_x_vj ); 
+        //     }
+        //     esti_var_f_2 += product_1 - product_2;
+        // }
+        // cout<<"estimated var 2 = " << esti_var_f_2 <<endl
+        
+        // cout<<endl;
+        
+        
+
+
+        // to do: need to debug why variance estimation is off.
+
+        // naive_estis[iteration] = esti_var_f ;
+        naive_estis[iteration] = esti_var_f_noisy ;
+
+        // special handling
+
+        // with f1 and esti_var_f ready, we can process K___ = 2, 3
+        std::vector<long double> moment(K___ + 1, 0); 
+        moment[1] = f1;  // f^1
+        moment[2] = pow(f1, 2) - esti_var_f; // f^2
+
+        long double local_res = 0 ;
+        if (K___ == 2) {
+            local_res =  (moment[2] - f1)/2 ;
+        }
+        else if (K___ <= 3) {
+            moment[3] =  pow(f1, 3) - 3 * f1 * esti_var_f; // this correction term is important
+            if (K___ == 3) {
+                local_res = (moment[3] - 3 * moment[2] + 2 * f1) / 6;
+            }
+        } 
+        else if (K___ <= 4) {
+            // the formula here is still reasonable. 
+            // assuming normal here: 
+            moment[4] = pow(f1,4) 
+                        - 6 * moment[2]* esti_var_f 
+                        - 3 * pow(esti_var_f ,2 );
+
+            if (K___ == 4){
+                local_res = (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * f1) / 24;
+                // this is better than the corrected version for some reason.
+                // local_res = pow(f1,4) - 6 *pow(f1,3) + 11*pow(f1,2) - 6*f1;
+                // local_res/=24;
+            }
+
+        }
+        else if (K___ <= 5) {
+            // this formula needs some work!
+            // zero skewness assumption
+            // to do: fix u and w, look at the result in 10K runs. see if it is normal.
+            moment[5] = pow(f1, 5) 
+                        - 10 * moment[3] * esti_var_f 
+                        - 15 * f1 * pow(esti_var_f, 2);
+            if (K___ == 5) local_res = (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * f1) / 120;
+        }
+        else if (K___ <= 6) {
+            // the two approach are not too different, not very good 
+            moment[6] = pow(f1, 6) 
+                        - 15 * moment[4] * esti_var_f ;
+                        - 45 * moment[2] * pow(esti_var_f, 2) 
+                        - 15 * pow(esti_var_f, 3);
+
+            if (K___ == 6){
+                local_res = (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3] + 274 * moment[2] - 120 * f1) / 720;
+            }
+        }
+        else if (K___ <= 7) {
+            moment[7] = pow(f1, 7)
+                        + 21 * moment[5] * esti_var_f
+                        + 105 * moment[3] * pow(esti_var_f, 2)
+                        + 105 * f1 * pow(esti_var_f, 3);
+
+            if (K___ == 7) local_res = (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4] + 252 * moment[3] - 140 * moment[2] + 24 * f1) / 5040;
+        }
+        else if (K___ <= 8) {
+
+            moment[8] = pow(f1, 8) 
+                        - 28 * moment[6] * esti_var_f 
+                        - 140 * moment[4] * pow(esti_var_f, 2) 
+                        - 210 * moment[2] * pow(esti_var_f, 3)
+                        - 105 *pow(esti_var_f, 4);
+
+
+            if (K___ == 8) local_res = (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5] 
+                        + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * f1) / 40320;
+        }
+        else if (K___ <= 9) {
+            moment[9] = pow(f1, 9)
+                        - 36 * moment[7] * esti_var_f
+                        - 210 * moment[5] * pow(esti_var_f, 2)
+                        - 420 * moment[3] * pow(esti_var_f, 3)
+                        - 315 * moment[1] * pow(esti_var_f, 4); 
+
+            if (K___ == 9){
+                local_res = (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6] 
+                        + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3] 
+                        - 2016 * moment[2] + 504 * f1) / 362880;
+            }
+        }
+        else if (K___ <= 10) {
+            // on higher moments, with or without is the same.
+            moment[10] = pow(f1, 10);
+            if (K___ == 10){
+            // this is just the expansion of (X choose K___).
+            local_res = (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7] 
+                        + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4] 
+                        - 2520 * moment[3] + 1260 * moment[2] - 210 * f1) / 3628800;
+            }
+        }
+
+        // cout<<"real biclique = "<< real_f1 * (real_f1 -1)/2 <<endl;
+        // cout<<"estimated biclique = "<< local_res <<endl;
+
+        #pragma omp critical
+        res___ += local_res;
+        // res___ += f1;
+    }
+    }
+
+    return res___ ;
+}
+
+long double wedge_based_btf_avg(BiGraph& g, unsigned long seed) {
+
+    Eps0 = Eps * 0.05;
+
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+	for(int i=0;i<g.num_nodes();i++){
+		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
+        // there is a chance that deg_estis is negative 
+	}
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+
+    // Phase 1. RR
+    double t1 = omp_get_wtime();
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+
+    // build one noisy graph by applying RR on U(G)
+    BiGraph g2(g);
+	construct_noisy_graph(g, g2, seed);  // upload noisy edges
+
+    BiGraph g3(g);
+	construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+
+
+    // unfortunately, this step cannot be run in parallel
+
+    // Phase 2. local counting, this step can benefit from parallism 
+	// each vertex u download the noisy graph. 
+    double t2 = omp_get_wtime();
+    cout << "local counting" << endl;
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	gamma__ = (1-p) / (1-2*p);
+    // use eps2
+    // long double global_sensitivity, sum = 0;
+	long double res___ = 0; 
+
+	// what if we only consider upper vertices ?  --> better efficiency and effect  
+	// #pragma omp parallel for reduction(+:res___)
+
+
+	
+	int start__, end__; 
+	start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
+	end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
+	#pragma omp parallel
+	{
+	#pragma omp for schedule(static)
+		for(int u =start__ ; u <end__ ; u++) {
+			// if (omp_get_thread_num() == 0) {
+			//     // This code runs only once in the parallel region to print the number of threads
+			//     std::cout << "Number of threads: " << omp_get_num_threads() << std::endl;
+			// }
+
+
+			for(int w =start__ ; w <end__ ; w++) {
+				if(u==w) 
+					continue;
+
+				if(vertex_pair_reduction && u<w) 
+					continue; 
+                
+                // we only consider each pair once
+                // how do we get the common neighbors of u and we in g? 
+
+
+                // computing the ground truth
+                long double real_f_u_w = 0;
+                // real_f_u_w = count_if(g.neighbor[u].begin(), g.neighbor[u].end(), [&](auto xx){ return g.has(xx,w); });
+
+                // phi is used in here. 
+
+                // computing the local wedge estimators using two noisy graphs: 
+                long double f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
+                long double f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
+
+				// long double f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
+                // long double f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+
+                long double diff1 =0, diff2 = 0;
+
+                // averaging always gives pretty good result 
+				if(averaging_f_estimates){// using the average of fu and fw.
+					f_u_w = (f_u_w + f_w_u)/2;
+				}
+				long double local_res = f_u_w * f_u_w - f_u_w; 
+
+                
+                // estimating butterflies by picking the better source 
+
+                // long double esti_var_f  = 0;
+                // long double esti_var_f_1 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                // esti_var_f_1 += p * (1 - p) * deg_estis[u] / ((1 - 2 * p) * (1 - 2 * p));
+
+                // long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                // esti_var_f_2 += p * (1 - p) * deg_estis[w] / ((1 - 2 * p) * (1 - 2 * p));
+
+                long double esti_var_f  = 0;
+                long double esti_var_f_1 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                esti_var_f_1 += p * (1 - p) * deg_estis[u] / (2 * (1 - 2 * p) * (1 - 2 * p));
+
+                long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                esti_var_f_2 += p * (1 - p) * deg_estis[w] / (2 * (1 - 2 * p) * (1 - 2 * p));
+
+				if(averaging_f_estimates){
+					esti_var_f = (esti_var_f_1 + esti_var_f_2)/4;
+				}
+
+				local_res -= esti_var_f; 
+
+				// if the degree estimate of u is more accurate then it's better
+				#pragma omp critical
+				res___ += local_res; // incrementing butterfly(u,w)
+
+			}
+
+		}
+	}
+	if (vertex_pair_reduction){
+        // we are running this version
+		return res___/2; 
+	}else{
+		return res___/4; 
+        // this is because we have computed the butterfly count for u, w 
+        // and w, u
+	}
+
+}
+
+
+// total exploration btf algorithm
+
+
+// not working well epsilon = 1 
+// need to make this more robust, not working well still looks like 
+long double weighted_pair_sampling(BiGraph& g, unsigned long seed) {
+
+    // question: should we select left side or right side? 
+    init_genrand(seed);
+
+    // Phase 0. deg_esti_time records the maximum degree perturbation time.
+    Eps0 = Eps*0.1 ;
+
+    double m = 0;
+
+    bool sample_from_upper = (g.num_v1 > (g.num_nodes() - g.num_v1));
+
+    // sample_from_upper = false ; 
+
+    // we choose the layer with more vertices, seems better.
+    // what if we take avg from both options 
+
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+
+	vector<long double> deg_weights; 
+	deg_weights.resize(g.num_nodes());
+
+    // issue: when degree is negative, how to sample vertices? 
+    // can we just skip the vertices with negative degrees? 
+    // (1) skipp the vertices with negative degrees
+    // okay, we can set a threshold. 
+    // if the degree is less than 0, set it to be 1.
+    int start = sample_from_upper ? 0 : g.num_v1;
+    int end = sample_from_upper ? g.num_v1 : g.num_nodes();
+
+    for (int i = start; i < end; ++i) {
+        deg_estis[i] = g.degree[i] + stats::rlaplace(0.0, 1 / Eps0, engine);
+
+        deg_weights[i] =deg_estis[i];
+        // if(deg_weights[i]<=0) deg_weights[i] = 0; 
+
+        // why we cannot even use degrees anymore? 
+        deg_weights[i] = 1.0 * pow(g.degree[i],2);
+        // deg_weights[i] = 1.0*g.degree[i] ;
+
+        // we want to use estimates from vertices with higher vertices 
+        m += deg_weights[i];
+    }
+
+    // obtain T vertex pairs with replacemnt, sampling 10K pairs 
+    int T = 10000;
+
+    // Maps to store occurrences
+    map<int, map<int, int>> pair_count_u;  // Map from vertex u to map of vertex w and count
+
+    // what if I always use both upper and lower vertex pairs? 
+    // sample T pairs of vertices 
+    for (int k = 0; k < T; k++) {
+        int u = -1, w = -1;
+        // Sample u from the appropriate set
+        double rand_val_u = genrand_real2();  
+        // cout<<"rand_val_u = "<<rand_val_u <<endl;
+        double cumulative_prob_u = 0.0;  
+        int start = sample_from_upper ? 0 : g.num_v1;
+        int end = sample_from_upper ? g.num_v1 : g.num_nodes();
+        for (int i = start; i < end; ++i) {
+            cumulative_prob_u += (double) deg_weights[i] / m;
+            if (rand_val_u < cumulative_prob_u) {
+                u = i;
+                break;
+            }
+        }
+        // cout<<"u  = "<<u<<endl;
+        double rand_val_w = genrand_real2();
+        // cout<<"rand_val_w = "<<rand_val_w <<endl;
+        double cumulative_prob_w = 0.0;
+        for (int i = start; i < end; ++i) {
+            cumulative_prob_w += (double) deg_weights[i] / m;
+            if (rand_val_w < cumulative_prob_w) {
+                w = i;
+                break;
+            }
+        }
+        // cout<<"w  = "<<w<<endl;
+        assert(u != -1 && w != -1);
+        if (u != w) {
+            pair_count_u[u][w]++;
+        }
+        // looks like we do not need to store them and re-process, 
+        // we could just do computations here 
+    }
+
+    // // Phase 1. RR
+    // this can be made faster by computing g2(u,v) adhoc.
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    p = 1.0 / (exp(Eps1) + 1.0);
+    BiGraph g2(g);
+
+    g2.edge_vector.clear();
+    assert(g2.edge_vector.size()==0);
+    g2.edge_vector.resize(g.num_v1 + g.num_v2);
+    
+    if(!efficient_RR){
+        cout << "constructing noisy_graph(g); " << endl;
+        construct_noisy_graph(g, g2, seed);  // upload noisy edges
+    }
+    // we do not construct the whole graph here 
+
+
+    // Output results
+    // cout << "Pairs for each u:" << endl;
+    double res = 0;
+    gamma__ = (1-p) / (1-2*p);
+
+    // counting phase (apply RR in an ad-hoc manner.)
+    cout<<"// counting phase (apply RR in an ad-hoc manner.) "<<endl;
+    for (const auto& entry_u : pair_count_u) {
+        int u = entry_u.first;
+        // cout << "Vertex u = " << u << ":" << endl;
+
+        for (const auto& pair : entry_u.second) {
+            int w = pair.first;
+
+            // cout << "\tVertex w = " << w << ":" << endl;
+
+            int count = pair.second;
+
+            assert(u!=w);
+
+            // why do we need to assert the estimated degrees are positive?
+
+            long double f_u_w = -1; 
+            if(efficient_RR){
+                // cout<<"computing from NB of u"<<endl;
+                f_u_w = locally_compute_f_given_q_and_x_ad_hoc(u, w, g, g2); 
+                // cout<<"computing from NB of w"<<endl;
+                f_u_w += locally_compute_f_given_q_and_x_ad_hoc(w, u, g, g2); 
+            }else{
+                f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2); 
+                f_u_w = locally_compute_f_given_q_and_x(w, u, g, g2); 
+            }
+
+            f_u_w /= 2; 
+
+            long double local_res = f_u_w * f_u_w - f_u_w; 
+
+            // compute the variance of tilde(f)
+            long double esti_var_f = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+            esti_var_f += p * (1 - p) * deg_estis[u] / ((1 - 2 * p) * (1 - 2 * p));
+            if(averaging_f_estimates){
+                long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                esti_var_f_2 += p * (1 - p) * deg_estis[w] / ((1 - 2 * p) * (1 - 2 * p));	
+                esti_var_f = (esti_var_f + esti_var_f_2)/4;
+            }
+            local_res -= esti_var_f; 
+            // local_res is an estimator for (common choose 2)
+            // cout<<"common esti = "<<local_res<<endl;
+            // res += count * local_res * m * m / (2 * deg_estis[u] * deg_estis[w]) ;
+            assert(deg_weights[u]!=0);
+            assert(deg_weights[w]!=0);
+            res += count * local_res * m * m / (2 * deg_weights[u] * deg_weights[w]) ;
+        }
+    }
+
+    res /=2;
+
+    return res/T;
+}
+
+
+double locally_compute_f_given_q_and_x(int q, int x, BiGraph& g, BiGraph& g2) {
+
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	double res =-1;
+	int start, end;
+
+    start = ( g2.is_upper(q) ) ?   g2.num_v1 : 0 ;
+    end =   ( g2.is_upper(q) ) ?   g2.num_nodes() : g2.num_v1;
+
+
+	double Nx_cap_Nq_minus_x =0, Nq_minus_Nx_minus_x =0;
+	// it looks like edge clipping makes it worse
+	bool x_is_a_nb_of_q = false;
+
+    // cout<<"q = "<<q<<endl;
+	for(auto nb: g.neighbor[q]){
+
+        // only consider when priority nb < priority q
+
+        // cout<<"nb of q: "<<nb<<endl;
+		if(nb == x){
+			x_is_a_nb_of_q = true;
+		}
+		if(g2.has(nb, x)){
+			Nx_cap_Nq_minus_x++;
+		}else{
+			Nq_minus_Nx_minus_x++;
+		}
+	}
+    // cout<<endl;
+
+	// if x is not a neighbor of q, then 
+	// if(g2.is_bipartite){
+		// in the case of bipartite graphs
+    if(x_is_a_nb_of_q){
+        cout<<"x cannot be a neighbor of q. They are from the same layer."<<endl;
+        cout<<"x = "<<x <<endl;
+        cout<<"q = "<<q <<endl;
+        exit(1);
+    }
+	// }else{
+	// 	// in the case of general graphs 
+	// 	if(x_is_a_nb_of_q){
+	// 		assert(Nq_minus_Nx_minus_x == g.degree[q] - Nx_cap_Nq_minus_x-1);
+	// 	}else{
+	// 		assert(Nq_minus_Nx_minus_x == g.degree[q] - Nx_cap_Nq_minus_x); 
+	// 	}
+	// }
+	// locally the degree of q is known. 
+	res = Nx_cap_Nq_minus_x * gamma__ + Nq_minus_Nx_minus_x * (-p)/(1-2*p); 
+
+	long double noise = stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+	res += noise; 
+
+	return res;
+}
+
+double locally_compute_f_given_q_and_x_ad_hoc(int q, int x, BiGraph& g, BiGraph& g2) {
+
+	double res =-1;
+	int start, end;
+
+    start = ( g2.is_upper(q) ) ?   g2.num_v1 : 0 ;
+    end =   ( g2.is_upper(q) ) ?   g2.num_nodes() : g2.num_v1;
+
+
+	double Nx_cap_Nq_minus_x =0, Nq_minus_Nx_minus_x =0;
+	// it looks like edge clipping makes it worse
+	bool x_is_a_nb_of_q = false;
+    // cout<<"x = "<<x <<endl;q
+    // cout<<"visiting nb of q:"<< q<<endl;
+	for(auto nb: g.neighbor[q]){
+
+		if(nb == x){
+			x_is_a_nb_of_q = true;
+		}
+
+        // need to check (nb, x) \in g2.
+        if (!g2.has_computed(nb, x)){
+            randomized_response_single_bit(nb, x, g, g2);
+        }
+
+        // if(g2.edge_vector[min(nb,x)][max(nb,x)]){
+		// 	Nx_cap_Nq_minus_x++;
+		// }else{
+		// 	Nq_minus_Nx_minus_x++;
+		// }
+        unsigned int smaller = (nb < x) ? nb : x;
+        unsigned int larger = (nb < x) ? x : nb;
+
+        if (g2.edge_vector[smaller][larger]) {
+            Nx_cap_Nq_minus_x++;
+        } else {
+            Nq_minus_Nx_minus_x++;
+        }
+	}
+
+
+    if(x_is_a_nb_of_q){
+        cout<<"x cannot be a neighbor of q. They are from the same layer."<<endl;
+        cout<<"x = "<<x <<endl;
+        cout<<"q = "<<q <<endl;
+        exit(1);
+    }
+
+	res = Nx_cap_Nq_minus_x * gamma__ + Nq_minus_Nx_minus_x * (-p)/(1-2*p); 
+
+	long double noise = stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+	res += noise; // why without noise it is even bigger? 
+
+	return res;
+}
+
+
+double locally_compute_f_given_q_and_x_two_graphs(int q, int x, BiGraph& g, BiGraph& g2, BiGraph& g3) {
+
+	double res =-1;
+	int start, end;
+
+    start = ( g2.is_upper(q) ) ?   g2.num_v1 : 0 ;
+    end =   ( g2.is_upper(q) ) ?   g2.num_nodes() : g2.num_v1;
+
+	double Nx_cap_Nq_minus_x =0, Nq_minus_Nx_minus_x =0;
+
+    double Nx_cap_Nq_minus_x_dup =0, Nq_minus_Nx_minus_x_dup =0;
+
+	bool x_is_a_nb_of_q = false;
+
+    // cout<<"q = "<<q<<endl;
+	for(auto nb: g.neighbor[q]){
+
+		if(nb == x){
+			x_is_a_nb_of_q = true;
+		}
+		if(g2.has(nb, x)){
+			Nx_cap_Nq_minus_x++;
+		}else{
+			Nq_minus_Nx_minus_x++;
+		}
+		if(g3.has(nb, x)){
+			Nx_cap_Nq_minus_x_dup++;
+		}else{
+			Nq_minus_Nx_minus_x_dup++;
+		}
+	}
+
+    if(x_is_a_nb_of_q){
+        cout<<"x cannot be a neighbor of q. They are from the same layer."<<endl;
+        cout<<"x = "<<x <<endl;
+        cout<<"q = "<<q <<endl;
+        exit(1);
+    }
+
+	res = Nx_cap_Nq_minus_x * gamma__ + Nq_minus_Nx_minus_x * (-p)/(1-2*p); 
+
+    double res2 = Nx_cap_Nq_minus_x_dup * gamma__ + Nq_minus_Nx_minus_x_dup * (-p)/(1-2*p); 
+
+    res = (res + res2)/2;
+
+    // the GS is the same.
+	res += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+	return res;
+}
+
+
+// count the common neighbor of q and x 
+// where prority is less than q 
+double locally_compute_f_given_q_and_x_vp(int q, int x, BiGraph& g, BiGraph& g2, int& res__) {
+
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	double res =-1;
+	int start, end;
+
+    start = ( g2.is_upper(q) ) ?   g2.num_v1 : 0 ;
+    end =   ( g2.is_upper(q) ) ?   g2.num_nodes() : g2.num_v1;
+
+
+	double Nx_cap_Nq_minus_x =0, Nq_minus_Nx_minus_x =0;
+	// it looks like edge clipping makes it worse
+	bool x_is_a_nb_of_q = false;
+
+    // cout<<"q = "<<q<<endl;
+	for(auto nb: g.neighbor[q]){
+
+        // only consider when priority nb < priority q
+        if(g.prio[q] <= g.prio[nb] ) 
+            continue;
+
+        assert(g.prio[q] > g.prio[nb]);
+
+        // cout<<"nb of q: "<<nb<<endl;
+		if(nb == x){
+			x_is_a_nb_of_q = true;
+		}
+		if(g2.has(nb, x)){
+			Nx_cap_Nq_minus_x++;
+		}else{
+			Nq_minus_Nx_minus_x++;
+		}
+	}
+    // cout<<endl;
+
+	// if x is not a neighbor of q, then 
+	// if(g2.is_bipartite){
+		// in the case of bipartite graphs
+    if(x_is_a_nb_of_q){
+        cout<<"x cannot be a neighbor of q. They are from the same layer."<<endl;
+        cout<<"x = "<<x <<endl;
+        cout<<"q = "<<q <<endl;
+        exit(1);
+    }
+
+	// locally the degree of q is known. 
+	res = Nx_cap_Nq_minus_x * gamma__ + Nq_minus_Nx_minus_x * (-p)/(1-2*p); 
+
+    res__ = Nx_cap_Nq_minus_x + Nq_minus_Nx_minus_x;
+
+	long double noise = stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+	res += noise; 
+
+	return res;
+}
+
+double locally_compute_f_given_q_and_x_vp_2(int q, int x, BiGraph& g, BiGraph& g2, int& res__) {
+
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	double res =-1;
+	int start, end;
+
+    start = ( g2.is_upper(q) ) ?   g2.num_v1 : 0 ;
+    end =   ( g2.is_upper(q) ) ?   g2.num_nodes() : g2.num_v1;
+
+
+	double Nx_cap_Nq_minus_x =0, Nq_minus_Nx_minus_x =0;
+	// it looks like edge clipping makes it worse
+	bool x_is_a_nb_of_q = false;
+
+    // cout<<"q = "<<q<<endl;
+	for(auto nb: g.neighbor[q]){
+
+        // only consider when priority nb < priority q
+        if(g.prio[x] <= g.prio[nb] ) 
+            continue;
+
+        assert(g.prio[x] > g.prio[nb]);
+
+        // cout<<"nb of q: "<<nb<<endl;
+		if(nb == x){
+			x_is_a_nb_of_q = true;
+		}
+		if(g2.has(nb, x)){
+			Nx_cap_Nq_minus_x++;
+		}else{
+			Nq_minus_Nx_minus_x++;
+		}
+	}
+    // cout<<endl;
+
+	// if x is not a neighbor of q, then 
+	// if(g2.is_bipartite){
+		// in the case of bipartite graphs
+    if(x_is_a_nb_of_q){
+        cout<<"x cannot be a neighbor of q. They are from the same layer."<<endl;
+        cout<<"x = "<<x <<endl;
+        cout<<"q = "<<q <<endl;
+        exit(1);
+    }
+
+	// locally the degree of q is known. 
+	res = Nx_cap_Nq_minus_x * gamma__ + Nq_minus_Nx_minus_x * (-p)/(1-2*p); 
+
+    res__ = Nx_cap_Nq_minus_x + Nq_minus_Nx_minus_x;
+
+	long double noise = stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+	res += noise; 
+
+	return res;
+}
+
+// this works
+long double weighted_pair_sampling_non_DP(BiGraph& g, unsigned long seed) {
+    // non-DP version.
+    
+    int T = 10000; // we want to sample 100 vertex pairs from L(G)
+    double m = 0;
+    for (int i = 0; i < g.num_v1; ++i){
+        m += g.degree[i];
+    }
+    cout<<"m = "<<m<<endl;
+    assert(m==g.num_edges);
+
+    double res = 0; 
+
+    init_genrand(seed);
+    for (int k = 0; k < T; k++) {
+        // cout << "pair # " << k << endl;
+        // Sample vertex u
+        double rand_val_u = genrand_real2();  // Generate a single random number
+        double cumulative_prob_u = 0.0;
+        int u = -1;
+        for (int i = 0; i < g.num_v1; ++i) {
+            cumulative_prob_u += (double)g.degree[i] / m;  // Accumulate probabilities
+
+            if (rand_val_u < cumulative_prob_u) {
+                u = i;  // Select the current vertex if rand_val_u falls within its probability range
+                break;
+            }
+        }
+        double rand_val_w = genrand_real2();  // Generate a single random number
+        double cumulative_prob_w = 0.0;
+        int w = -1;
+        for (int i = 0; i < g.num_v1; ++i) {
+            cumulative_prob_w += (double)g.degree[i] / m;  // Accumulate probabilities
+
+            if (rand_val_w < cumulative_prob_w) {
+                w = i;  // Select the current vertex if rand_val_w falls within its probability range
+                break;
+            }
+        }
+        // Ensure u and w are not -1
+        assert((u != -1) && (w != -1));
+
+        if (u != w) {
+            // compute the common neighbors 
+            double common_u_w = 0;
+            for (int xxx : g.neighbor[u]) {
+                if (find(g.neighbor[w].begin(), g.neighbor[w].end(), xxx) != g.neighbor[w].end()) {
+                    common_u_w++;
+                }
+            }
+            // cout<<"common neighbor = "<< common_u_w <<endl;
+            if(common_u_w>0){
+                double common_u_w_choose_two = common_u_w * (common_u_w - 1) /2 ; 
+                res += common_u_w_choose_two * m * m *1.0 / (2 * g.degree[u] * g.degree[w]);
+            }
+        }
+    }
+    return res / T; 
+}
+
+// one-round biclique counting: 
+// _switch = btf:0, cate:1, biclique:2, quasi-biclique: 3.
+long double one_round_biclique(BiGraph& g, unsigned long seed, int p__, int q__, int _switch){
+
+	BiGraph g2(g); 
+    
+	construct_noisy_graph(g, g2, seed);
+
+    
+    cout<<"p__ = "<<p__ <<endl;
+    cout<<"q__ = "<<q__ <<endl;
+
+
+    std::vector<int> U, L; 
+    for (int i = 0; i < g.num_v1; ++i) U.push_back(i); 
+    
+    for (int i = g.num_v1; i < g.num_nodes(); ++i) L.push_back(i);
+    
+
+    // std::vector<int> U(g.num_v1), L(g.num_nodes() - g.num_v1);
+    // std::iota(U.begin(), U.end(), 0);  
+    // std::iota(L.begin(), L.end(), g.num_v1);
+
+
+    // Generate all combinations of p vertices from U
+    generate_combinations(U, p__, up_options);
+
+    generate_combinations(L, q__, lo_options);
+	
+	cout<<"counting biclique on noisy graph"<<endl;
+
+    
+    std::vector<long double> m__(p__ * q__ + 1, 0);
+    // Convert adjacency lists to unordered_set for O(1) edge lookup
+    std::vector<std::unordered_set<int>> adj(g2.neighbor.size());
+    for (size_t i = 0; i < g2.neighbor.size(); i++) {
+        
+        adj[i] = std::unordered_set<int>( g2.neighbor[i].begin(), g2.neighbor[i].end());
+
+    }
+    std::cout << "Counting mi numbers (optimized)\n";
+    #pragma omp parallel
+    {
+        std::vector<long double> local_m(p__ * q__ + 1, 0);  // Private array for each thread
+
+        #pragma omp for collapse(2) nowait
+        for (size_t up_idx = 0; up_idx < up_options.size(); up_idx++) {
+            for (size_t lo_idx = 0; lo_idx < lo_options.size(); lo_idx++) {
+                const auto& xxx = up_options[up_idx];
+                const auto& yyy = lo_options[lo_idx];
+
+                int num_edges = 0;
+                for (int u : xxx) {
+                    for (int v : yyy) {
+                        if (adj[u].count(v)) num_edges++; // O(1) edge lookup
+                    }
+                }
+                local_m[num_edges]++;
+            }
+        }
+        // Reduce results
+        #pragma omp critical
+        for (size_t i = 0; i <= p__ * q__; i++) { // Start from 0
+            #pragma omp atomic
+            m__[i] += local_m[i];
+        }
+    }
+    
+
+    
+    /*
+    vector<long double> m__(p__ * q__ + 1, 0);
+	cout<<"counting mi numbers"<<endl;
+	#pragma omp parallel for collapse(2)
+	for(auto xxx:up_options){ 
+		for(auto yyy:lo_options){
+
+            // for each motif, check how many incident edges are there
+			int num_edges = 0;
+			for(auto i:xxx){
+				for(auto j:yyy){
+                    // they all need to be checked using g2. 
+					if(std::find(g2.neighbor[i].begin(), g2.neighbor[i].end(), j) != g2.neighbor[i].end() ){
+						num_edges++;
+					}
+				}
+			}
+			#pragma omp atomic
+			m__[num_edges]++;
+		}
+	}
+    */
+    
+
+	for(int i=0;i<m__.size();i++){
+		cout<<"edge = "<<i<<" num = "<<m__[i]<<endl;
+	}
+
+
+
+	long double res = 0, mu = exp(Eps); 
+	
+	// if(_switch==2){
+		for(int i=0;i<m__.size();i++){
+			res +=  power(-mu, i) * m__[i]; 
+		}
+		res /= power(1-mu, p__*q__);
+		naive_estis[iteration] = m__[m__.size()-1];
+	// }
+
+    /*
+	if(_switch==3){
+
+		res += -6*mu* m__[0];
+
+		res += (5*power(mu,2) + 1) * m__[1];
+
+		res += -2*mu*(2*power(mu,2) + 1) * m__[2];
+
+		res += 3*power(mu,2)*(power(mu,2) + 1) * m__[3];
+
+		res += -2*power(mu,3)*(power(mu,2) + 2) * m__[4];
+
+		res += power(mu,4)*(power(mu,2) + 5) * m__[5];
+
+		res += -6*power(mu,5) * m__[6];
+
+		res /= power(mu-1, 6);
+
+		naive_estis[iteration] = m__[m__.size()-2];
+	}
+    */
+	// double t2 = omp_get_wtime();
+
+	// record time elapsed.
+	// RR_time += t1-t0;
+	// server_side_time += t2-t1;
+	//
+    cout<<"naive esti = "<<naive_estis[iteration] <<endl;
+	return res;
+}
+
+
+// todo: implement the vertex-priority-based wedge butterfly counting 
+
+
+// TODO: (1) use estimated priority instead
+// (2) use estimated value of number of priority-obeying neighbors
+// (3) if we do not care about degree, just use vertex id, what will happen?
+long double VP_wedge_based_two_round_btf(BiGraph& g, unsigned long seed) {
+
+    Eps0 = Eps * 0.05;
+    // private_estimate_of_degrees(g);
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+	for(int i=0;i<g.num_nodes();i++){
+		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
+	}
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+    // Eps1 = (Eps -Eps0) * 0.6 ;
+    // Eps2 = (Eps -Eps0) * 0.4 ;
+
+    // Phase 1. RR
+    double t1 = omp_get_wtime();
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+    BiGraph g2(g);
+	construct_noisy_graph(g, g2, seed);  // upload noisy edges
+    // unfortunately, this step cannot be run in parallel
+
+    // Phase 2. local counting, this step can benefit from parallism 
+	// each vertex u download the noisy graph. 
+    double t2 = omp_get_wtime();
+    cout << "local counting" << endl;
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	gamma__ = (1-p) / (1-2*p);
+    // use eps2
+    // long double global_sensitivity, sum = 0;
+	long double res___ = 0; 
+
+	#pragma omp parallel
+	{
+	#pragma omp for schedule(static)
+
+        // for each u in V
+        // looks like this becomes much slower.
+        // for imbalanced layers, we can just go ahead and choose the smaller layer 
+        // for normal layers, we apply vertex-priority
+		for(int u =0 ; u < g.num_nodes() ; u++) {
+
+            // for each w with priority smaller than u
+            // cout<<"u = "<<u<<endl;
+            int start__, end__; 
+            if(g.is_upper(u)){
+                start__ = 0;
+                end__ = g.num_v1;
+            } else {  // Ensure this is a proper else block
+                start__ = g.num_v1;
+                end__ = g.num_nodes();
+            }
+			for(int w =start__ ; w <end__ ; w++) {
+
+				if(u==w) 
+					continue;
+
+                // cout<<"w = "<<w<<endl;
+                assert(g.same_layer(u,w));
+
+				if(vertex_pair_reduction &&  g.prio[u] <= g.prio[w]) 
+					continue; 
+                
+                assert(g.prio[u] > g.prio[w]);
+                // we only consider each pair once
+                // how do we get the common neighbors of u and we in g? 
+
+
+                // computing the ground truth
+                long double real_f_u_w = 0;
+                // real_f_u_w = count_if(g.neighbor[u].begin(), g.neighbor[u].end(), [&](auto xx){ return g.has(xx,w); });
+
+                // the number of priority-obeying wedges estimated from N(u)
+                int x1, x2;
+				long double f_u_w = locally_compute_f_given_q_and_x_vp(u, w, g, g2, x1);
+
+                // the number of priority-obeying wedges estimated from N(w)
+                long double f_w_u = locally_compute_f_given_q_and_x_vp_2(w, u, g, g2, x2);
+
+                // averaging always gives pretty good result 
+                f_u_w = (f_u_w + f_w_u)/2;
+
+				long double local_res = f_u_w * f_u_w - f_u_w; 
+
+
+                // deg_estis[u] should be the number of priority-obeying neighbor of u 
+                // deg_estis[w] should be the number of priority-obeying neighbor of w
+                long double esti_var_f  = 0;
+                long double esti_var_f_1 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+
+                // need to change x1 and x2 to be esitimates
+                esti_var_f_1 += p * (1 - p) * x1 / ((1 - 2 * p) * (1 - 2 * p));
+
+                long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+
+                esti_var_f_2 += p * (1 - p) * x2 / ((1 - 2 * p) * (1 - 2 * p));
+
+                esti_var_f = (esti_var_f_1 + esti_var_f_2)/4;
+				
+				local_res -= esti_var_f; 
+
+				// if the degree estimate of u is more accurate then it's better
+				#pragma omp critical
+				res___ += local_res/2; // incrementing butterfly(u,w)
+
+			}
+
+		}
+	}
+    return res___;
+
+}
+
+
+void check_exact_result_in_DB(int P___, int K___, string dataset){
+    sqlite3* db;
+    if (sqlite3_open("../biclq_counts.db", &db) != SQLITE_OK) {
+        std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+        exit(1);
+    }
+    // Dataset, p, and q values to filter
+    size_t found = dataset.find_last_of("/\\");  // Find the last slash
+    std::string dataset_to_find = dataset.substr(found + 1);  // Extract part after the last slash
+
+    // std::string dataset_to_find = "unicode";  // Example dataset
+    int p_to_find = P___;                   // Example p value
+    int q_to_find = K___;                   // Example q value
+
+    // Query to retrieve one row based on dataset, p, and q
+    const char* sql = "SELECT dataset, count FROM pqbiclique_counts WHERE dataset = ? AND p = ? AND q = ?;";
+    sqlite3_stmt* stmt;
+
+    // Prepare statement
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        exit(1);
+    }
+
+    // Bind parameters
+    sqlite3_bind_text(stmt, 1, dataset_to_find.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, p_to_find);
+    sqlite3_bind_int(stmt, 3, q_to_find);
+
+    // Execute the query
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        std::string dataset = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        unsigned long long count = static_cast<unsigned long long>(sqlite3_column_int64(stmt, 1));
+        std::cout << "Dataset: " << dataset << ", p = " << P___ << ", q = " << K___ << ", biclique count = " << count << std::endl;
+        real = count;
+    } else {
+        std::cout << "No matching data found." << std::endl;
+        exit(0);
+    }
+    // Cleanup
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 }

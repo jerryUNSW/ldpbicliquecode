@@ -13,6 +13,60 @@ long double add_geometric_noise(long double data, long double sensitivity, long 
 
     return noisy_data;
 }
+
+// long double binomial_coefficient(long double X, int k) {
+//     if (k < 0) return 0; // Invalid case
+//     if (k == 0) return 1; // X choose 0 is always 1
+
+//     double result = 1.0;
+//     for (int i = 0; i < k; ++i) {
+//         result *= (X - i);
+//     }
+//     return result / std::tgamma(k + 1); // k! = Gamma(k+1)
+// }
+unsigned long long int binomial_coefficient(unsigned long long int X, int k) {
+    if (k < 0 || k > X) return 0; // Invalid case or choose more than possible
+    if (k == 0 || k == X) return 1; // X choose 0 or X choose X is always 1
+
+    // To avoid overflow, we use the smaller of k and X-k
+    if (k > X - k) k = X - k;
+
+    unsigned long long int result = 1;
+    for (int i = 0; i < k; ++i) {
+        result *= (X - i);           // Multiply by X, X-1, ..., X-k+1
+        result /= (i + 1);           // Divide by 1, 2, ..., k
+    }
+    return result;
+}
+
+void generate_combinations(const std::vector<int>& set, int combination_size, std::vector<std::vector<int>>& combinations) {
+    std::vector<int> combination(combination_size);
+    for (int i = 0; i < combination_size; ++i) {
+        combination[i] = i;
+    }
+
+    while (true) {
+        std::vector<int> current_combination;
+        for (int i = 0; i < combination_size; ++i) {
+            current_combination.push_back(set[combination[i]]);
+        }
+        combinations.push_back(current_combination);
+
+        int i = combination_size - 1;
+        while (i >= 0 && combination[i] == set.size() - combination_size + i) {
+            --i;
+        }
+        if (i < 0) break;
+
+        ++combination[i];
+        for (int j = i + 1; j < combination_size; ++j) {
+            combination[j] = combination[j - 1] + 1;
+        }
+    }
+}
+ 
+
+
 long double power(long double base, int exponent) {
     long double result = 1.0;
 
@@ -67,7 +121,7 @@ double computeCovariance(const std::vector<double>& x, const std::vector<double>
     return covariance;
 }
 
-double computeVariance(const std::vector<double>& numbers) {
+double computeVariance(const std::vector<long double>& numbers) {
 
     double mean = 0.0;
     double variance = 0.0;

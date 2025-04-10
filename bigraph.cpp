@@ -75,6 +75,8 @@ void BiGraph::init(unsigned int num1, unsigned int num2) {
 
     fill_n(degree.begin(), num_v1 + num_v2, 0);
     // neighborHash.resize(num_v1+num_v2);
+
+    // edge_vector.resize(num_v1 + num_v2);
 }
 
 void BiGraph::computePriority() {
@@ -101,8 +103,7 @@ void BiGraph::computePriority() {
 }
 
 void BiGraph::loadGraph(string dir) {
-    // long double upper__ = 60 ;
-    // long double lower__ = 50 ;
+
     unsigned int n1, n2;
     unsigned int edges = 0;
     int u, v, r;
@@ -128,14 +129,38 @@ void BiGraph::loadGraph(string dir) {
             fprintf(stderr, "Bad file format: u v incorrect\n");
             exit(1);
         }
-        addEdgeRaw(u, v);
-        // if(include_amat){a_mat[u][v+num_v1] = a_mat[v+num_v1][u] = 1;}
+        // addEdgeRaw(u, v);
+
+        // cout<<" u = "<<u<<endl;
+        // cout<<" v = "<<u<<endl;
+        // assert(!this->same_layer(u,v));
+
+		// neighbor[u].push_back(v + num_v1);
+		// neighbor[v].push_back(u);	
+        neighbor[u].push_back(v + num_v1);
+        neighbor[v + num_v1].push_back(u);
+
+        num_edges++;
+
+        // edge vector based:
+        // looks like we do not need to make use of edge_vector for g. just g2. 
+		// edge_vector[u][v] = true;
+		// edge_vector[v][u] = true;
+
     }
     cout << "|E| = " << num_edges << endl;
+
+	// computing the maximum degree.
+    cout<<"computing degrees"<<endl;
+	for(int u=0;u<num_nodes();u++){
+		degree[u] = neighbor[u].size();
+		// v1_max_degree = v1_max_degree > degree[u] ? v1_max_degree : degree[u]; 
+	}
 
     fclose(metaGraph);
     fclose(edgeGraph);
 
+    cout<<"computing priority"<<endl;
     computePriority();
 }
 
@@ -161,9 +186,8 @@ void BiGraph::addEdgeRaw(vid_t u, vid_t v) {
     degree[v + num_v1]++;
 
     num_edges++;
-    v1_max_degree = v1_max_degree > degree[u] ? v1_max_degree : degree[u];
-    v2_max_degree =
-        v2_max_degree > degree[v + num_v1] ? v2_max_degree : degree[v + num_v1];
+    // v1_max_degree = v1_max_degree > degree[u] ? v1_max_degree : degree[u];
+    // v2_max_degree = v2_max_degree > degree[v + num_v1] ? v2_max_degree : degree[v + num_v1];
 }
 
 // maybe this function takes too long?

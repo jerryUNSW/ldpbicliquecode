@@ -48,10 +48,23 @@ class BiGraph {
     bool is_active(int vertex) { return degree[vertex] > 0; }
     int num_nodes() { return this->num_v1 + this->num_v2; }
 
+    // checks the neighbors 
+    // check whether i and j are connected 
     bool has(int i, int j) {
         return std::find(neighbor[i].begin(), neighbor[i].end(), j) !=
                neighbor[i].end();
     }
+
+    // for each pair of vertices u, v, it checks whether this pair has been computed. 
+	bool has_computed(int u, int v){
+		assert(u!=v);
+		int smaller = (u < v) ? u : v;
+		int larger = (u < v) ? v : u;
+		return edge_vector[smaller].find(larger) != edge_vector[smaller].end();
+	}
+
+
+
     bool hasEdge(int u, int v) {
         if (u < 0 || u >= num_nodes() || v < 0 || v >= num_nodes()) {
             cout << "Invalid vertex index\n";
@@ -97,6 +110,8 @@ class BiGraph {
     // max and min degrees
     int v1_max_degree;
     int v2_max_degree;
+
+    vector<map<int, bool>> edge_vector;
 };
 
 #endif /* __BIGRAPH_H */
