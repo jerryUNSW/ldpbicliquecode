@@ -134,17 +134,18 @@ int main(int argc, char *argv[]) {
 
 
             if(P___ == 2){
+                // this has the average version.
                 estis[iteration] = wedge_based_two_round_2_K_biclique(g, seed);
                 // estis[iteration] = wedge_based_btf_avg(g, seed); // this is the avg version.
             }
+            // need to implement two_noisy_graph_switch optimization for P == 3 
             else if(P___ == 3){
                 estis[iteration] = wedge_based_two_round_3_K_biclique(g, seed);
             }
+            // need to implement two_noisy_graph_switch optimization for P in general
             else{
                 cout<<"P = "<<P___ <<endl;
                 cout<<"Q = "<<K___ <<endl;
-
-                // exit(0);
 
                 estis[iteration] = wedge_based_two_round_general_biclique(g, seed, 
                     P___, K___);
@@ -209,7 +210,7 @@ int main(int argc, char *argv[]) {
 
     cout << "adv rel err = " << calculateMean(rel_err) << endl;
 
-    cout<<"esti_var_f mean: = "<<calculateMean(naive_estis) << endl;
+    // cout<<"esti_var_f mean: = "<<calculateMean(naive_estis) << endl;
     // cout<<"observed var(f_test): = "<<computeVariance(naive_estis) << endl;
 
     // this is the variance of f1
