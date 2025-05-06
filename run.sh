@@ -1,8 +1,8 @@
 #!/bin/bash
 
 epsilon=2
-round=10
-DBpath="/data/yizhangh/biclq_counts.db"  # Define the path to your SQLite database
+round=100
+# DBpath="/data/yizhangh/biclq_counts.db"  # Define the path to the SQLite database
 
 datasets=(
 	# "to"
@@ -11,7 +11,7 @@ datasets=(
 	# "crime"
     # "M_PL_030"
 	# "unicode"
-	# "lrcwiki"
+	"lrcwiki"
 	# "librec-filmtrust-ratings"
 	# "rmwiki"
 	# "amazon-ratings"
@@ -24,7 +24,7 @@ datasets=(
 	# "lastfm_band" 
     # "discogs_lstyle_lstyle"
 	# "digg-votes"
-	"movielens-10m_rating"
+	# "movielens-10m_rating"
 )
 
 ## compare their performance difference when epsilon = 1 
