@@ -1,14 +1,14 @@
 CC=g++
 CPPFLAGS=-I.
-LDFLAGS=-g -fopenmp
-DEPS = bigraph.h utility.h ldp-btf.h
-OBJ = bigraph.o main.o utility.o ldp-btf.o
+LDFLAGS=-g -fopenmp -lsqlite3
+DEPS = bigraph.h utility.h biclique.h
+OBJ = bigraph.o main.o utility.o biclique.o
 
 %.o: %.cpp $(DEPS)
 	$(CC) -std=c++1y -c -O3 -o $@ $< $(CPPFLAGS) $(LDFLAGS)  
 
-ldp-btf: $(OBJ)
+biclique: $(OBJ)
 	$(CC) -std=c++1y -O3 -pthread -o $@ $^ $(CPPFLAGS) $(LDFLAGS) -lgomp 
 
 clean:
-	-rm -f ldp-btf *.o
+	-rm -f biclique *.o

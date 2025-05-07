@@ -1,22 +1,22 @@
-# ldp-btf (Local Differential Privacy Butterfly Counting)
+# ldp-pq (Local Differential Privacy Biclique Counting)
 
 ## Overview
 
-ldp-btf is a C++ project focused on butterfly counting in bipartite graphs with edge local differential privacy.
+ldp-pq is a C++ project focused on biclique counting in bipartite graphs with edge local differential privacy.
+
 
 ## Project Structure
 
-The project includes the following files and directories:
+The project consists of the following key files and directories:
 
-- `ldp-btf.cpp`: Implementation of the butterfly counting algorithms. 
-- `bigraph.cpp`: Implementation of bipartite graph-related functionality.
-- `utility.cpp`: Utility functions used in the project.
-- `main.cpp`: Main program entry point.
-- `bigraph.h`: Header file for bipartite graph-related functions.
-- `utility.h`: Header file for utility functions.
-- `ldp-btf.h`: Header file for the butterfly counting algorithms. 
-- `makefile`: Build instructions for compiling and linking the project.
-- `mt19937ar.h`: Header file for the Mersenne Twister random number generator.
+- `main.cpp`: Entry point of the program.
+- `biclique.cpp` / `biclique.h`: Implementation and declarations of biclique counting algorithms unde edge LDP. 
+- `bigraph.cpp` / `bigraph.h`: Functionality and data structures for handling bipartite graphs.
+- `utility.cpp` / `utility.h`: Common utility functions shared across modules.
+- `exactcounting/`: Directory containing exact biclique counting experiment code.
+- `include/`: Additional header files.
+- `makefile`: Build script to compile the project using `make`.
+- `README.md`: Documentation with project overview and usage instructions.
 
 ## Build Instructions
 
@@ -28,11 +28,19 @@ make clean && make
 
 ## Running the Program
 
-To run the ldp-btf program, use the following command:
+To run the ldp-pq program, use the following command:
 
 ```bash
-./ldp-btf <epsilon> <data_directory> <num_iterations> <algorithm_switch> <motif_type>
+./biclique <epsilon> <data_directory> <num_iterations> <algorithm_switch> <p> <q>
 ```
+
+
+## Algorithm Switch Options
+
+- **0**: Naive algorithm
+- **1**: One-round algorithm
+- **3**: Advanced algorithm
+
 
 ## Data Format for Bipartite Graphs
 
@@ -55,14 +63,14 @@ Edges Count: The total number of edges
 <lower_vertices_count>
 <edges_count>
 
-## Usage
+## Example usage
 
-1. Run the DBE algorithm for 10 rounds with a privacy budget epsilon = 2, on the dataset unicode:  
+1. Run the naive algorithm to count the numebr of (2,3)-bicliques for 10 rounds with a privacy budget epsilon = 2, on the dataset unicode:  
 ```bash
-./ldp-btf 2 unicode 10 1 btf 
+./biclique 2 unicode 10 2 3 
 ```
 
-2. Run the Multiple-round algorithm for 10 rounds with a privacy budget epsilon = 2, on the dataset unicode:  
+2. Run the ADV algorithm to count the numebr of (3,2)-bicliques for 10 rounds with a privacy budget epsilon = 1, on the dataset unicode:  
 ```bash
-./ldp-btf 2 unicode 10 2 btf 
+./biclique 1 unicode 10 3 2 
 ```
