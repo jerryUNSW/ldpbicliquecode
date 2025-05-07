@@ -14,16 +14,6 @@ long double add_geometric_noise(long double data, long double sensitivity, long 
     return noisy_data;
 }
 
-// long double binomial_coefficient(long double X, int k) {
-//     if (k < 0) return 0; // Invalid case
-//     if (k == 0) return 1; // X choose 0 is always 1
-
-//     double result = 1.0;
-//     for (int i = 0; i < k; ++i) {
-//         result *= (X - i);
-//     }
-//     return result / std::tgamma(k + 1); // k! = Gamma(k+1)
-// }
 unsigned long long int binomial_coefficient(unsigned long long int X, int k) {
     if (k < 0 || k > X) return 0; // Invalid case or choose more than possible
     if (k == 0 || k == X) return 1; // X choose 0 or X choose X is always 1

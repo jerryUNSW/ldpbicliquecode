@@ -1,4 +1,4 @@
-#include "ldp-btf.h"
+#include "biclique.h"
 using namespace std;
 using namespace std::chrono;
 
@@ -25,7 +25,6 @@ int P___, K___ ;
 vector<vector<int>> up_options, lo_options; 
 
 long double avg_estimated_variance = 0 ;
-
 
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
@@ -57,8 +56,19 @@ int main(int argc, char *argv[]) {
     cout << "Eps = " << Eps << endl;
 
     vector<long double> m__;
-    
-    // grab exact result in DB. // turn off for now.
+
+
+
+    // biGraph convertedGraph = convertBiGraphTobiGraph(g);
+
+    // std::cout << "Converted graph: n1=" << convertedGraph.n1 
+    //           << ", n2=" << convertedGraph.n2 
+    //           << ", m=" << convertedGraph.m << std::endl;
+    // // Create and use BCListPlusPlus
+    // BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, K___);
+    // cout<<"cliq count = "<<counter->exactCount()<<endl;
+        
+    // grab exact biclique coutns from the sqlite database
     check_exact_result_in_DB(P___, K___, dataset); 
 
     estis.resize(num_rounds);
@@ -69,39 +79,88 @@ int main(int argc, char *argv[]) {
 
     for (iteration = 0; iteration < num_rounds; iteration++) {
 
+        // we need to implement the naive algorithm for pq bcilqiue counting.
+        // option 1: RR -> noisy graph G' -> return 
+        // option 2: 
 
-        if (algorithm_switch == 1) {
-            cout << "\nOne round algorithm" << endl;
-            cout << "EPS = " << Eps << endl;
-            // flip probability
+        if (algorithm_switch == 0) {
+            cout << "Naive algorithm for biclique counting" << endl;
+            cout << "EPS = " << Eps << endl;     
+
             p = 1.0 / (exp(Eps) + 1.0);
-
-
             unsigned int seed = rng();
-            cout << "seed = " << seed << endl;
+            cout << "random seed = " << seed << endl;
 
-            bool avg_btf_switch = false;
+            estis[iteration] = naive_biclique(g, seed, P___, K___);
 
-            if(avg_btf_switch){
-                long double esti1 = one_round_btf(g, seed);
-
-                unsigned int seed2 = rng();
-
-                long double esti2 = one_round_btf(g, seed2);
-
-                estis[iteration] = (esti1 + esti2)/2;
-            }else{
-                estis[iteration] = one_round_btf(g, seed);
-
-            }
-
-
-
-            long double rel = abs(estis[iteration] - real) * 1.0 / real;
             cout << "estimate = " << estis[iteration] << endl;
-            cout << "relative error = " << rel << endl;
-            rel_err.push_back(rel);
+
+            long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
+
+            cout << "relative error = " << relative_error << endl;
+            rel_err.push_back(relative_error);
             cout << endl;
+        }
+        
+        if (algorithm_switch == 1) {
+
+            if(P___ == 2 && K___==2){     
+                cout << "Oneround-BTF (existing DBE algorithm)" << endl;
+                cout << "EPS = " << Eps << endl;
+                // flip probability
+                p = 1.0 / (exp(Eps) + 1.0);
+                unsigned int seed = rng();
+                cout << "seed = " << seed << endl;
+
+                bool avg_btf_switch = false;
+                if(avg_btf_switch){
+                    // why can we do this? 
+                    // in theory, we are able to build two noisy graphs. 
+                    // based on each, we can have a BTF estimate. 
+                    // however, in experiment evaluations, we dont consider this case 
+                    // because this is our contribution to the ADV algorithm
+                    long double esti1 = one_round_btf(g, seed);
+                    unsigned int seed2 = rng();
+                    long double esti2 = one_round_btf(g, seed2);
+                    estis[iteration] = (esti1 + esti2)/2;
+                }else{
+                    estis[iteration] = one_round_btf(g, seed);
+                }
+                long double rel = abs(estis[iteration] - real) * 1.0 / real;
+                cout << "estimate = " << estis[iteration] << endl;
+                cout << "relative error = " << rel << endl;
+                rel_err.push_back(rel);
+                cout << endl;
+            }
+            else{
+                // one-round biclique algorithm for general P, Q values
+                cout << "Oneround, handling genral P, and Q values" << endl;
+                cout << "EPS = " << Eps << endl;
+                unsigned int seed = rng();
+                cout << "random seed = " << seed << endl;
+
+                // estis[iteration] = wedge_based_btf_avg(g, seed);
+                // estis[iteration] = VP_wedge_based_two_round_btf(g, seed);
+
+                // real = 1775 ; 
+                // real = 5400;
+
+                p = 1.0 / (exp(Eps) + 1.0);
+
+                estis[iteration] = one_round_biclique(g, 
+                    seed, P___, K___);
+                // cout << "estimate = " << estis[iteration] << endl;
+                
+                std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
+
+                cout<<"real = "<< real<<endl;
+
+                long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
+
+                cout << "relative error = " << relative_error << endl;
+                rel_err.push_back(relative_error);
+                cout << endl;
+            }
         } 
         if (algorithm_switch == 2) {
             cout << "\nMultiple round algorithms" << endl;
@@ -122,10 +181,8 @@ int main(int argc, char *argv[]) {
         }
         if (algorithm_switch == 3) {
             
-            // this is the common neighbor estimation inspired algorithm 
-            cout << "\nWedge-based butterfly counting algorithm" << endl;
-
-            // cout << "\nWedge-based algorithm for (2,3)-bicliques" << endl;
+            // the common neighbor estimation inspired algorithm 
+            cout << "\nWedge-based biclique counting algorithm" << endl;
 
             cout << "EPS = " << Eps << endl;
 
@@ -147,8 +204,7 @@ int main(int argc, char *argv[]) {
                 cout<<"P = "<<P___ <<endl;
                 cout<<"Q = "<<K___ <<endl;
 
-                estis[iteration] = wedge_based_two_round_general_biclique(g, seed, 
-                    P___, K___);
+                estis[iteration] = wedge_based_two_round_general_biclique(g, seed, P___, K___);
             }
             
 
@@ -163,38 +219,7 @@ int main(int argc, char *argv[]) {
             rel_err.push_back(relative_error);
             cout << endl;
         }
-        if (algorithm_switch == 4) {
-            // this is one-round biclique
-            // this is the common neighbor estimation inspired algorithm 
-            cout << "\nNew algorithm" << endl;
 
-
-            cout << "EPS = " << Eps << endl;
-
-            unsigned int seed = rng();
-            cout << "random seed = " << seed << endl;
-
-            // estis[iteration] = wedge_based_btf_avg(g, seed);
-            // estis[iteration] = VP_wedge_based_two_round_btf(g, seed);
-
-            // real = 1775 ; 
-            // real = 5400;
-
-            p = 1.0 / (exp(Eps) + 1.0);
-
-            estis[iteration] = one_round_biclique(g, seed, 2, K___, 2);
-            // cout << "estimate = " << estis[iteration] << endl;
-            
-            std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
-
-            cout<<"real = "<< real<<endl;
-
-            long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
-
-            cout << "relative error = " << relative_error << endl;
-            rel_err.push_back(relative_error);
-            cout << endl;
-        }
 
 
 

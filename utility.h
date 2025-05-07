@@ -15,12 +15,9 @@
 #include <iostream>
 #include <queue>
 #include <map>
-// #include <string>
-#include <sqlite3.h>
-
+#include <sqlite3.h> // for connecting to sqlite database
 #include <set>
 #include <tuple>
-
 #include <iomanip> 
 #include <climits> 
 #include <algorithm>
@@ -30,19 +27,24 @@
 #include <cstring>
 #include <vector>
 #include <fstream>
-#include <bitset> // this is to enumerate subsets 
+#include <bitset> // for enumerate subsets 
 #include <iterator>
 #include <cassert>
 #include <queue> 
 #include <random>
-
-#include <omp.h>  // Add this line to include omp.h
+#include <omp.h>  
 #include <cmath>
 
-// for LDP: 
+// for local differential privacy: 
 // #include "mt19937ar.h"
-#include "MemoryOperation.h"
+#include "include/MemoryOperation.h"
 #include "include/stats.hpp"
+
+// for exact cliq counting
+// #include "fastIO.hpp" // this is only involved in biGraph(const std::string &filePath)
+#include "exactcounting/listLinearHeap.hpp"
+#include "exactcounting/hopstotchHash.hpp"
+#include "exactcounting/linearSet.hpp"
 
 typedef unsigned int vid_t;
 typedef int num_t;
