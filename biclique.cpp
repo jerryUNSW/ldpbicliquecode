@@ -1,6 +1,15 @@
 #include "biclique.h"
 #include "include/mt19937ar.h"
 
+#include <sys/resource.h>
+void printMemoryUsage() {
+
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    std::cout << "Memory usage: " << usage.ru_maxrss << " KB" << std::endl;
+}
+
+
 using namespace std;
 long double _cate, _wedge, _btf;
 vector<int> upper_sample, lower_sample;
@@ -16,7 +25,7 @@ extern vector<vector<int>> up_options, lo_options;
 extern int iteration;
 
 // double noisy graph optimization?
-bool two_noisy_graph_switch = true; 
+bool two_noisy_graph_switch ; 
 
 extern unsigned long long int real; 
 
@@ -51,6 +60,53 @@ bool efficient_RR = true;
 
 bool skip_neg_deg = false ;
 // why cannot we skip negative vertices
+
+
+// convert your BiGraph instance g2 to the biGraph struct 
+biGraph convertBiGraphTobiGraph(BiGraph& oldGraph) {
+    biGraph newGraph;
+    
+    // Initialize basic properties
+    newGraph.n1 = oldGraph.num_v1;
+    newGraph.n2 = oldGraph.num_v2;
+    newGraph.m = oldGraph.num_edges;
+
+
+    // Allocate space
+    newGraph.edges.resize(newGraph.m);
+    newGraph.e1.resize(newGraph.m);
+    newGraph.e2.resize(newGraph.m);
+    newGraph.pU.resize(newGraph.n1 + 5);
+    newGraph.pV.resize(newGraph.n2 + 5);
+    
+    int edge_index = 0;
+    for (vid_t u = 0; u < oldGraph.num_v1; ++u) {
+        // for each upper vertex.
+        assert(oldGraph.is_upper(u));
+
+        auto& neighbors = oldGraph.neighbor[u];
+        for (const auto& v__ : neighbors) {
+            assert(oldGraph.is_lower(v__));
+            vid_t v = v__ - oldGraph.num_v1;
+            assert(v < oldGraph.num_v2); 
+
+            newGraph.edges[edge_index].u = u;         
+            newGraph.edges[edge_index].v = v;          
+            edge_index++;
+        }
+        // Clear memory for this neighbor list
+        std::vector<vid_t>().swap(neighbors);
+    }
+
+    // cout<<"edge_index = "<<edge_index<<endl;
+    assert(edge_index== newGraph.m );
+
+    // compute the degree ordering in new graph
+    newGraph.changeToDegreeOrder();
+
+    return newGraph;
+}
+
 
 void randomized_response_single_bit(int u, int v, BiGraph& g, BiGraph& g2) {
 	double keep_probability = g.has(u, v) ? 1 - p : p;
@@ -135,7 +191,7 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
     long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
     cout << "expected E = " << expected_E << endl;
 
-    // g2.computePriority();
+    g2.computePriority();
 }
 
 // applying RR to lower vertices 
@@ -191,7 +247,7 @@ void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
     long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
     cout << "expected E = " << expected_E << endl;
 
-    // g2.computePriority();
+    g2.computePriority();
 }
 
 long double two_round_btf(BiGraph& g, unsigned long seed) {
@@ -571,6 +627,7 @@ long double one_round_btf(BiGraph& g, unsigned long seed) {
         cout << "estimated m4' = " << m4 << endl;
 
     } else {
+        cout<<"computing m4"<<endl;
         m4 = BFC_EVP(g2);
     }
 
@@ -638,12 +695,17 @@ long double BFC_EVP(BiGraph& g) {
 #pragma omp parallel for reduction(+ : BTF)
     for (int u = 0; u < g.num_nodes(); u++) {
         if (g.degree[u] <= 1) continue;
+
+        // cout<<"u  = "<<u<<endl;
         unordered_map<vid_t, int> count_wedge(0);
         for (auto v : g.neighbor[u]) {
+            // cout<<"\t v = "<<v<<endl;
             // u -> v
             for (auto w : g.neighbor[v]) {
                 // u->v->w
+                // cout<<"u, v, w= "<<u<<" "<<"v"<<" "<<w<<endl;
                 // this step is not invoked for g3.
+                // what if we just use id.
                 if (g.com_p(w, v) & g.com_p(w, u)) {  // this is a lot faster.
                     count_wedge[w] = count_wedge[w] + 1;
                 }
@@ -651,11 +713,14 @@ long double BFC_EVP(BiGraph& g) {
         }
         // long double btf_u = 0;
         for (auto ele : count_wedge) {
+            // cout<<"wedge count = " <<ele.second <<endl;
             if (ele.second >= 2) {
                 BTF += (ele.second - 1) * ele.second / 2;
             }
         }
     }
+
+    // cout<<"BTF = "<<BTF<<endl;
     return BTF;
 }
 
@@ -1145,46 +1210,6 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     int start__ = 0; 
     int end__ = g.num_v1; 
 
-    // to do: we need a smart way of getting the ground truth. 
-    // then. we can 
-
-    // reject sampling:
-    // Random number generator
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    /*
-    std::uniform_int_distribution<> dis2(start__, end__ - 1);  // Inclusive range [start__, end__-1]
-    
-    std::vector<std::tuple<int, int, int>> tripletVec;           // To store unique triplets
-    std::set<std::tuple<int, int, int>> tripletSet;              // For uniqueness checks
-
-    int count = 0;
-    cout<<"reject sampling start.";
-    while (count < T) {
-        // Generate a triplet
-        int v1 = dis2(gen);
-        int v2 = dis2(gen);
-        int v3 = dis2(gen);
-
-        if (v1 == v2 || v1 == v3 || v2 == v3) {
-            continue;  // Skip if not distinct
-        }
-
-        // Sort the triplet to ensure consistent ordering
-        std::vector<int> vals = {v1, v2, v3};
-        std::sort(vals.begin(), vals.end());
-        auto triplet = std::make_tuple(vals[0], vals[1], vals[2]);
-
-        // Check if triplet is unique and add it
-        if (tripletSet.insert(triplet).second) {
-            tripletVec.push_back(triplet);
-            count++;
-            // Optional: std::cout << "Generated Triplet: (" << vals[0] << ", " << vals[1] << ", " << vals[2] << ")\n";
-        }
-    }
-    cout<<"reject sampling done.";
-    */
-
     #pragma omp parallel
 	{
         // #pragma omp for schedule(static)
@@ -1256,29 +1281,9 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
                 // averaging
                 long double fuvw = (f1 + f2 + f3 )/3 ; 
 
-
-
-                /*
-                int real_f12 = std::count_if(
-                    g.neighbor[v1].begin(), g.neighbor[v1].end(),
-                    [&](auto x) { return g.has(v2, x); }
-                );
-                int real_f13 = std::count_if(
-                    g.neighbor[v1].begin(), g.neighbor[v1].end(),
-                    [&](auto x) { return g.has(v3, x); }
-                );
-                int real_f23 = std::count_if(
-                    g.neighbor[v2].begin(), g.neighbor[v2].end(),
-                    [&](auto x) { return g.has(v3, x); }
-                );
-                */
-
                 long double local_res = 0 ;
                 
-                
-
                 // estimate the variance of f(u, v, w)
-                // this step is tricky.
                 long double esti_var_f_uvw = 0 ;
 
                 long double var_phi = p * (1-p) / pow(1-2*p, 2); 
@@ -1411,6 +1416,8 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     return res / sample_fraction;
 
 }
+
+
 
 // need to implement the version for P in general. 
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
@@ -1725,50 +1732,6 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
     }
 
     return res___ ;
-}
-
-
-// convert your BiGraph instance g2 to the biGraph struct 
-biGraph convertBiGraphTobiGraph(const BiGraph& oldGraph) {
-    biGraph newGraph;
-    
-    // Initialize basic properties
-    newGraph.n1 = oldGraph.num_v1;
-    newGraph.n2 = oldGraph.num_v2;
-    newGraph.m = oldGraph.num_edges;
-
-
-    // Allocate space
-    newGraph.edges.resize(newGraph.m);
-    newGraph.e1.resize(newGraph.m);
-    newGraph.e2.resize(newGraph.m);
-    newGraph.pU.resize(newGraph.n1 + 5);
-    newGraph.pV.resize(newGraph.n2 + 5);
-    
-    int edge_index = 0;
-    for (vid_t u = 0; u < oldGraph.num_v1; ++u) {
-        assert(oldGraph.is_upper(u));
-
-        // for each upper vertex, we check its neighbor in the old graph
-        for (const auto& v__ : oldGraph.neighbor[u]) {
-            assert(oldGraph.is_lower(v__));
-            vid_t v = v__ - oldGraph.num_v1;
-            assert(v < oldGraph.num_v2 ); 
-
-            // <u, v>
-            newGraph.edges[edge_index].u = u;         
-            newGraph.edges[edge_index].v = v;          
-            edge_index++;
-        }
-    }
-
-    // cout<<"edge_index = "<<edge_index<<endl;
-    assert(edge_index== newGraph.m );
-
-    
-    newGraph.changeToDegreeOrder();
-
-    return newGraph;
 }
 
 
@@ -2266,9 +2229,7 @@ long double naive_biclique(BiGraph& g, unsigned long seed,
 
     biGraph convertedGraph = convertBiGraphTobiGraph(g2);
 
-    std::cout << "Converted graph: n1=" << convertedGraph.n1 
-              << ", n2=" << convertedGraph.n2 
-              << ", m=" << convertedGraph.m << std::endl;
+    cout << "Converted graph: n1=" << convertedGraph.n1 << ", n2=" << convertedGraph.n2 << ", m=" << convertedGraph.m << std::endl;
     
     // Create and use BCListPlusPlus
     BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, p__, q__);
@@ -2402,7 +2363,9 @@ long double VP_wedge_based_two_round_btf(BiGraph& g, unsigned long seed) {
 }
 
 
-void check_exact_result_in_DB(int P___, int K___, string dataset){
+void check_exact_result_in_DB(int P___, int K___, 
+    string dataset, BiGraph& g){
+
     sqlite3* db;
     if (sqlite3_open("../biclq_counts.db", &db) != SQLITE_OK) {
         std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
@@ -2440,7 +2403,42 @@ void check_exact_result_in_DB(int P___, int K___, string dataset){
         real = count;
     } else {
         std::cout << "No matching data found." << std::endl;
-        exit(0);
+
+        // when this happens, we need to compute count ad hoc.
+        biGraph convertedGraph = convertBiGraphTobiGraph(g);
+        std::cout << "Converted graph: n1=" << convertedGraph.n1 
+                  << ", n2=" << convertedGraph.n2 
+                  << ", m=" << convertedGraph.m << std::endl;
+        BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, K___);
+        real = counter->exactCount();
+        cout<<"cliq count = "<<real<<endl;
+
+        // Insert the new value into the database
+        const char* insert_sql = "INSERT INTO pqbiclique_counts (dataset, p, q, count) VALUES (?, ?, ?, ?);";
+        sqlite3_stmt* insert_stmt;
+
+        // Prepare the INSERT statement
+        if (sqlite3_prepare_v2(db, insert_sql, -1, &insert_stmt, nullptr) != SQLITE_OK) {
+            std::cerr << "Error preparing insert statement: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            exit(1);
+        }
+
+        // Bind parameters for the insert statement
+        sqlite3_bind_text(insert_stmt, 1, dataset_to_find.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(insert_stmt, 2, P___);
+        sqlite3_bind_int(insert_stmt, 3, K___);
+        sqlite3_bind_int64(insert_stmt, 4, real);
+
+        // Execute the insert statement
+        if (sqlite3_step(insert_stmt) != SQLITE_DONE) {
+            std::cerr << "Error inserting data: " << sqlite3_errmsg(db) << std::endl;
+        } else {
+            std::cout << "Inserted new biclique count into database." << std::endl;
+        }
+        // Cleanup the insert statement
+        sqlite3_finalize(insert_stmt);
+
     }
     // Cleanup
     sqlite3_finalize(stmt);

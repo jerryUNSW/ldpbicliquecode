@@ -26,6 +26,8 @@ vector<vector<int>> up_options, lo_options;
 
 long double avg_estimated_variance = 0 ;
 
+extern bool two_noisy_graph_switch; 
+
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
 int main(int argc, char *argv[]) {
@@ -57,7 +59,8 @@ int main(int argc, char *argv[]) {
 
     vector<long double> m__;
 
-
+    unsigned long long int btf = BFC_EVP(g);
+    cout<<"BTF =  "<<btf<<endl;
 
     // biGraph convertedGraph = convertBiGraphTobiGraph(g);
 
@@ -69,7 +72,7 @@ int main(int argc, char *argv[]) {
     // cout<<"cliq count = "<<counter->exactCount()<<endl;
         
     // grab exact biclique coutns from the sqlite database
-    check_exact_result_in_DB(P___, K___, dataset); 
+    check_exact_result_in_DB(P___, K___, dataset, g); 
 
     estis.resize(num_rounds);
     naive_estis.resize(num_rounds);
@@ -91,7 +94,11 @@ int main(int argc, char *argv[]) {
             unsigned int seed = rng();
             cout << "random seed = " << seed << endl;
 
+
+            // printMemoryUsage();
             estis[iteration] = naive_biclique(g, seed, P___, K___);
+            // printMemoryUsage();
+
 
             cout << "estimate = " << estis[iteration] << endl;
 
@@ -101,7 +108,6 @@ int main(int argc, char *argv[]) {
             rel_err.push_back(relative_error);
             cout << endl;
         }
-        
         if (algorithm_switch == 1) {
 
             if(P___ == 2 && K___==2){     
@@ -162,8 +168,9 @@ int main(int argc, char *argv[]) {
                 cout << endl;
             }
         } 
+        /*
         if (algorithm_switch == 2) {
-            cout << "\nMultiple round algorithms" << endl;
+            cout << "\nOld Multi-round algorithm for BTF" << endl;
             cout << "EPS = " << Eps << endl;
 
             unsigned int seed = rng();
@@ -179,7 +186,8 @@ int main(int argc, char *argv[]) {
             rel_err.push_back(relative_error);
             cout << endl;
         }
-        if (algorithm_switch == 3) {
+        */
+        if (algorithm_switch >= 3) {
             
             // the common neighbor estimation inspired algorithm 
             cout << "\nWedge-based biclique counting algorithm" << endl;
@@ -192,6 +200,12 @@ int main(int argc, char *argv[]) {
 
             if(P___ == 2){
                 // this has the average version.
+                if(algorithm_switch==4){
+                    two_noisy_graph_switch = true ;
+                }
+                else{
+                    two_noisy_graph_switch = false ;
+                }
                 estis[iteration] = wedge_based_two_round_2_K_biclique(g, seed);
                 // estis[iteration] = wedge_based_btf_avg(g, seed); // this is the avg version.
             }

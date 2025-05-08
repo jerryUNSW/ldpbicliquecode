@@ -5,9 +5,10 @@
 
 #include "bigraph.h"
 
+void printMemoryUsage() ;
 
 // convert my graph to biclique-counting expected graph:
-biGraph convertBiGraphTobiGraph(const BiGraph& oldGraph); 
+biGraph convertBiGraphTobiGraph(BiGraph& oldGraph); 
 
 long double weighted_pair_sampling_non_DP(BiGraph& g, unsigned long seed); 
     
@@ -28,7 +29,9 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) ;
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
     unsigned long seed, int P___, int K___ );
 
-void check_exact_result_in_DB(int P___, int K___, string dataset);
+
+void check_exact_result_in_DB(int P___, 
+    int K___, string dataset, BiGraph& g);
 
 // improved new approach
 long double wedge_based_btf_avg(BiGraph& g, unsigned long seed);

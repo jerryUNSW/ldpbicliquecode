@@ -1,8 +1,11 @@
 #!/bin/bash
 
-epsilon=2
-round=100
+epsilon=1
+round=1
 # DBpath="/data/yizhangh/biclq_counts.db"  # Define the path to the SQLite database
+
+
+# need to input $1 and $2 as p and q. 
 
 datasets=(
 	# "to"
@@ -10,8 +13,8 @@ datasets=(
 	# "big"
 	# "crime"
     # "M_PL_030"
-	# "unicode"
-	"lrcwiki"
+	"unicode"
+	# "lrcwiki"
 	# "librec-filmtrust-ratings"
 	# "rmwiki"
 	# "amazon-ratings"
@@ -28,27 +31,25 @@ datasets=(
 )
 
 ## compare their performance difference when epsilon = 1 
-## small datasets 
 for dataset in "${datasets[@]}"
 do
 	echo "$dataset"
 
-    # one-round algorithm:
-    # ./ldp-btf $epsilon ../bidata/$dataset $round 1 btf 
+	# naive algorithm: 
+	./biclique $epsilon ../bidata/$dataset $round 0 $1 $2 
+	# | grep adv
 
-	# wedget-based algorithm 
-	# ./ldp-btf $epsilon ../bidata/$dataset $round 3 btf 
+    # # one-round algorithm
+    # ./biclique $epsilon ../bidata/$dataset $round 1 $1 $2  | grep adv
 
-	# weighted one-side sampling 
-	# ./ldp-btf $epsilon ../bidata/$dataset $round 1 btf | grep adv
-	
-	# adv:
-	./ldp-btf $epsilon ../bidata/$dataset $round 3 $1 $2 
-	# > tmp.txt
+	# # adv:
+	# ./biclique $epsilon ../bidata/$dataset $round 3 $1 $2 | grep adv
+
+	# # adv++:
+	# ./biclique $epsilon ../bidata/$dataset $round 4 $1 $2 | grep adv
 
     # estimate_lines=($(grep -oP 'estimate = \K[0-9\.]+' tmp.txt))
     # error_lines=($(grep -oP 'relative error = \K[0-9\.]+' tmp.txt))
-
 	# p=$1
 	# q=$2
 	# algorithm_name='adv'
@@ -60,7 +61,6 @@ do
     #     sqlite3 $DBpath "INSERT INTO approximation_results (datasetname, p, q, algorithm_name, epsilon, relative_error, estimate) 
     #                      VALUES ('$dataset', $p, $q, '$algorithm_name', $epsilon, $relative_error, $estimate);"
     # done
-
-
+	echo " "
 	echo " "
 done
