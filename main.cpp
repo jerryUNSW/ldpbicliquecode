@@ -28,6 +28,8 @@ long double avg_estimated_variance = 0 ;
 
 extern bool two_noisy_graph_switch; 
 
+extern bool multi_estimator_switch ; 
+
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
 int main(int argc, char *argv[]) {
@@ -59,20 +61,11 @@ int main(int argc, char *argv[]) {
 
     vector<long double> m__;
 
-    unsigned long long int btf = BFC_EVP(g);
-    cout<<"BTF =  "<<btf<<endl;
+    // unsigned long long int btf = BFC_EVP(g);
+    // cout<<"BTF =  "<<btf<<endl;
 
-    // biGraph convertedGraph = convertBiGraphTobiGraph(g);
-
-    // std::cout << "Converted graph: n1=" << convertedGraph.n1 
-    //           << ", n2=" << convertedGraph.n2 
-    //           << ", m=" << convertedGraph.m << std::endl;
-    // // Create and use BCListPlusPlus
-    // BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, K___);
-    // cout<<"cliq count = "<<counter->exactCount()<<endl;
-        
     // grab exact biclique coutns from the sqlite database
-    check_exact_result_in_DB(P___, K___, dataset, g); 
+    fetch_or_compute_biclique_count(P___, K___, dataset, g); 
 
     estis.resize(num_rounds);
     naive_estis.resize(num_rounds);
@@ -82,10 +75,7 @@ int main(int argc, char *argv[]) {
 
     for (iteration = 0; iteration < num_rounds; iteration++) {
 
-        // we need to implement the naive algorithm for pq bcilqiue counting.
-        // option 1: RR -> noisy graph G' -> return 
-        // option 2: 
-
+        // the naive algorithm for pq bcilqiue counting.
         if (algorithm_switch == 0) {
             cout << "Naive algorithm for biclique counting" << endl;
             cout << "EPS = " << Eps << endl;     
@@ -168,48 +158,32 @@ int main(int argc, char *argv[]) {
                 cout << endl;
             }
         } 
-        /*
-        if (algorithm_switch == 2) {
-            cout << "\nOld Multi-round algorithm for BTF" << endl;
-            cout << "EPS = " << Eps << endl;
+        if (algorithm_switch >= 2) {
 
-            unsigned int seed = rng();
-            cout << "random seed = " << seed << endl;
-
-            estis[iteration] = two_round_btf(g, seed);
-
-            cout << "estimate = " << estis[iteration] << endl;
-
-            long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
-
-            cout << "relative error = " << relative_error << endl;
-            rel_err.push_back(relative_error);
-            cout << endl;
-        }
-        */
-        if (algorithm_switch >= 3) {
-            
-            // the common neighbor estimation inspired algorithm 
-            cout << "\nWedge-based biclique counting algorithm" << endl;
-
-            cout << "EPS = " << Eps << endl;
-
-            unsigned int seed = rng();
-            cout << "random seed = " << seed << endl;
-
-
-            if(P___ == 2){
-                // this has the average version.
-                if(algorithm_switch==4){
-                    two_noisy_graph_switch = true ;
-                }
-                else{
-                    two_noisy_graph_switch = false ;
-                }
-                estis[iteration] = wedge_based_two_round_2_K_biclique(g, seed);
-                // estis[iteration] = wedge_based_btf_avg(g, seed); // this is the avg version.
+            // manipulate swith
+            if(algorithm_switch == 2){
+                cout << "\nADV" << endl;
+                multi_estimator_switch = false; 
+                two_noisy_graph_switch = false ;
             }
-            // need to implement two_noisy_graph_switch optimization for P == 3 
+            if(algorithm_switch == 3){
+                cout << "\nADV+" << endl;
+                multi_estimator_switch = true; 
+                two_noisy_graph_switch = false ;
+            }
+            if(algorithm_switch == 4){
+                cout << "\nADV++" << endl;
+                multi_estimator_switch = true; 
+                two_noisy_graph_switch = true ;
+            }
+            
+            // in this algorithm, we only use one vertex as the source of estimation.
+            cout << "EPS = " << Eps << endl;
+            unsigned int seed = rng();
+            cout << "random seed = " << seed << endl;
+            if(P___ == 2){
+                estis[iteration] = wedge_based_two_round_2_K_biclique(g, seed);
+            }
             else if(P___ == 3){
                 estis[iteration] = wedge_based_two_round_3_K_biclique(g, seed);
             }
@@ -217,27 +191,18 @@ int main(int argc, char *argv[]) {
             else{
                 cout<<"P = "<<P___ <<endl;
                 cout<<"Q = "<<K___ <<endl;
-
-                estis[iteration] = wedge_based_two_round_general_biclique(g, seed, P___, K___);
+                estis[iteration] = wedge_based_two_round_general_biclique(g, seed, P___, K___);            
+                // cout<<"Need to implement baseline for general P values"<<endl;
             }
             
-
             // cout << "estimate = " << estis[iteration] << endl;
             std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
-
             cout<<"real = "<<real <<endl;
-
             long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
-
             cout << "relative error = " << relative_error << endl;
             rel_err.push_back(relative_error);
             cout << endl;
         }
-
-
-
-
-
     }
 
     double t1 = omp_get_wtime();
@@ -248,40 +213,5 @@ int main(int argc, char *argv[]) {
     cout << "real count = " << real << endl;
 
     cout << "adv rel err = " << calculateMean(rel_err) << endl;
-
-    // cout<<"esti_var_f mean: = "<<calculateMean(naive_estis) << endl;
-    // cout<<"observed var(f_test): = "<<computeVariance(naive_estis) << endl;
-
-    // this is the variance of f1
-    // cout<<"sample variance = "<<computeVariance(estis)<<endl;
-
-    // cout<<"esti varinace =  "<<avg_estimated_variance / estis.size()<<endl;
-
-
-    // vector<long double> naive_err;
-    // for (auto xxx : naive_estis) {
-    //     naive_err.push_back(abs(xxx - real) * 1.0 / real);
-    // }
-    // if (algorithm_switch == 4) {
-    //     cout << "naive rel err = " << calculateMean(naive_err) << endl;
-    // }
-
-
-
-
-    // efficiency evaluations:
-    /*
-    if (algorithm_switch == 1) {
-        printf("RR time = %Lf\n", RR_time/num_rounds);
-        printf("adv server time = %Lf\n", server_side_time);
-        printf("naive server time = %Lf\n", naive_server_side);
-        printf("rr cost = %Lf\n", communication_cost);
-    } else {
-        printf("RR time = %Lf\n", RR_time/num_rounds);
-        printf("deg time = %Lf\n", deg_esti_time/num_rounds);
-        printf("local time = %Lf\n", local_count_time/num_rounds);
-        printf("com cost = %Lf\n", communication_cost);
-    }
-    */
     return 0;
 }

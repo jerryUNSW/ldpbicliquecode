@@ -26,6 +26,9 @@ extern int iteration;
 
 // double noisy graph optimization?
 bool two_noisy_graph_switch ; 
+bool multi_estimator_switch ; 
+
+extern int K___ ; 
 
 extern unsigned long long int real; 
 
@@ -758,7 +761,8 @@ long double get_cate(BiGraph& g) {
 // first construct the whole noisy graph, and then use it
 // is it possible to combine this with the two-round algorithm? 
 
-extern int K___ ; 
+
+// need to implement the 
 long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
     // Phase 0. deg_esti_time records the maximum degree perturbation time.
     // double t0 = omp_get_wtime();
@@ -792,15 +796,14 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
         construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
     }
 
-    // Phase 2. local counting, this step can benefit from parallism 
-	// each vertex u download the noisy graph. 
+    // Phase 2. local counting
     double t2 = omp_get_wtime();
     cout << "local counting" << endl;
 	Eps2 = Eps - Eps1 - Eps0;
     
 	// cout<<"using Eps2 = "<<Eps2 <<endl;
 	gamma__ = (1-p) / (1-2*p);
-    // use eps2
+    // remember to use eps2
     // long double global_sensitivity, sum = 0;
 	long double res___ = 0; 
 
@@ -823,18 +826,24 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
 
                 long double f_u_w, f_w_u;    
                 if(two_noisy_graph_switch){
+                    // when this switch is on, by default we expect multiple estimators.
                     f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
                     f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
                 }else{
                     f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
-                    f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+                    if(multi_estimator_switch){
+                        f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+                    }
                 }
 
                 long double diff1 =0, diff2 = 0;
-                bool new_method = false; 
+                
                 long double local_res = 0;
+
+                /*
+                bool new_method = false; 
                 if(new_method){
-                    // averaging the biclique estimators
+                    // averaging the biclique estimators (average in the end)
                     long double variance_f_u = 2 * pow(gamma__, 2) / pow(Eps2, 2) + 
                                             p * (1 - p) * deg_estis[u] / pow(1 - 2 * p, 2);
 
@@ -853,165 +862,46 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
                     local_res =    (local_res_1 + local_res_2)/2  ;
 
                 }else{
-                    // averaging the wedge estimators
-                    f_u_w = (f_u_w + f_w_u)/2;
-                
-                    // esitmate the variance of f_u_w
-                    long double esti_var_f = 0;
-                    long double variance_f_u = 2 * pow(gamma__,2)  / pow(Eps2,2);
-                    long double variance_f_w = 2 * pow(gamma__,2)  / pow(Eps2,2);
+                */
 
-                    long double main_fu =  p * (1 - p) * deg_estis[u] / pow(1-2*p,2);
-                    long double main_fw =  p * (1 - p) * deg_estis[w] / pow(1-2*p,2);
+                // define some variables
+                long double esti_var_f, variance_f_u, variance_f_w, main_fu, main_fw;
+
+                if(!multi_estimator_switch){
+                    // single source estimator: 
+                    esti_var_f = 2 * pow(gamma__,2)  / pow(Eps2,2) + p * (1 - p) * deg_estis[u] / pow(1-2*p,2); 
+                }else{
+
+                    // when multi source estimator:  
+                    f_u_w = (f_u_w + f_w_u)/2;
+                    // esitmate the variance of f_u_w
+                    esti_var_f = 0;
+                    // these are variance from laplace, not affected by two_noisy_graph_switch
+                    variance_f_u = 2 * pow(gamma__,2)  / pow(Eps2,2);
+                    variance_f_w = 2 * pow(gamma__,2)  / pow(Eps2,2);
+                    // main_fu and main_fw are the variance from local counts
+                    main_fu =  p * (1 - p) * deg_estis[u] / pow(1-2*p,2);
+                    main_fw =  p * (1 - p) * deg_estis[w] / pow(1-2*p,2);
                     if(two_noisy_graph_switch){
+                        // maybe we should increase epsilon 2 to reduce the impact of laplace.
                         main_fu/=2;
                         main_fw/=2;
                     }
                     variance_f_u += main_fu;
                     variance_f_w += main_fw;
-
                     esti_var_f = (variance_f_u + variance_f_w) / 4;
-
-                    // (2, K)-biclique need these moments of the unbiased estimate of f^2:
-                    std::vector<long double> moment(K + 1, 0); 
-                    moment[1] = f_u_w;  // f^1
-                    moment[2] = pow(f_u_w, 2) - esti_var_f; // f^2
-                    
-                    if (K == 2) {
-                        local_res =  (moment[2] - f_u_w)/2 ;
-                    }
-                    else if (K <= 3) {
-                        // this works very well.
-                        // if we assume skewness is zero,(we can observe that it is pretty symmetric)
-                        // we can get rid of E((\theta -f )^3). 
-                        moment[3] =  pow(f_u_w, 3) 
-                                        - 3 * f_u_w * esti_var_f; // this correction term is important
-
-                        if (K == 3) {
-                            local_res = (moment[3] - 3 * moment[2] + 2 * f_u_w) / 6;
-                        }
-                    } 
-                    else if (K <= 4) {
-                        // the formula here is still reasonable. 
-                        // assuming normal here: 
-                        moment[4] = pow(f_u_w,4) 
-                                    - 6 * moment[2]* esti_var_f 
-                                    - 3 * pow(esti_var_f ,2 );
-
-                        if (K == 4){
-                            local_res = (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * f_u_w) / 24;
-                        }
-                    }
-                    else if (K <= 5) {
-                        // this formula needs some work!
-                        // zero skewness assumption
-                        // to do: fix u and w, look at the result in 10K runs. see if it is normal.
-                        moment[5] = pow(f_u_w, 5) 
-                                    - 10 * moment[3] * esti_var_f 
-                                    - 15 * f_u_w * pow(esti_var_f, 2);
-                        // old formula
-                        // moment[5] = pow(f_u_w, 5) 
-                        //             - 10 * moment[3] * esti_var_f 
-                        //             - 10 * moment[2] * pow(esti_var_f, 2);
-
-                        if (K == 5) local_res = (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * f_u_w) / 120;
-                    }
-                    else if (K <= 6) {
-                        // the two approach are not too different, not very good 
-                        moment[6] = pow(f_u_w, 6) 
-                                    - 15 * moment[4] * esti_var_f ;
-                                    - 45 * moment[2] * pow(esti_var_f, 2) 
-                                    - 15 * pow(esti_var_f, 3);
-                        // old 
-                        // moment[6] = pow(f_u_w, 6) 
-                        //             - 15 * moment[4] * esti_var_f ;
-                        //             - 25 * moment[3] * pow(esti_var_f, 2) 
-                        //             - 10 * moment[2] * pow(esti_var_f, 3);
-
-
-                        if (K == 6){
-                            local_res = (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3] + 274 * moment[2] - 120 * f_u_w) / 720;
-                        }
-                    }
-                    else if (K <= 7) {
-                        // 7,21,35,35,21,7
-                        // skewness based:
-                        // this makes much more sense
-                        moment[7] = pow(f_u_w, 7)
-                                    + 21 * moment[5] * esti_var_f
-                                    + 105 * moment[3] * pow(esti_var_f, 2)
-                                    + 105 * f_u_w * pow(esti_var_f, 3);
-
-                        if (K == 7) local_res = (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4] + 252 * moment[3] - 140 * moment[2] + 24 * f_u_w) / 5040;
-                    }
-                    else if (K <= 8) {
-
-                        moment[8] = pow(f_u_w, 8) 
-                                    - 28 * moment[6] * esti_var_f 
-                                    - 140 * moment[4] * pow(esti_var_f, 2) 
-                                    - 210 * moment[2] * pow(esti_var_f, 3)
-                                    - 105 *pow(esti_var_f, 4);
-
-
-                        if (K == 8) local_res = (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5] 
-                                    + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * f_u_w) / 40320;
-                    }
-                    else if (K <= 9) {
-                        moment[9] = pow(f_u_w, 9)
-                                    - 36 * moment[7] * esti_var_f
-                                    - 210 * moment[5] * pow(esti_var_f, 2)
-                                    - 420 * moment[3] * pow(esti_var_f, 3)
-                                    - 315 * moment[1] * pow(esti_var_f, 4); 
-
-                        if (K == 9){
-                            local_res = (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6] 
-                                    + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3] 
-                                    - 2016 * moment[2] + 504 * f_u_w) / 362880;
-                        }
-                    }
-                    else if (K <= 10) {
-                        // on higher moments, with or without is the same.
-                        moment[10] = pow(f_u_w, 10);
-                                    // - 45 * moment[8] * esti_var_f
-                                    // - 315 * moment[6] * pow(esti_var_f, 2)
-                                    // - 735 * moment[4] * pow(esti_var_f, 3)
-                                    // - 945 * moment[2] * pow(esti_var_f, 4)
-                                    // - 315 * pow(esti_var_f, 5);
-
-                        // old formula, this is much worse
-                        // moment[10] = pow(f_u_w, 10) 
-                        //             - 45 * moment[9] * esti_var_f
-                        //             - 120 * moment[8] * pow(esti_var_f, 2)
-                        //             - 210 * moment[7] * pow(esti_var_f, 3)
-                        //             - 252 * moment[6] * pow(esti_var_f, 4)
-                        //             - 210 * moment[5] * pow(esti_var_f, 5)
-                        //             - 120 * moment[4] * pow(esti_var_f, 6)
-                        //             - 45 * moment[3] * pow(esti_var_f, 7)
-                        //             - 10 * moment[2] * pow(esti_var_f, 8);
-
-                        // cout<<"moment[9] = "<<moment[9] <<endl;
-                        // big issue: we are not computng
-                        if (K == 10){
-                        // this is just the expansion of (X choose K).
-                        local_res = (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7] 
-                                    + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4] 
-                                    - 2520 * moment[3] + 1260 * moment[2] - 210 * f_u_w) / 3628800;
-                        }
-                    }
-                    // challenge: how to generalize this formula for all K/ 
                 }
-				#pragma omp critical
-				res___ += local_res; // incrementing butterfly(u,w)
+                // (2, K)-biclique need these moments of the unbiased estimate of f^2:
+                local_res = compute_local_res(K, f_u_w, esti_var_f);
 
+				#pragma omp critical
+				res___ += local_res; 
 			}
 
 		}
 	}
-
     return res___;
-
 }
-
 
 // this function builds two noisy grahs to improve accuracy
 long double wedge_based_btf_avg(BiGraph& g, unsigned long seed) {
@@ -1279,6 +1169,7 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
                 f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
 
                 // averaging
+                // need to implement the version without averaging
                 long double fuvw = (f1 + f2 + f3 )/3 ; 
 
                 long double local_res = 0 ;
@@ -1313,12 +1204,11 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
                 esti_var_f_uvw += 2 * var_phi * (f12 + f13 + f23); 
                 esti_var_f_uvw /= 9;
 
-                // observed fuvw is still slightly higher than our formula
-                // I think there exists covariance between f1 f2 and f3.
+                /*
+                // there exists covariance between f1 f2 and f3.
                 std::vector<long double> moment(K + 1, 0); 
                 moment[1] = fuvw;  // f^1
                 moment[2] = pow(fuvw, 2) - esti_var_f_uvw; // f^2
-
                 if (K == 2) {
                     local_res =  (moment[2] - fuvw)/2 ;
                 }
@@ -1402,6 +1292,10 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
                                 - 2520 * moment[3] + 1260 * moment[2] - 210 * fuvw) / 3628800;
                     }
                 }
+                */
+
+                local_res = compute_local_res(K, fuvw, esti_var_f_uvw);
+
                 #pragma omp critical
                 res += local_res; 
             }
@@ -1416,8 +1310,6 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     return res / sample_fraction;
 
 }
-
-
 
 // need to implement the version for P in general. 
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
@@ -1734,6 +1626,97 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
     return res___ ;
 }
 
+long double compute_local_res(int K, long double f_u_w, long double esti_var_f) {
+    std::vector<long double> moment(K + 1, 0);
+    moment[1] = f_u_w;
+    moment[2] = pow(f_u_w, 2) - esti_var_f;
+
+    if (K == 2) {
+        return (moment[2] - f_u_w) / 2;
+    }
+
+    if (K >= 3) {
+        moment[3] = pow(f_u_w, 3) - 3 * f_u_w * esti_var_f;
+        if (K == 3) {
+            return (moment[3] - 3 * moment[2] + 2 * f_u_w) / 6;
+        }
+    }
+
+    if (K >= 4) {
+        moment[4] = pow(f_u_w, 4)
+                    - 6 * moment[2] * esti_var_f
+                    - 3 * pow(esti_var_f, 2);
+        if (K == 4) {
+            return (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * f_u_w) / 24;
+        }
+    }
+
+    if (K >= 5) {
+        moment[5] = pow(f_u_w, 5)
+                    - 10 * moment[3] * esti_var_f
+                    - 15 * f_u_w * pow(esti_var_f, 2);
+        if (K == 5) {
+            return (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * f_u_w) / 120;
+        }
+    }
+
+    if (K >= 6) {
+        moment[6] = pow(f_u_w, 6)
+                    - 15 * moment[4] * esti_var_f
+                    - 45 * moment[2] * pow(esti_var_f, 2)
+                    - 15 * pow(esti_var_f, 3);
+        if (K == 6) {
+            return (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3]
+                    + 274 * moment[2] - 120 * f_u_w) / 720;
+        }
+    }
+
+    if (K >= 7) {
+        moment[7] = pow(f_u_w, 7)
+                    + 21 * moment[5] * esti_var_f
+                    + 105 * moment[3] * pow(esti_var_f, 2)
+                    + 105 * f_u_w * pow(esti_var_f, 3);
+        if (K == 7) {
+            return (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4]
+                    + 252 * moment[3] - 140 * moment[2] + 24 * f_u_w) / 5040;
+        }
+    }
+
+    if (K >= 8) {
+        moment[8] = pow(f_u_w, 8)
+                    - 28 * moment[6] * esti_var_f
+                    - 140 * moment[4] * pow(esti_var_f, 2)
+                    - 210 * moment[2] * pow(esti_var_f, 3)
+                    - 105 * pow(esti_var_f, 4);
+        if (K == 8) {
+            return (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5]
+                    + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * f_u_w) / 40320;
+        }
+    }
+
+    if (K >= 9) {
+        moment[9] = pow(f_u_w, 9)
+                    - 36 * moment[7] * esti_var_f
+                    - 210 * moment[5] * pow(esti_var_f, 2)
+                    - 420 * moment[3] * pow(esti_var_f, 3)
+                    - 315 * moment[1] * pow(esti_var_f, 4);
+        if (K == 9) {
+            return (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6]
+                    + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3]
+                    - 2016 * moment[2] + 504 * f_u_w) / 362880;
+        }
+    }
+
+    if (K == 10) {
+        moment[10] = pow(f_u_w, 10);
+        return (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7]
+                + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4]
+                - 2520 * moment[3] + 1260 * moment[2] - 210 * f_u_w) / 3628800;
+    }
+
+    // Unsupported K
+    return 0;
+}
 
 double locally_compute_f_given_q_and_x(int q, int x, BiGraph& g, BiGraph& g2) {
 
@@ -2362,8 +2345,7 @@ long double VP_wedge_based_two_round_btf(BiGraph& g, unsigned long seed) {
 
 }
 
-
-void check_exact_result_in_DB(int P___, int K___, 
+void fetch_or_compute_biclique_count(int P___, int K___, 
     string dataset, BiGraph& g){
 
     sqlite3* db;
@@ -2611,7 +2593,6 @@ long double weighted_pair_sampling(BiGraph& g, unsigned long seed) {
 
     return res/T;
 }
-
 
 
 // biclique related code

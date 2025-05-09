@@ -29,9 +29,9 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) ;
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
     unsigned long seed, int P___, int K___ );
 
+long double compute_local_res(int K, long double f_u_w, long double esti_var_f) ;
 
-void check_exact_result_in_DB(int P___, 
-    int K___, string dataset, BiGraph& g);
+void fetch_or_compute_biclique_count(int P___, int K___, string dataset, BiGraph& g);
 
 // improved new approach
 long double wedge_based_btf_avg(BiGraph& g, unsigned long seed);
