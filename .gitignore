@@ -33,7 +33,8 @@ Thumbs.db
 *.swp
 *.bak
 
-
+# bash files 
+*.sh
 
 # text files 
 *.txt

@@ -59,11 +59,8 @@ extern long double RR_time, server_side_time, naive_server_side,
 
 long double gamma__;
 
-bool efficient_RR = true;
-
-bool skip_neg_deg = false ;
+bool efficient_RR = true, skip_neg_deg = false ;
 // why cannot we skip negative vertices
-
 
 // convert your BiGraph instance g2 to the biGraph struct 
 biGraph convertBiGraphTobiGraph(BiGraph& oldGraph) {
@@ -426,7 +423,6 @@ long double two_round_btf(BiGraph& g, unsigned long seed) {
         return sum / (4 * (1 - 2 * p) * (1 - 2 * p));
     }
 }
-
 
 // I think this is a bad idea. 
 // because we need to construct an unbiased estimator for every possible wegde. 
@@ -829,6 +825,8 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
                     // when this switch is on, by default we expect multiple estimators.
                     f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
                     f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
+
+                    // basically getting the same thing using two noisy graphs.
                 }else{
                     f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
                     if(multi_estimator_switch){
@@ -871,8 +869,7 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
                     // single source estimator: 
                     esti_var_f = 2 * pow(gamma__,2)  / pow(Eps2,2) + p * (1 - p) * deg_estis[u] / pow(1-2*p,2); 
                 }else{
-
-                    // when multi source estimator:  
+                    // multi source estimator:  
                     f_u_w = (f_u_w + f_w_u)/2;
                     // esitmate the variance of f_u_w
                     esti_var_f = 0;
@@ -903,130 +900,7 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
     return res___;
 }
 
-// this function builds two noisy grahs to improve accuracy
-long double wedge_based_btf_avg(BiGraph& g, unsigned long seed) {
 
-    Eps0 = Eps * 0.05;
-
-	vector<long double> deg_estis; 
-	deg_estis.resize(g.num_nodes());
-	for(int i=0;i<g.num_nodes();i++){
-		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
-        // there is a chance that deg_estis is negative 
-	}
-
-    Eps1 = Eps * 0.6;
-    Eps2 = Eps - Eps1 - Eps0;
-
-
-    // Phase 1. RR
-    double t1 = omp_get_wtime();
-    cout << "construct_noisy_graph(g); " << endl;
-    
-    p = 1.0 / (exp(Eps1) + 1.0);
-
-    // build one noisy graph by applying RR on U(G)
-    BiGraph g2(g);
-	construct_noisy_graph(g, g2, seed);  // upload noisy edges
-
-    BiGraph g3(g);
-	construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
-
-
-    // unfortunately, this step cannot be run in parallel
-
-    // Phase 2. local counting, this step can benefit from parallism 
-	// each vertex u download the noisy graph. 
-    double t2 = omp_get_wtime();
-    cout << "local counting" << endl;
-	Eps2 = Eps - Eps1 - Eps0;
-    
-	// cout<<"using Eps2 = "<<Eps2 <<endl;
-	gamma__ = (1-p) / (1-2*p);
-    // use eps2
-    // long double global_sensitivity, sum = 0;
-	long double res___ = 0; 
-
-	// what if we only consider upper vertices ?  --> better efficiency and effect  
-	// #pragma omp parallel for reduction(+:res___)
-
-
-	
-	int start__, end__; 
-	start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
-	end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
-	#pragma omp parallel
-	{
-	#pragma omp for schedule(static)
-		for(int u =start__ ; u <end__ ; u++) {
-
-			for(int w =start__ ; w <end__ ; w++) {
-				if(u==w) 
-					continue;
-
-				if(vertex_pair_reduction && u<w) 
-					continue; 
-                
-                // we only consider each pair once
-                // how do we get the common neighbors of u and we in g? 
-
-
-                // computing the ground truth
-                long double real_f_u_w = 0;
-                // real_f_u_w = count_if(g.neighbor[u].begin(), g.neighbor[u].end(), [&](auto xx){ return g.has(xx,w); });
-
-                // phi is used in here. 
-
-                // computing the local wedge estimators using two noisy graphs: 
-                long double f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
-                long double f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
-
-				// long double f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
-                // long double f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
-
-                long double diff1 =0, diff2 = 0;
-
-                // averaging always gives pretty good result 
-				if(averaging_f_estimates){// using the average of fu and fw.
-					f_u_w = (f_u_w + f_w_u)/2;
-				}
-				long double local_res = f_u_w * f_u_w - f_u_w; 
-
-                
-                long double esti_var_f  = 0;
-                long double esti_var_f_1 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
-                esti_var_f_1 += p * (1 - p) * deg_estis[u] / (2 * (1 - 2 * p) * (1 - 2 * p));
-
-                long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
-                esti_var_f_2 += p * (1 - p) * deg_estis[w] / (2 * (1 - 2 * p) * (1 - 2 * p));
-
-				if(averaging_f_estimates){
-					esti_var_f = (esti_var_f_1 + esti_var_f_2)/4;
-				}
-
-				local_res -= esti_var_f; 
-
-				// if the degree estimate of u is more accurate then it's better
-				#pragma omp critical
-				res___ += local_res; // incrementing butterfly(u,w)
-
-			}
-
-		}
-	}
-	if (vertex_pair_reduction){
-        // we are running this version
-		return res___/2; 
-	}else{
-		return res___/4; 
-        // this is because we have computed the butterfly count for u, w 
-        // and w, u
-	}
-
-}
-
-
-// seems like this works better for dense subgraphs
 // this function is here to handle when p = 3
 long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     double t1 = omp_get_wtime();
@@ -1051,6 +925,13 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
 	construct_noisy_graph(g, g2, seed);  
 
 
+    // two noisy graph technique
+    BiGraph g3(g);
+    if(two_noisy_graph_switch){
+        cout<<"constructing g3\n";
+        construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+    }
+
 	Eps2 = Eps - Eps1 - Eps0;
     
 	long double res___ = 0; 
@@ -1074,7 +955,7 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     // Determine how many triples to sample based on the fraction
     // double sample_fraction = 1e-4;
 
-    // sample size 
+    // we can increase this for better effectiveness
     long double T = pow(10,6);
 
     double sample_fraction = T / total_triples;
@@ -1113,186 +994,141 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
 
                 if (dis(gen) >= sample_fraction) continue;
 
-                // process each triplet
-                unsigned long long int real_fuvw = 0;
+
                 // from the neighbors of v1:
-                long double f1 = 0, f2= 0, f3 = 0; 
+                long double f1 = 0, f2= 0, f3 = 0, f12 = 0, f13=0;
+                long double local_res = 0, esti_var_f_uvw = 0, fuvw = 0 ;
 
-                // need to use two noisy graphs to compute f1, f2, f3.
-                
-                long double f12 = 0, f13=0;
-                for(auto nb: g.neighbor[v1]){
-                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
-                    A1 = (A1-p) / (1-2*p); 
+                if(multi_estimator_switch){
+                    // multi-source estimator
+                    for(auto nb: g.neighbor[v1]){
+                        long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                        long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
 
-                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
-                    A2 = (A2-p) / (1-2*p); 
-
-                    f1 += A1 * A2; 
-
-                    f12 += A1; 
-                    f13 += A2; 
-                }
-
-                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
-                f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
-                f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
-                long double f21 = 0, f23=0;
-                for(auto nb: g.neighbor[v2]){
-                    long double A1 = g2.has(nb, v1) ? 1 : 0 ; 
-                    A1 = (A1-p) / (1-2*p); 
-                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
-                    A2 = (A2-p) / (1-2*p); 
-                    f2 += A1 * A2; 
-
-                    f21 += A1; 
-                    f23 += A2;          
-                }
-                f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
-                f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
-                f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
-
-                long double f31 = 0, f32=0;
-                for(auto nb: g.neighbor[v3]){
-                    long double A1 = g2.has(nb, v1) ? 1 : 0 ; 
-                    A1 = (A1-p) / (1-2*p); 
-                    long double A2 = g2.has(nb, v2) ? 1 : 0 ; 
-                    A2 = (A2-p) / (1-2*p); 
-                    f3 += A1 * A2; 
-
-                    f31 += A1; 
-                    f32 += A2;    
-
-                }
-                f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
-                f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
-                f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
-
-                // averaging
-                // need to implement the version without averaging
-                long double fuvw = (f1 + f2 + f3 )/3 ; 
-
-                long double local_res = 0 ;
-                
-                // estimate the variance of f(u, v, w)
-                long double esti_var_f_uvw = 0 ;
-
-                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
-
-                long double esti_var_f1 = var_phi * (f12 + f13) ; 
-                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
-                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-
-                long double esti_var_f2 = var_phi * (f12 + f23) ; 
-                esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
-                esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-
-                long double esti_var_f3 = var_phi * (f13 + f23) ; 
-                esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
-                esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-
-
-                // include C2(vi, vj)
-                f12 = (f12 + f21)/2;
-                f13 = (f13 + f31)/2;
-                f23 = (f23 + f32)/2;
-
-                // compute the variance of fuvw
-                esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3);
-
-                // consider the co-variance: 
-                esti_var_f_uvw += 2 * var_phi * (f12 + f13 + f23); 
-                esti_var_f_uvw /= 9;
-
-                /*
-                // there exists covariance between f1 f2 and f3.
-                std::vector<long double> moment(K + 1, 0); 
-                moment[1] = fuvw;  // f^1
-                moment[2] = pow(fuvw, 2) - esti_var_f_uvw; // f^2
-                if (K == 2) {
-                    local_res =  (moment[2] - fuvw)/2 ;
-                }
-                else if (K <= 3) {
-                    moment[3] =  pow(fuvw, 3) - 3 * fuvw * esti_var_f_uvw; // this correction term is important
-                    if (K == 3) {
-                        local_res = (moment[3] - 3 * moment[2] + 2 * fuvw) / 6;
+                        if (two_noisy_graph_switch) {
+                            A1 = (A1 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                            A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                        }
+                        f1 += A1 * A2; 
+                        f12 += A1; 
+                        f13 += A2; 
                     }
-                } 
-                else if (K <= 4) {
-                    // the formula here is still reasonable. 
-                    // assuming normal here: 
-                    moment[4] = pow(fuvw,4) 
-                                - 6 * moment[2]* esti_var_f_uvw 
-                                - 3 * pow(esti_var_f_uvw ,2 );
-
-                    if (K == 4){
-                        local_res = (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * fuvw) / 24;
+                    // two_noisy_graph_switch does not change GS and Lap noise
+                    f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                    f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    
+                    long double f21 = 0, f23=0;
+                    for(auto nb: g.neighbor[v2]){
+                        long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                        long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+                        if (two_noisy_graph_switch) {
+                            A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                            A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                        }
+                        f2 += A1 * A2; 
+                        f21 += A1; 
+                        f23 += A2;          
                     }
-                }
-                else if (K <= 5) {
-                    // this formula needs some work!
-                    // zero skewness assumption
-                    // to do: fix u and w, look at the result in 10K runs. see if it is normal.
-                    moment[5] = pow(fuvw, 5) 
-                                - 10 * moment[3] * esti_var_f_uvw 
-                                - 15 * fuvw * pow(esti_var_f_uvw, 2);
-                    if (K == 5) local_res = (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * fuvw) / 120;
-                }
-                else if (K <= 6) {
-                    // the two approach are not too different, not very good 
-                    moment[6] = pow(fuvw, 6) 
-                                - 15 * moment[4] * esti_var_f_uvw ;
-                                - 45 * moment[2] * pow(esti_var_f_uvw, 2) 
-                                - 15 * pow(esti_var_f_uvw, 3);
+                    // two_noisy_graph_switch does not change GS and Lap noise
+                    f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
+                    f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    long double f31 = 0, f32=0;
+                    for(auto nb: g.neighbor[v3]){
+                        long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                        long double A2 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                        if (two_noisy_graph_switch) {
+                            A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                            A2 = (A2 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                        }
+                        f3 += A1 * A2; 
+                        f31 += A1; 
+                        f32 += A2;    
 
-                    if (K == 6){
-                        local_res = (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3] + 274 * moment[2] - 120 * fuvw) / 720;
                     }
-                }
-                else if (K <= 7) {
-                    moment[7] = pow(fuvw, 7)
-                                + 21 * moment[5] * esti_var_f_uvw
-                                + 105 * moment[3] * pow(esti_var_f_uvw, 2)
-                                + 105 * fuvw * pow(esti_var_f_uvw, 3);
+                    f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                    f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
 
-                    if (K == 7) local_res = (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4] + 252 * moment[3] - 140 * moment[2] + 24 * fuvw) / 5040;
-                }
-                else if (K <= 8) {
+                    // averaging
+                    fuvw = (f1 + f2 + f3 )/3 ; 
 
-                    moment[8] = pow(fuvw, 8) 
-                                - 28 * moment[6] * esti_var_f_uvw 
-                                - 140 * moment[4] * pow(esti_var_f_uvw, 2) 
-                                - 210 * moment[2] * pow(esti_var_f_uvw, 3)
-                                - 105 *pow(esti_var_f_uvw, 4);
-
-
-                    if (K == 8) local_res = (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5] 
-                                + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * fuvw) / 40320;
-                }
-                else if (K <= 9) {
-                    moment[9] = pow(fuvw, 9)
-                                - 36 * moment[7] * esti_var_f_uvw
-                                - 210 * moment[5] * pow(esti_var_f_uvw, 2)
-                                - 420 * moment[3] * pow(esti_var_f_uvw, 3)
-                                - 315 * moment[1] * pow(esti_var_f_uvw, 4); 
-
-                    if (K == 9){
-                        local_res = (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6] 
-                                + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3] 
-                                - 2016 * moment[2] + 504 * fuvw) / 362880;
+                    long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                    if (two_noisy_graph_switch) {
+                        var_phi/=2;
                     }
-                }
-                else if (K <= 10) {
-                    // on higher moments, with or without is the same.
-                    moment[10] = pow(fuvw, 10);
-                    if (K == 10){
-                    // this is just the expansion of (X choose K).
-                    local_res = (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7] 
-                                + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4] 
-                                - 2520 * moment[3] + 1260 * moment[2] - 210 * fuvw) / 3628800;
+
+                    long double esti_var_f1, esti_var_f2, esti_var_f3; 
+
+                    // this should always be true
+                    bool improvement = true;
+                    if(improvement){
+                        // averaging f12 and f21 is useful too!
+                        esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                        esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                        esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                        esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                        esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                        esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                        esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                        esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                        esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                    }else{ 
+                        // this will be true when switch = 3
+                        esti_var_f1 = var_phi * (f12 + f13) ; 
+                        esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                        esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                        esti_var_f2 = var_phi * (f12 + f23) ; 
+                        esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                        esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                        esti_var_f3 = var_phi * (f13 + f23) ; 
+                        esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                        esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
                     }
+
+                    
+                    // include C2(vi, vj)
+                    f12 = (f12 + f21)/2;
+                    f13 = (f13 + f31)/2;
+                    f23 = (f23 + f32)/2;
+
+                    // compute terms from var(f1), var(f2), and var(f3)
+                    esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3);
+
+                    // consider the co-variance of f1, f2, and f3.
+                    esti_var_f_uvw += 2 * var_phi * (f12 + f13 + f23); 
+                    esti_var_f_uvw /= 9;
+                }else{
+                    // single-source estimator: f1
+                    for(auto nb: g.neighbor[v1]){
+                        long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                        A1 = (A1-p) / (1-2*p); 
+
+                        long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                        A2 = (A2-p) / (1-2*p); 
+
+                        f1 += A1 * A2;
+                    }
+                    f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+
+                    // no averaging
+                    fuvw = f1;
+                    
+                    // estimate the variance of f(u, v, w)
+
+                    long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+
+                    long double esti_var_f1 = var_phi * (f12 + f13) ; 
+                    esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                    esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                    esti_var_f_uvw = esti_var_f1;
                 }
-                */
 
                 local_res = compute_local_res(K, fuvw, esti_var_f_uvw);
 
@@ -2592,6 +2428,127 @@ long double weighted_pair_sampling(BiGraph& g, unsigned long seed) {
     res /=2;
 
     return res/T;
+}
+// this function builds two noisy grahs to improve accuracy
+long double wedge_based_btf_avg(BiGraph& g, unsigned long seed) {
+
+    Eps0 = Eps * 0.05;
+
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+	for(int i=0;i<g.num_nodes();i++){
+		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
+        // there is a chance that deg_estis is negative 
+	}
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+
+    // Phase 1. RR
+    double t1 = omp_get_wtime();
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+
+    // build one noisy graph by applying RR on U(G)
+    BiGraph g2(g);
+	construct_noisy_graph(g, g2, seed);  // upload noisy edges
+
+    BiGraph g3(g);
+	construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+
+
+    // unfortunately, this step cannot be run in parallel
+
+    // Phase 2. local counting, this step can benefit from parallism 
+	// each vertex u download the noisy graph. 
+    double t2 = omp_get_wtime();
+    cout << "local counting" << endl;
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	gamma__ = (1-p) / (1-2*p);
+    // use eps2
+    // long double global_sensitivity, sum = 0;
+	long double res___ = 0; 
+
+	// what if we only consider upper vertices ?  --> better efficiency and effect  
+	// #pragma omp parallel for reduction(+:res___)
+
+
+	
+	int start__, end__; 
+	start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
+	end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
+	#pragma omp parallel
+	{
+	#pragma omp for schedule(static)
+		for(int u =start__ ; u <end__ ; u++) {
+
+			for(int w =start__ ; w <end__ ; w++) {
+				if(u==w) 
+					continue;
+
+				if(vertex_pair_reduction && u<w) 
+					continue; 
+                
+                // we only consider each pair once
+                // how do we get the common neighbors of u and we in g? 
+
+
+                // computing the ground truth
+                long double real_f_u_w = 0;
+                // real_f_u_w = count_if(g.neighbor[u].begin(), g.neighbor[u].end(), [&](auto xx){ return g.has(xx,w); });
+
+                // phi is used in here. 
+
+                // computing the local wedge estimators using two noisy graphs: 
+                long double f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
+                long double f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
+
+				// long double f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
+                // long double f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+
+                long double diff1 =0, diff2 = 0;
+
+                // averaging always gives pretty good result 
+				if(averaging_f_estimates){// using the average of fu and fw.
+					f_u_w = (f_u_w + f_w_u)/2;
+				}
+				long double local_res = f_u_w * f_u_w - f_u_w; 
+
+                
+                long double esti_var_f  = 0;
+                long double esti_var_f_1 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                esti_var_f_1 += p * (1 - p) * deg_estis[u] / (2 * (1 - 2 * p) * (1 - 2 * p));
+
+                long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
+                esti_var_f_2 += p * (1 - p) * deg_estis[w] / (2 * (1 - 2 * p) * (1 - 2 * p));
+
+				if(averaging_f_estimates){
+					esti_var_f = (esti_var_f_1 + esti_var_f_2)/4;
+				}
+
+				local_res -= esti_var_f; 
+
+				// if the degree estimate of u is more accurate then it's better
+				#pragma omp critical
+				res___ += local_res; // incrementing butterfly(u,w)
+
+			}
+
+		}
+	}
+	if (vertex_pair_reduction){
+        // we are running this version
+		return res___/2; 
+	}else{
+		return res___/4; 
+        // this is because we have computed the butterfly count for u, w 
+        // and w, u
+	}
+
 }
 
 

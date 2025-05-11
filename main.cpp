@@ -185,6 +185,7 @@ int main(int argc, char *argv[]) {
                 estis[iteration] = wedge_based_two_round_2_K_biclique(g, seed);
             }
             else if(P___ == 3){
+                // this is ready.
                 estis[iteration] = wedge_based_two_round_3_K_biclique(g, seed);
             }
             // need to implement two_noisy_graph_switch optimization for P in general
