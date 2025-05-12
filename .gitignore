@@ -38,3 +38,7 @@ Thumbs.db
 
 # text files 
 *.txt
+biclique
+biclique-results/
+plot_biclique_errors.py
+plots/
