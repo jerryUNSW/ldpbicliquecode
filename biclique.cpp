@@ -1148,6 +1148,7 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
 }
 
 // need to implement the version for P in general. 
+// let's first test whether this works for P = 2 and 3.
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
     unsigned long seed, int P___, int K___ ) {
     double t1 = omp_get_wtime();
@@ -1178,10 +1179,11 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
 
     int N = g.num_v1 ; 
 
-    // prepare the subsets
+    // prepare the subsets in advance
     vector<vector<int>> subsets;
     vector<int> subset(P___);
     for (int i = 0; i < P___; ++i) subset[i] = i;
+    // generating all combinations of size P___ from N elements. 
     while (true) {
         subsets.push_back(subset); // Store the current subset
         int i;
@@ -1208,8 +1210,10 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
 
         // if(!(subset == std::vector<int>{6, 9, 36, 39, 46})) continue;
 
+        // right now, it is a single-source estimator. it only uses v1. 
 
         
+        // picking the min degree vertex as source
         int v1 = subset[0];
         long double min_deg = deg_estis[v1];
         for (int i = 1; i < P___; ++i) {
@@ -1218,7 +1222,6 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                 v1 = subset[i];
             }
         }
-
         
         // std::cout << "Min deg vertex (v1): " << v1 << ", deg_est: " << min_deg << "\n";
 
@@ -1236,13 +1239,14 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                     X.emplace_back(subset[i]);
                 }
             }
-            // we will construct estimators using v1
+            // construct estimators using v1
             // step 1: estimate the number of common neighbors among all vertices in subset
             long double f1 = 0;
             // long double real_f1 = 0; 
             for(auto nb: g.neighbor[v1]){
                 long double fv1 = 1.0; 
-                // long double real_fv1 = 1.0;
+
+                // computing a product
                 for(auto xx : X){
                     long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
                     A_ = (A_-p) / (1-2*p); 
@@ -1253,6 +1257,8 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                 // real_f1 += real_fv1;
             }
             f1 += stats::rlaplace(0.0, (pow(gamma__,X.size())/Eps2), engine); 
+            
+            
             // step 2: estimate the variance of f1.
             long double esti_var_f = 0; 
             long double theta = p * (1-p) / pow(1-2*p, 2); 
@@ -1287,13 +1293,6 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                         Y.push_back(X[i]);
                     }
                 }
-                // cout<<"X.size = "<<X.size()<<endl;
-                // cout<<"subset : "<<endl;
-                // cout<<"Y.size = "<<Y.size()<<endl;
-                // for(auto yyy:Y){
-                //     cout<<yyy<<" ";
-                // }
-                // cout<<endl;
                 // processing subset Y:
                 // estimate the number of common neighbors among Y \cup v1.
                 long double f1Y = 0; 
@@ -1349,12 +1348,16 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
 
             // special handling
 
+            long double local_res = compute_local_res(K___, f1, esti_var_f);
+
+
+            /*
             // with f1 and esti_var_f ready, we can process K___ = 2, 3
             std::vector<long double> moment(K___ + 1, 0); 
             moment[1] = f1;  // f^1
             moment[2] = pow(f1, 2) - esti_var_f; // f^2
 
-            long double local_res = 0 ;
+            local_res = 0 ;
             if (K___ == 2) {
                 local_res =  (moment[2] - f1)/2 ;
             }
@@ -1442,16 +1445,17 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                             - 2520 * moment[3] + 1260 * moment[2] - 210 * f1) / 3628800;
                 }
             }
-
+            */
             // cout<<"v1 = "<<v1<<"\t";
             // cout<<"val = "<<local_res<<endl;
 
             // aggregated_local_res += local_res;
+
         // }
         // aggregated_local_res/=subset.size();
         // cout<<"avg = "<<aggregated_local_res <<endl;
         // cout<<"\n";
-        // what if we aggregate across P vertices.
+        // what if we aggregate across P vertices. it should be better.
 
         #pragma omp critical
         res___ += local_res;
