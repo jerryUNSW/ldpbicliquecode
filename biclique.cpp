@@ -1937,7 +1937,9 @@ long double one_round_biclique(BiGraph& g, unsigned long seed,
         adj[i] = std::unordered_set<int>( g2.neighbor[i].begin(), g2.neighbor[i].end());
 
     }
-    std::cout << "Counting mi numbers (optimized)\n";
+
+
+    std::cout << "Old way: Counting mi numbers\n";
     #pragma omp parallel
     {
         std::vector<long double> local_m(p__ * q__ + 1, 0);  // Private array for each thread
@@ -2039,6 +2041,173 @@ long double one_round_biclique(BiGraph& g, unsigned long seed,
     cout<<"naive esti = "<<naive_estis[iteration] <<endl;
 	return res;
 }
+
+
+// Compute binomial coefficient n choose k (for small k)
+long long binomial(int n, int k) {
+    if (k < 0 || n < k) return 0;
+    if (k == 0) return 1;
+    long long res = 1;
+    for (int i = 0; i < k; ++i) {
+        res *= (n - i);
+        res /= (i + 1);
+    }
+    return res;
+}
+
+
+long double one_round_biclique_2_3(BiGraph& g, unsigned long seed) {
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);
+
+    int p__ = 2;
+    int q__ = 3;
+    std::cout << "p__ = " << p__ << "\n";
+    std::cout << "q__ = " << q__ << "\n";
+
+    // Get upper and lower vertex indices
+    std::vector<int> U, L;
+    for (int i = 0; i < g.num_v1; ++i) U.push_back(i);
+    for (int i = g.num_v1; i < g.num_nodes(); ++i) L.push_back(i);
+    int n1 = U.size();
+    int n2 = L.size();
+
+    std::cout << "Counting biclique on noisy graph\n";
+
+    // Convert adjacency lists to unordered_set for O(1) lookup
+    std::vector<std::unordered_set<int>> adj(g2.neighbor.size());
+    for (size_t i = 0; i < g2.neighbor.size(); ++i) {
+        adj[i] = std::unordered_set<int>(g2.neighbor[i].begin(), g2.neighbor[i].end());
+    }
+
+    // Array to store motif counts (B_i for i = 0 to 6)
+    std::vector<long double> m__(p__ * q__ + 1, 0);
+
+
+    long double sum___ =  0 ; 
+    /**
+    std::cout << "Old way: Counting mi numbers\n";
+
+    // Generate all combinations of p vertices from U
+    cout<<"Generate all combinations of p vertices from U "<<endl;
+    generate_combinations(U, p__, up_options);
+    generate_combinations(L, q__, lo_options);
+
+    #pragma omp parallel
+    {
+        std::vector<long double> local_m(p__ * q__ + 1, 0);  // Private array for each thread
+
+        #pragma omp for collapse(2) nowait
+        for (size_t up_idx = 0; up_idx < up_options.size(); up_idx++) {
+            for (size_t lo_idx = 0; lo_idx < lo_options.size(); lo_idx++) {
+                const auto& xxx = up_options[up_idx];
+                const auto& yyy = lo_options[lo_idx];
+
+                int num_edges = 0;
+                for (int u : xxx) {
+                    for (int v : yyy) {
+                        if (adj[u].count(v)) num_edges++; // O(1) edge lookup
+                    }
+                }
+                local_m[num_edges]++;
+            }
+        }
+        // Reduce results
+        #pragma omp critical
+        for (size_t i = 0; i <= p__ * q__; i++) { // Start from 0
+            #pragma omp atomic
+            m__[i] += local_m[i];
+        }
+    }
+    // Output motif counts
+
+    sum___ =  0 ; 
+    for (size_t i = 0; i < m__.size(); ++i) {
+        std::cout << "# edge = " << i << " num = " << m__[i] << "\n";
+        sum___ += m__[i] ; 
+    }
+
+    cout<<"sum = "<< sum___ <<endl;
+    // exit(0);
+    */
+
+
+    // reset these numbers: 
+    for (size_t i = 0; i < m__.size(); ++i) {
+        m__[i] = 0;
+    }
+
+    std::cout << "New way: Counting Bi numbers (optimized)\n";
+    #pragma omp parallel
+    {
+        std::vector<long double> local_m(p__ * q__ + 1, 0); // Private array for each thread
+
+        #pragma omp for collapse(2) nowait
+        for (size_t u1_idx = 0; u1_idx < n1; ++u1_idx) {
+            for (size_t u2_idx = u1_idx + 1; u2_idx < n1; ++u2_idx) {
+                int u1 = U[u1_idx];
+                int u2 = U[u2_idx];
+
+                // Compute s2 = |N(u1) ∩ N(u2)|
+                int s2 = 0;
+                for (int v : g2.neighbor[u1]) {
+                    if (adj[u2].count(v)) ++s2;
+                }
+
+                // Compute degrees
+                int deg_u1 = g2.neighbor[u1].size();
+                int deg_u2 = g2.neighbor[u2].size();
+
+                // Compute s1 = |N(u1) ∪ N(u2)| - s2 = deg(u1) + deg(u2) - 2 * s2
+                int s1 = deg_u1 + deg_u2 - 2 * s2;
+
+                // Compute s0 = n2 - |N(u1) ∪ N(u2)| = n2 - (deg(u1) + deg(u2) - s2)
+                int s0 = n2 - (deg_u1 + deg_u2 - s2);
+
+                // Compute B_i for i = 0 to 6
+                local_m[0] += binomial(s0, 3);
+                local_m[1] += binomial(s0, 2) * binomial(s1, 1);
+                local_m[2] += binomial(s0, 1) * binomial(s1, 2) + binomial(s0, 2) * binomial(s2, 1);
+                local_m[3] += binomial(s1, 3) + binomial(s0, 1) * binomial(s1, 1) * binomial(s2, 1);
+                local_m[4] += binomial(s1, 2) * binomial(s2, 1) + binomial(s0, 1) * binomial(s2, 2);
+                local_m[5] += binomial(s1, 1) * binomial(s2, 2);
+                local_m[6] += binomial(s2, 3);
+            }
+        }
+
+        // Reduce results
+        #pragma omp critical
+        for (size_t i = 0; i <= p__ * q__; ++i) {
+            #pragma omp atomic
+            m__[i] += local_m[i];
+        }
+    }
+
+    // Output motif counts
+    sum___ =  0 ; 
+    for (size_t i = 0; i < m__.size(); ++i) {
+        std::cout << "# edge = " << i << " num = " << m__[i] << "\n";
+        sum___ += m__[i];
+    }
+
+    cout<<"sum = "<< sum___ <<endl;
+
+    cout<<"real totoal = "<< binomial(n1, 2) * binomial(n2, 3)  <<endl;
+
+    assert(sum___ == binomial(n1, 2) * binomial(n2, 3));
+
+    // Compute unbiased estimate using Theorem 2
+    long double res = 0, mu = std::exp(Eps);
+    for (size_t i = 0; i < m__.size(); ++i) {
+        res += std::pow(-mu, i) * m__[i];
+    }
+    res /= std::pow(1 - mu, p__ * q__);
+    naive_estis[iteration] = m__[m__.size() - 1];
+
+    std::cout << "naive esti = " << naive_estis[iteration] << "\n";
+    return res;
+}
+
 
 
 // Naive biclique count

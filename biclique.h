@@ -7,6 +7,10 @@
 
 void printMemoryUsage() ;
 
+long long binomial(int n, int k);
+
+long double one_round_biclique_2_3(BiGraph& g, unsigned long seed);
+
 // convert my graph to biclique-counting expected graph:
 biGraph convertBiGraphTobiGraph(BiGraph& oldGraph); 
 

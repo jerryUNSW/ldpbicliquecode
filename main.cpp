@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
         }
         if (algorithm_switch == 1) {
 
-            if(P___ == 2 && K___==2){     
+            if(P___ == 2 && K___== 2){     
                 cout << "Oneround-BTF (existing DBE algorithm)" << endl;
                 cout << "EPS = " << Eps << endl;
                 // flip probability
@@ -128,6 +128,31 @@ int main(int argc, char *argv[]) {
                 rel_err.push_back(rel);
                 cout << endl;
             }
+            if(P___ == 2 && K___== 3){
+
+                // one-round biclique algorithm for general P, Q values
+                cout << "Oneround, P___ == 2 && K___== 3" << endl;
+                cout << "EPS = " << Eps << endl;
+                unsigned int seed = rng();
+                cout << "random seed = " << seed << endl;
+
+                p = 1.0 / (exp(Eps) + 1.0);
+
+                // estis[iteration] = one_round_biclique_2_3(g, seed);
+
+                estis[iteration] = one_round_biclique(g, seed, P___, K___);
+
+                std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
+
+                cout<<"real = "<< real<<endl;
+
+                long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
+
+                cout << "relative error = " << relative_error << endl;
+                rel_err.push_back(relative_error);
+                cout << endl;
+
+            }
             else{
                 // one-round biclique algorithm for general P, Q values
                 cout << "Oneround, handling genral P, and Q values" << endl;
@@ -143,8 +168,7 @@ int main(int argc, char *argv[]) {
 
                 p = 1.0 / (exp(Eps) + 1.0);
 
-                estis[iteration] = one_round_biclique(g, 
-                    seed, P___, K___);
+                estis[iteration] = one_round_biclique(g, seed, P___, K___);
                 // cout << "estimate = " << estis[iteration] << endl;
                 
                 std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
