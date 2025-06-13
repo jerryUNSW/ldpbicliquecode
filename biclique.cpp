@@ -1903,6 +1903,18 @@ long double weighted_pair_sampling_non_DP(BiGraph& g, unsigned long seed) {
     return res / T; 
 }
 
+// Compute binomial coefficient n choose k (for small k)
+long long binomial(int n, int k) {
+    if (k < 0 || n < k) return 0;
+    if (k == 0) return 1;
+    long long res = 1;
+    for (int i = 0; i < k; ++i) {
+        res *= (n - i);
+        res /= (i + 1);
+    }
+    return res;
+}
+
 // one-round biclique counting: 
 // _switch = btf:0, cate:1, biclique:2, quasi-biclique: 3.
 long double one_round_biclique(BiGraph& g, unsigned long seed, 
@@ -2043,19 +2055,6 @@ long double one_round_biclique(BiGraph& g, unsigned long seed,
 }
 
 
-// Compute binomial coefficient n choose k (for small k)
-long long binomial(int n, int k) {
-    if (k < 0 || n < k) return 0;
-    if (k == 0) return 1;
-    long long res = 1;
-    for (int i = 0; i < k; ++i) {
-        res *= (n - i);
-        res /= (i + 1);
-    }
-    return res;
-}
-
-
 long double one_round_biclique_2_3(BiGraph& g, unsigned long seed) {
     BiGraph g2(g);
     construct_noisy_graph(g, g2, seed);
@@ -2192,9 +2191,10 @@ long double one_round_biclique_2_3(BiGraph& g, unsigned long seed) {
 
     cout<<"sum = "<< sum___ <<endl;
 
-    cout<<"real totoal = "<< binomial(n1, 2) * binomial(n2, 3)  <<endl;
+    long double target = binomial(n1, 2) * binomial(n2, 3) ; 
+    cout<<"real totoal = "<<target  <<endl;
 
-    assert(sum___ == binomial(n1, 2) * binomial(n2, 3));
+    assert(sum___ == target);
 
     // Compute unbiased estimate using Theorem 2
     long double res = 0, mu = std::exp(Eps);
@@ -2203,6 +2203,103 @@ long double one_round_biclique_2_3(BiGraph& g, unsigned long seed) {
     }
     res /= std::pow(1 - mu, p__ * q__);
     naive_estis[iteration] = m__[m__.size() - 1];
+
+    std::cout << "naive esti = " << naive_estis[iteration] << "\n";
+    return res;
+}
+
+long double one_round_biclique_2_K(BiGraph& g, int K, unsigned long seed) {
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);
+
+    int p__ = 2;
+    int q__ = K;
+    std::cout << "p__ = " << p__ << "\n";
+    std::cout << "q__ = " << q__ << "\n";
+
+    // Get upper and lower vertex indices
+    std::vector<int> U, L;
+    for (int i = 0; i < g.num_v1; ++i) U.push_back(i);
+    for (int i = g.num_v1; i < g.num_nodes(); ++i) L.push_back(i);
+    int n1 = U.size();
+    int n2 = L.size();
+
+    std::cout << "Counting biclique on noisy graph\n";
+
+    // Convert adjacency lists to unordered_set for O(1) lookup
+    std::vector<std::unordered_set<int>> adj(g2.neighbor.size());
+    for (size_t i = 0; i < g2.neighbor.size(); ++i) {
+        adj[i] = std::unordered_set<int>(g2.neighbor[i].begin(), g2.neighbor[i].end());
+    }
+
+    // Array to store motif counts (B_i for i = 0 to 2*K)
+    std::vector<long double> m__(2 * K + 1, 0.0);
+
+    std::cout << "Counting Bi numbers (optimized)\n";
+    #pragma omp parallel
+    {
+        std::vector<long double> local_m(2 * K + 1, 0.0); // Private array for each thread
+
+        #pragma omp for collapse(2) nowait
+        for (size_t u1_idx = 0; u1_idx < n1; ++u1_idx) {
+            for (size_t u2_idx = u1_idx + 1; u2_idx < n1; ++u2_idx) {
+                int u1 = U[u1_idx];
+                int u2 = U[u2_idx];
+
+                // Compute s2 = |N(u1) ∩ N(u2)|
+                int s2 = 0;
+                for (int v : g2.neighbor[u1]) {
+                    if (adj[u2].count(v)) ++s2;
+                }
+
+                // Compute degrees
+                int deg_u1 = g2.neighbor[u1].size();
+                int deg_u2 = g2.neighbor[u2].size();
+
+                // Compute s1 = deg(u1) + deg(u2) - 2 * s2
+                int s1 = deg_u1 + deg_u2 - 2 * s2;
+
+                // Compute s0 = n2 - (deg(u1) + deg(u2) - s2)
+                int s0 = n2 - (deg_u1 + deg_u2 - s2);
+
+                // Compute contributions to m__[i] for i = 0 to 2*K
+                for (int c = 0; c <= K; ++c) {
+                    for (int b = 0; b <= K - c; ++b) {
+                        int a = K - b - c;
+                        if (a >= 0) {
+                            int i = 2 * c + b;
+                            long double contrib = binomial(s0, a) * binomial(s1, b) * binomial(s2, c);
+                            local_m[i] += contrib;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Reduce results
+        #pragma omp critical
+        for (size_t i = 0; i <= 2 * K; ++i) {
+            #pragma omp atomic
+            m__[i] += local_m[i];
+        }
+    }
+
+    // Output motif counts and verify sum
+    long double sum___ = std::accumulate(m__.begin(), m__.end(), 0.0);
+    long double target = binomial(n1, 2) * binomial(n2, K);
+    std::cout << "Sum of motif counts: " << sum___ << "\n";
+    std::cout << "Expected total: " << target << "\n";
+    if (std::abs(sum___ - target) > 1e-6 * target) {
+        std::cerr << "Warning: Sum of motif counts does not match expected total.\n";
+    }
+
+    // Compute unbiased estimate using Theorem 2
+    long double res = 0, mu = std::exp(Eps);
+    for (size_t i = 0; i <= 2 * K; ++i) {
+        res += std::pow(-mu, i) * m__[i];
+    }
+    res /= std::pow(1 - mu, 2 * K);
+    naive_estis[iteration] = m__[2 * K];
 
     std::cout << "naive esti = " << naive_estis[iteration] << "\n";
     return res;

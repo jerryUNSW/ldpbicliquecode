@@ -114,7 +114,8 @@ int main(int argc, char *argv[]) {
                     // in theory, we are able to build two noisy graphs. 
                     // based on each, we can have a BTF estimate. 
                     // however, in experiment evaluations, we dont consider this case 
-                    // because this is our contribution to the ADV algorithm
+                    // because the double noisy graph technique
+                    // is our contribution to the ADV algorithm
                     long double esti1 = one_round_btf(g, seed);
                     unsigned int seed2 = rng();
                     long double esti2 = one_round_btf(g, seed2);
@@ -128,11 +129,12 @@ int main(int argc, char *argv[]) {
                 rel_err.push_back(rel);
                 cout << endl;
             }
-            if(P___ == 2 && K___== 3){
-
+            if(P___ == 2 && K___ >= 3){
                 // one-round biclique algorithm for general P, Q values
-                cout << "Oneround, P___ == 2 && K___== 3" << endl;
-                cout << "EPS = " << Eps << endl;
+                cout << "Oneround" << endl;
+                cout<<"P___ == " << P___ <<endl;
+                cout<<"K___ == " << K___ <<endl;
+                cout << "epsilon = " << Eps << endl;
                 unsigned int seed = rng();
                 cout << "random seed = " << seed << endl;
 
@@ -140,7 +142,10 @@ int main(int argc, char *argv[]) {
 
                 // estis[iteration] = one_round_biclique_2_3(g, seed);
 
-                estis[iteration] = one_round_biclique(g, seed, P___, K___);
+
+                estis[iteration] = one_round_biclique_2_K(g, 3, seed); 
+
+                // estis[iteration] = one_round_biclique(g, seed, P___, K___);
 
                 std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
 
