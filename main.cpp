@@ -18,6 +18,10 @@ long double m3__ = 0, m2__ = 0, m1__ = 0, m0__ = 0, real_stars = 0,
 			RR_time, server_side_time, naive_server_side, local_count_time = 0, deg_esti_time = 0,
 			communication_cost = 0;
 
+
+extern bool eva_comm ;
+
+
 unsigned long long int  real ;
 
 int P___, K___ ; 
@@ -33,6 +37,13 @@ extern bool multi_estimator_switch ;
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
 int main(int argc, char *argv[]) {
+
+    eva_comm = false;
+
+    if(eva_comm){
+        cout<<"evaluating communication costs"<<endl;
+    }
+
     // input parser:
     long double param = stold(argv[1]);
     string dataset = argv[2];
@@ -51,6 +62,23 @@ int main(int argc, char *argv[]) {
     std::mt19937 rng(std::random_device{}());  // for seeding
 
     BiGraph g(dataset);
+
+    
+    /*
+    long double S1 = binomial(g.num_v1, P___) * g.v1_max_degree;
+    long double S2 = binomial(g.num_v2, K___) * g.v2_max_degree;
+    cout<<"g.v1_max_degree = "<<g.v1_max_degree <<endl;
+    cout<<"g.v2_max_degree = "<<g.v2_max_degree <<endl;
+
+    cout<<"S1 = "<<S1 <<endl;
+    cout<<"S2 = "<<S2 <<endl;
+
+    if(g.num_v1 < g.num_v2 && S1 > S2){
+        cout<<"found it"<<endl;
+    }
+    // */
+
+
 
     long double fill_rate = g.num_edges * 1.0 / ((double)g.num_v1 * (double)g.num_v2);
 
@@ -89,7 +117,6 @@ int main(int argc, char *argv[]) {
             estis[iteration] = naive_biclique(g, seed, P___, K___);
             // printMemoryUsage();
 
-
             cout << "estimate = " << estis[iteration] << endl;
 
             long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
@@ -99,7 +126,7 @@ int main(int argc, char *argv[]) {
             cout << endl;
         }
         if (algorithm_switch == 1) {
-
+            // one round algorithms (same communication costs as naive)
             if(P___ == 2 && K___== 2){     
                 cout << "Oneround-BTF (existing DBE algorithm)" << endl;
                 cout << "EPS = " << Eps << endl;
@@ -121,7 +148,11 @@ int main(int argc, char *argv[]) {
                     long double esti2 = one_round_btf(g, seed2);
                     estis[iteration] = (esti1 + esti2)/2;
                 }else{
+                    // this is a specific algorithm, so it is faster
                     estis[iteration] = one_round_btf(g, seed);
+
+                    // let's see if ths is faster 
+                    // estis[iteration] = one_round_biclique_2_K(g, K___, seed); 
                 }
                 long double rel = abs(estis[iteration] - real) * 1.0 / real;
                 cout << "estimate = " << estis[iteration] << endl;
@@ -129,7 +160,7 @@ int main(int argc, char *argv[]) {
                 rel_err.push_back(rel);
                 cout << endl;
             }
-            if(P___ == 2 && K___ >= 3){
+            if(P___ == 2 && K___ > 2){
                 // one-round biclique algorithm for general P, Q values
                 cout << "Oneround" << endl;
                 cout<<"P___ == " << P___ <<endl;
@@ -143,7 +174,7 @@ int main(int argc, char *argv[]) {
                 // estis[iteration] = one_round_biclique_2_3(g, seed);
 
 
-                estis[iteration] = one_round_biclique_2_K(g, 3, seed); 
+                estis[iteration] = one_round_biclique_2_K(g, K___, seed); 
 
                 // estis[iteration] = one_round_biclique(g, seed, P___, K___);
 
@@ -158,18 +189,16 @@ int main(int argc, char *argv[]) {
                 cout << endl;
 
             }
-            else{
+
+            if(P___ > 2 ){
                 // one-round biclique algorithm for general P, Q values
-                cout << "Oneround, handling genral P, and Q values" << endl;
+                cout << "Oneround, P___ > 2" << endl;
                 cout << "EPS = " << Eps << endl;
                 unsigned int seed = rng();
                 cout << "random seed = " << seed << endl;
 
                 // estis[iteration] = wedge_based_btf_avg(g, seed);
                 // estis[iteration] = VP_wedge_based_two_round_btf(g, seed);
-
-                // real = 1775 ; 
-                // real = 5400;
 
                 p = 1.0 / (exp(Eps) + 1.0);
 
@@ -211,7 +240,11 @@ int main(int argc, char *argv[]) {
             unsigned int seed = rng();
             cout << "random seed = " << seed << endl;
             if(P___ == 2){
+                // this will be the basis of the working example
                 estis[iteration] = wedge_based_two_round_2_K_biclique(g, seed);
+
+                // layer_based 
+                // estis[iteration] = layer_based_wedge_based_two_round_2_K_biclique(g, seed);
             }
             else if(P___ == 3){
                 // this is ready.
@@ -221,6 +254,7 @@ int main(int argc, char *argv[]) {
             else{
                 cout<<"P = "<<P___ <<endl;
                 cout<<"Q = "<<K___ <<endl;
+                // we do not test the communication of this
                 estis[iteration] = wedge_based_two_round_general_biclique(g, seed, P___, K___);            
                 // cout<<"Need to implement baseline for general P values"<<endl;
             }
@@ -238,6 +272,14 @@ int main(int argc, char *argv[]) {
     double t1 = omp_get_wtime();
     double seconds = t1 - t0;
     printf("time:%f\n", seconds);
+
+
+    if(eva_comm){
+        // byte --> metabyte 
+        long double communication_cost_MB = communication_cost / (1024.0 * 1024.0);
+        printf("com cost (MB) = %Lf\n", communication_cost_MB);
+        return 0;
+    }
     
     printf("# Mean = %Lf\n", calculateMean(estis));
     cout << "real count = " << real << endl;

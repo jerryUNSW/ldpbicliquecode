@@ -9,7 +9,6 @@ void printMemoryUsage() {
     std::cout << "Memory usage: " << usage.ru_maxrss << " KB" << std::endl;
 }
 
-
 using namespace std;
 long double _cate, _wedge, _btf;
 vector<int> upper_sample, lower_sample;
@@ -107,7 +106,6 @@ biGraph convertBiGraphTobiGraph(BiGraph& oldGraph) {
     return newGraph;
 }
 
-
 void randomized_response_single_bit(int u, int v, BiGraph& g, BiGraph& g2) {
 	double keep_probability = g.has(u, v) ? 1 - p : p;
 	// if(sampling_noisy_graph){
@@ -117,7 +115,6 @@ void randomized_response_single_bit(int u, int v, BiGraph& g, BiGraph& g2) {
 	g2.edge_vector[min(u, v)][max(u, v)] = (genrand_real2() < keep_probability);
 	// it is either 1 or 0
 }
-
 
 void private_estimate_of_degrees(BiGraph& g) {
     // private estimate degrees.
@@ -155,12 +152,14 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
     int ten_percent = total_vertices / 5;
     long double max_time_per_user = -1;
 
+    int max_num_noisy_edges_per_vertex = -1;
     for (int i = 0; i < g2.num_v1; i++) {
         visited_vertices++;
         // if (visited_vertices % ten_percent == 0) {
         // 	int progress = visited_vertices * 100 / total_vertices;
         // 	cout << "Processed " << progress << "% of vertices" << endl;
         // }
+        int num_noisy_edges_per_i = 0;
         double tx = omp_get_wtime();
         for (int j = g2.num_v1; j < g2.num_nodes(); j++) {
             if (std::find(g.neighbor[i].begin(), g.neighbor[i].end(), j) !=
@@ -168,17 +167,22 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
                 if (genrand_real2() >= p) {  // 1  --> 1
                     g2.addEdge(i, j);
                     flip1++;
+                    num_noisy_edges_per_i++;
                 }
             } else {
                 if (genrand_real2() < p) {  // 0 --> 1
                     g2.addEdge(i, j);
                     flip1++;
+                    num_noisy_edges_per_i++;
                 }
             }
         }
+        if(num_noisy_edges_per_i > max_num_noisy_edges_per_vertex){
+            max_num_noisy_edges_per_vertex =  num_noisy_edges_per_i; 
+        }
+
         double ty = omp_get_wtime();
-        max_time_per_user =
-            max_time_per_user > (ty - tx) ? max_time_per_user : (ty - tx);
+        max_time_per_user =max_time_per_user > (ty - tx) ? max_time_per_user : (ty - tx);
     }
     // RR_time += max_time_per_user;
     // the dominating cost is incurred in server side butterfly counting on the
@@ -186,7 +190,12 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
 
     cout << "noisy edges = " << flip1 << endl;
 
-    communication_cost += flip1 * sizeof(int);
+    if (eva_comm) {
+        cout<<"computing the of Randomized responses (1)"<<endl;
+        double byte_per_edge = 8*(log2(g.num_v1) + log2(g.num_v2));
+        communication_cost += max_num_noisy_edges_per_vertex * byte_per_edge;
+        // communication_cost += flip1 * sizeof(int);
+    }
 
     long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
     cout << "expected E = " << expected_E << endl;
@@ -213,24 +222,32 @@ void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
     // for (int i = 0; i < g2.num_v1; i++) {
 
     // now applying RR to L(G)
+    int max_num_noisy_edges_per_vertex = -1;
     for (int i = g2.num_v1; i < g2.num_nodes(); i++) {
         visited_vertices++;
         double tx = omp_get_wtime();
 
         // for (int j = g2.num_v1; j < g2.num_nodes(); j++) {
+        int num_noisy_edges_per_i = 0;
         for (int j = 0; j < g2.num_v1; j++) {
             if (std::find(g.neighbor[i].begin(), g.neighbor[i].end(), j) !=
                 g.neighbor[i].end()) {
                 if (genrand_real2() >= p) {  // 1  --> 1
                     g2.addEdge(i, j);
                     flip1++;
+                    num_noisy_edges_per_i++;
                 }
             } else {
                 if (genrand_real2() < p) {  // 0 --> 1
                     g2.addEdge(i, j);
                     flip1++;
+                    num_noisy_edges_per_i++;
                 }
             }
+        }
+
+        if(num_noisy_edges_per_i > max_num_noisy_edges_per_vertex){
+            max_num_noisy_edges_per_vertex =  num_noisy_edges_per_i; 
         }
         double ty = omp_get_wtime();
         max_time_per_user =
@@ -242,8 +259,16 @@ void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
 
     cout << "noisy edges = " << flip1 << endl;
 
-    communication_cost += flip1 * sizeof(int);
-
+    // if (eva_comm) {
+    //     cout<<"computing the of Randomized responses (1)"<<endl;
+    //     communication_cost += flip1 * sizeof(int);
+    // }
+    if (eva_comm) {
+        cout<<"computing the of Randomized responses (1)"<<endl;
+        double byte_per_edge = 8*(log2(g.num_v1) + log2(g.num_v2));
+        communication_cost += max_num_noisy_edges_per_vertex * byte_per_edge;
+        // communication_cost += flip1 * sizeof(int);
+    }
     long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
     cout << "expected E = " << expected_E << endl;
 
@@ -423,109 +448,6 @@ long double two_round_btf(BiGraph& g, unsigned long seed) {
         return sum / (4 * (1 - 2 * p) * (1 - 2 * p));
     }
 }
-
-// I think this is a bad idea. 
-// because we need to construct an unbiased estimator for every possible wegde. 
-// wheras in common neighbor counts, these information are compressed 
-/*
-long double total_exploration_two_round_btf(BiGraph& g, unsigned long seed) {
-
-    edge_clipping = true; 
-
-    // Phase 0. deg_esti_time records the maximum degree perturbation time.
-    double t0 = omp_get_wtime();
-    cout << "private_estimate_of_degrees(g); " << endl;
-    Eps0 = Eps * 0.05;
-    private_estimate_of_degrees(g);
-
-    // upload noisy degrees
-    // if (eva_comm) communication_cost += g.num_nodes() * sizeof(int);
-
-    // Phase 1. RR
-    double t1 = omp_get_wtime();
-    cout << "construct_noisy_graph(g); " << endl;
-    Eps1 = Eps * 0.6;
-    p = 1.0 / (exp(Eps1) + 1.0);
-
-    BiGraph g2(g);
-    construct_noisy_graph(g, g2, seed);  // upload noisy edges
-    
-
-    // Phase 2. local counting records the counting time
-    double t2 = omp_get_wtime();
-    cout << "local counting" << endl;
-    Eps2 = Eps - Eps0 - Eps1; 
-
-    // use eps2
-    long double global_sensitivity, sum = 0;
-
-    for (int u = 0; u < g.num_nodes(); u++) {
-
-        // priv_deg[u] represents an upper bound 
-        if (edge_clipping && priv_deg[u] <= 0){
-            continue;
-        }
-
-        // long double s1 = 0, s2 = 0, s3 = 0;
-        long double local_res = 0; 
-        // unordered_map<vid_t, int> count_wedge(0);
-        long double du = g.degree[u];
-        if (edge_clipping && (du > priv_deg[u])) {
-            du = priv_deg[u];
-        }
-
-        int visited_nb = 0;
-
-        for (auto v : g.neighbor[u]) {
-            // apply edge clipping on N(u)
-            if (edge_clipping && visited_nb == priv_deg[u]) {
-                break;
-            }
-            for (auto w : g2.neighbor[v]) {
-                if(u==w) continue;
-                    // we are looking at wedge <v, u, w>
-                    // need to go through all possible x vertex here: 
-                for (int x = 0; x < g.num_nodes(); x++) {
-                    if (x == u) continue;
-
-                    bool a = g2.has(x, v);
-                    bool b = g2.has(x, v);
-
-                    double factor1 = (1 - p) / (1 - 2 * p);
-                    double factor2 = (0 - p) / (1 - 2 * p);
-
-                    if (a && b) {
-                        local_res += pow(factor1, 2);
-                    } else if (a || b) {
-                        local_res += factor1 * factor2;
-                    } else {
-                        local_res += pow(factor2, 2);
-                    }
-                }
-            }
-            if (edge_clipping) visited_nb++;
-        }
-
-        int deg_up = edge_clipping ? priv_deg[u] : g.degree[u];
-
-        // for buttrfly counting:
-        if (g.is_upper(u)) {
-            global_sensitivity = deg_up * (g.num_v1 - 1) * pow((1 - p) / (1 - 2 * p),2) ;
-        } else {
-            global_sensitivity = deg_up * (g.num_v2 - 1) * pow((1 - p) / (1 - 2 * p),2) ;
-        }
-        local_res += stats::rlaplace(0.0, (global_sensitivity / Eps2), engine);  
-        // I  think it is effectively counting the number of butterflies containing u. 
-        sum += local_res; 
-    }
-    double t3 = omp_get_wtime();
-
-    
-
-    return sum / 4;
-    
-}
-*/
 
 void compute_m3_m2(long double& m4, long double& m3, long double& m2,
                    long double& m1, long double& m0, BiGraph& g2) {
@@ -758,7 +680,6 @@ long double get_cate(BiGraph& g) {
 // is it possible to combine this with the two-round algorithm? 
 
 
-// need to implement the 
 long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
     // Phase 0. deg_esti_time records the maximum degree perturbation time.
     // double t0 = omp_get_wtime();
@@ -770,6 +691,11 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
 	for(int i=0;i<g.num_nodes();i++){
 		deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
 	}
+    // if (eva_comm) {
+    //     cout<<"communication cots of uploading degree estimates"<<endl;
+    //     communication_cost += g.num_nodes() * sizeof(int);
+    // }
+
     // upload noisy degrees
 
     Eps1 = Eps * 0.6;
@@ -795,6 +721,30 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
     // Phase 2. local counting
     double t2 = omp_get_wtime();
     cout << "local counting" << endl;
+
+    if (eva_comm) {
+        // for each vertex, download all vertex degrees.
+        // communication_cost += g.num_nodes() * g.num_nodes() * sizeof(int);
+
+
+
+        // for each vertex, download the whole noisy graph
+        double byte_per_edge = 8*(log2(g.num_v1) + log2(g.num_v2));
+        communication_cost += g2.num_edges * byte_per_edge;
+        if(two_noisy_graph_switch){
+            communication_cost += g3.num_edges * byte_per_edge;
+        }
+
+        // upload common neighbor estimates:
+        size_t pairwise_count = g.num_v1 * (g.num_v1 - 1) / 2;
+        communication_cost += sizeof(long double) * pairwise_count;
+        if (multi_estimator_switch) {
+            communication_cost += sizeof(long double) * pairwise_count;
+        }
+
+        return 0;
+    }
+
 	Eps2 = Eps - Eps1 - Eps0;
     
 	// cout<<"using Eps2 = "<<Eps2 <<endl;
@@ -900,6 +850,172 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
     return res___;
 }
 
+
+// the new version of the wedge_based_two_round_2_K_biclique algorithm 
+// with layer-based optimization 
+long double layer_based_wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
+
+    // estimated dmax1 and dmax2
+    long double dmax1 = 0, dmax2 = 0;
+
+    long double real_dmax1 = 0, real_dmax2 = 0;
+
+    Eps0 = Eps * 0.05;
+    // private_estimate_of_degrees(g);
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
+
+    for(int i = 0; i < g.num_nodes(); i++) {
+        deg_estis[i] = g.degree[i] + stats::rlaplace(0.0, 1/(Eps0), engine); 
+        dmax1 = g.is_upper(i) ? (deg_estis[i] > dmax1 ? deg_estis[i] : dmax1) : dmax1;
+        real_dmax1 = g.is_upper(i) ? (static_cast<long double>(g.degree[i]) > real_dmax1 ? static_cast<long double>(g.degree[i]) : real_dmax1) : real_dmax1;
+        dmax2 = !g.is_upper(i) ? (deg_estis[i] > dmax2 ? deg_estis[i] : dmax2) : dmax2;
+        real_dmax2 = !g.is_upper(i) ? (static_cast<long double>(g.degree[i]) > real_dmax2 ? static_cast<long double>(g.degree[i]) : real_dmax2) : real_dmax2;
+    }
+
+    cout<<"dmax1 = "<<real_dmax1<<", esti = "<<dmax1 <<endl;
+    cout<<"dmax2 = "<<real_dmax2<<", esti = "<<dmax2 <<endl;
+    // exit(1);
+
+
+    cout<<"estimate the cost associatd with p-tuple enumeration in U(G) and q-tuple eumeration in L(G)"<<endl;
+    // Calculate S1 and S2
+    // Assuming n1, n2, p, q are defined (e.g., n1 and n2 are sizes of partitions)
+    long double S1 = binomial(g.num_v1, 2) * dmax1;
+    long double S2 = binomial(g.num_v2, K___) * dmax2;
+    cout<<"S1 = "<<S1 <<endl;
+    cout<<"S2 = "<<S2 <<endl;
+
+    bool use_upper_layer_for_enumeration = false; 
+    if(S1 < S2){
+        use_upper_layer_for_enumeration = true; 
+    }
+
+
+    // right now, it simply look at which layer is smaller.
+	int start__, end__;
+	start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
+	end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
+
+    cout<<"start__ = "<<start__ <<endl;
+    cout<<"end__ = "<<end__ <<endl;
+
+    if(start__==0){
+        cout<<"n1 n2 tells me to use U(G)"<<endl;
+    }else{
+        cout<<"n1 n2 tells me to use L(G)"<<endl;
+    }
+
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    // Phase 1. RR
+    double t1 = omp_get_wtime();
+    cout << "construct_noisy_graph(g); " << endl;
+    
+    p = 1.0 / (exp(Eps1) + 1.0);
+    BiGraph g2(g);
+    cout<<"constructing g2\n";
+	construct_noisy_graph(g, g2, seed);  // upload noisy edges
+    // unfortunately, this step cannot be run in parallel
+
+
+
+
+
+    BiGraph g3(g);
+    if(two_noisy_graph_switch){
+        cout<<"constructing g3\n";
+        construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+    }
+
+    // Phase 2. local counting
+    double t2 = omp_get_wtime();
+    cout << "local counting" << endl;
+
+	Eps2 = Eps - Eps1 - Eps0;
+    
+	// cout<<"using Eps2 = "<<Eps2 <<endl;
+	gamma__ = (1-p) / (1-2*p);
+
+	long double res___ = 0; 
+
+	// what if we only consider upper vertices ?  --> better efficiency and effect  
+	int K = K___;  // we are considering (2, K)-biclique right now
+
+    cout<<"K___ (q) = "<<K___ <<endl;
+
+
+
+
+
+
+    // if()
+
+
+
+	#pragma omp parallel
+	{
+	#pragma omp for schedule(static)
+		for(int u =start__ ; u <end__ ; u++) {
+			for(int w =start__ ; w <end__ ; w++) {
+                if(u<=w) continue;
+
+                long double f_u_w, f_w_u;    
+                if(two_noisy_graph_switch){
+                    f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
+                    f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
+
+                    // basically getting the same thing using two noisy graphs.
+                }else{
+                    f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
+                    if(multi_estimator_switch){
+                        f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+                    }
+                }
+
+                long double diff1 =0, diff2 = 0;
+                
+                long double local_res = 0;
+
+                // define some variables
+                long double esti_var_f, variance_f_u, variance_f_w, main_fu, main_fw;
+
+                if(!multi_estimator_switch){
+                    // single source estimator: 
+                    esti_var_f = 2 * pow(gamma__,2)  / pow(Eps2,2) + p * (1 - p) * deg_estis[u] / pow(1-2*p,2); 
+                }else{
+                    // multi source estimator:  
+                    f_u_w = (f_u_w + f_w_u)/2;
+                    // esitmate the variance of f_u_w
+                    esti_var_f = 0;
+                    // these are variance from laplace, not affected by two_noisy_graph_switch
+                    variance_f_u = 2 * pow(gamma__,2)  / pow(Eps2,2);
+                    variance_f_w = 2 * pow(gamma__,2)  / pow(Eps2,2);
+                    // main_fu and main_fw are the variance from local counts
+                    main_fu =  p * (1 - p) * deg_estis[u] / pow(1-2*p,2);
+                    main_fw =  p * (1 - p) * deg_estis[w] / pow(1-2*p,2);
+                    if(two_noisy_graph_switch){
+                        // maybe we should increase epsilon 2 to reduce the impact of laplace.
+                        main_fu/=2;
+                        main_fw/=2;
+                    }
+                    variance_f_u += main_fu;
+                    variance_f_w += main_fw;
+                    esti_var_f = (variance_f_u + variance_f_w) / 4;
+                }
+                // (2, K)-biclique need these moments of the unbiased estimate of f^2:
+                local_res = compute_local_res(K, f_u_w, esti_var_f);
+
+				#pragma omp critical
+				res___ += local_res; 
+			}
+
+		}
+	}
+    return res___;
+}
 
 // this function is here to handle when p = 3
 long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
@@ -1208,11 +1324,6 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
         const auto& subset = subsets[i__];
 
 
-        // if(!(subset == std::vector<int>{6, 9, 36, 39, 46})) continue;
-
-        // right now, it is a single-source estimator. it only uses v1. 
-
-        
         // picking the min degree vertex as source
         int v1 = subset[0];
         long double min_deg = deg_estis[v1];
@@ -1263,25 +1374,7 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
             long double esti_var_f = 0; 
             long double theta = p * (1-p) / pow(1-2*p, 2); 
             // X is the set excluding \ v1.
-            /*
-            for(auto x: g.neighbor[v1]){
-                // Compute d_x: number of connections from x to X (V_U')
-                int d_x = 0;
-                for (int vj : X) {
-                    // this step needs to be substituted by estimator 
-                    if (g.has(x,vj)) {
-                        d_x++;
-                    }
-                }
-                // this step needs to be substituted by estimator 
-                long double I_x = (d_x == P___-1) ? 1.0 : 0.0;
-                // Compute Var(g_x) = (theta + 1)^d_x * theta^(k - d_x) - I_x^2
-                long double var_gx = powl(theta + 1, d_x) * powl(theta, P___-1 - d_x) - powl(I_x, 2);
-                // cout<<"\tval = "<<var_gx<<endl;
-                esti_var_f += var_gx;
-            }
-            cout<<"\nesti_var_f (real dx): "<<esti_var_f <<endl;
-            */
+
             long double esti_var_f_noisy = 0; 
             int X_size = X.size();
             // for (int mask = 0; mask < (1 << X_size); ++mask) { 
@@ -1323,22 +1416,7 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
 
 
 
-            // this is not estimating the variance correctly either 
-            // long double esti_var_f_2 = 0;
-            // for(auto x: g.neighbor[v1]){
-            //     long double product_1 = 1, product_2 = 1;
-            //     for(auto vj : X){
-            //         long double A_x_vj = g.has(x, vj) ? 1 : 0 ; 
-            //         product_1 = product_1 * (A_x_vj + theta); 
-            //         product_2 = product_2 * (A_x_vj ); 
-            //     }
-            //     esti_var_f_2 += product_1 - product_2;
-            // }
-            // cout<<"estimated var 2 = " << esti_var_f_2 <<endl
-            
-            // cout<<endl;
-            
-            
+
 
 
             // to do: need to debug why variance estimation is off.
@@ -1349,113 +1427,6 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
             // special handling
 
             long double local_res = compute_local_res(K___, f1, esti_var_f);
-
-
-            /*
-            // with f1 and esti_var_f ready, we can process K___ = 2, 3
-            std::vector<long double> moment(K___ + 1, 0); 
-            moment[1] = f1;  // f^1
-            moment[2] = pow(f1, 2) - esti_var_f; // f^2
-
-            local_res = 0 ;
-            if (K___ == 2) {
-                local_res =  (moment[2] - f1)/2 ;
-            }
-            else if (K___ <= 3) {
-                moment[3] =  pow(f1, 3) - 3 * f1 * esti_var_f; // this correction term is important
-                if (K___ == 3) {
-                    local_res = (moment[3] - 3 * moment[2] + 2 * f1) / 6;
-                }
-            } 
-            else if (K___ <= 4) {
-                // the formula here is still reasonable. 
-                // assuming normal here: 
-                moment[4] = pow(f1,4) 
-                            - 6 * moment[2]* esti_var_f 
-                            - 3 * pow(esti_var_f ,2 );
-
-                if (K___ == 4){
-                    local_res = (moment[4] - 6 * moment[3] + 11 * moment[2] - 6 * f1) / 24;
-                    // this is better than the corrected version for some reason.
-                    // local_res = pow(f1,4) - 6 *pow(f1,3) + 11*pow(f1,2) - 6*f1;
-                    // local_res/=24;
-                }
-
-            }
-            else if (K___ <= 5) {
-                // this formula needs some work!
-                // zero skewness assumption
-                // to do: fix u and w, look at the result in 10K runs. see if it is normal.
-                moment[5] = pow(f1, 5) 
-                            - 10 * moment[3] * esti_var_f 
-                            - 15 * f1 * pow(esti_var_f, 2);
-                if (K___ == 5) local_res = (moment[5] - 10 * moment[4] + 35 * moment[3] - 50 * moment[2] + 24 * f1) / 120;
-            }
-            else if (K___ <= 6) {
-                // the two approach are not too different, not very good 
-                moment[6] = pow(f1, 6) 
-                            - 15 * moment[4] * esti_var_f ;
-                            - 45 * moment[2] * pow(esti_var_f, 2) 
-                            - 15 * pow(esti_var_f, 3);
-
-                if (K___ == 6){
-                    local_res = (moment[6] - 15 * moment[5] + 85 * moment[4] - 225 * moment[3] + 274 * moment[2] - 120 * f1) / 720;
-                }
-            }
-            else if (K___ <= 7) {
-                moment[7] = pow(f1, 7)
-                            + 21 * moment[5] * esti_var_f
-                            + 105 * moment[3] * pow(esti_var_f, 2)
-                            + 105 * f1 * pow(esti_var_f, 3);
-
-                if (K___ == 7) local_res = (moment[7] - 21 * moment[6] + 105 * moment[5] - 210 * moment[4] + 252 * moment[3] - 140 * moment[2] + 24 * f1) / 5040;
-            }
-            else if (K___ <= 8) {
-
-                moment[8] = pow(f1, 8) 
-                            - 28 * moment[6] * esti_var_f 
-                            - 140 * moment[4] * pow(esti_var_f, 2) 
-                            - 210 * moment[2] * pow(esti_var_f, 3)
-                            - 105 *pow(esti_var_f, 4);
-
-
-                if (K___ == 8) local_res = (moment[8] - 28 * moment[7] + 140 * moment[6] - 364 * moment[5] 
-                            + 560 * moment[4] - 560 * moment[3] + 336 * moment[2] - 70 * f1) / 40320;
-            }
-            else if (K___ <= 9) {
-                moment[9] = pow(f1, 9)
-                            - 36 * moment[7] * esti_var_f
-                            - 210 * moment[5] * pow(esti_var_f, 2)
-                            - 420 * moment[3] * pow(esti_var_f, 3)
-                            - 315 * moment[1] * pow(esti_var_f, 4); 
-
-                if (K___ == 9){
-                    local_res = (moment[9] - 36 * moment[8] + 168 * moment[7] - 504 * moment[6] 
-                            + 1260 * moment[5] - 2520 * moment[4] + 3024 * moment[3] 
-                            - 2016 * moment[2] + 504 * f1) / 362880;
-                }
-            }
-            else if (K___ <= 10) {
-                // on higher moments, with or without is the same.
-                moment[10] = pow(f1, 10);
-                if (K___ == 10){
-                // this is just the expansion of (X choose K___).
-                local_res = (moment[10] - 45 * moment[9] + 210 * moment[8] - 630 * moment[7] 
-                            + 1260 * moment[6] - 2520 * moment[5] + 3024 * moment[4] 
-                            - 2520 * moment[3] + 1260 * moment[2] - 210 * f1) / 3628800;
-                }
-            }
-            */
-            // cout<<"v1 = "<<v1<<"\t";
-            // cout<<"val = "<<local_res<<endl;
-
-            // aggregated_local_res += local_res;
-
-        // }
-        // aggregated_local_res/=subset.size();
-        // cout<<"avg = "<<aggregated_local_res <<endl;
-        // cout<<"\n";
-        // what if we aggregate across P vertices. it should be better.
 
         #pragma omp critical
         res___ += local_res;
@@ -1903,17 +1874,29 @@ long double weighted_pair_sampling_non_DP(BiGraph& g, unsigned long seed) {
     return res / T; 
 }
 
-// Compute binomial coefficient n choose k (for small k)
-long long binomial(int n, int k) {
-    if (k < 0 || n < k) return 0;
-    if (k == 0) return 1;
-    long long res = 1;
+// long double binomial(int n, int k) {
+//     if (k < 0 || n < k) return 0.0;
+//     if (k == 0) return 1.0;
+//     long double res = 1.0;
+//     for (int i = 0; i < k; ++i) {
+//         res *= (n - i);
+//         res /= (i + 1);
+//     }
+//     return res;
+// }
+
+long double binomial(int n, int k) {
+    if (n < 0 || k < 0 || k > n) return 0.0;
+    if (k == 0 || k == n) return 1.0;
+    k = std::min(k, n - k); // Optimize by using smaller k
+    long double res = 1.0;
     for (int i = 0; i < k; ++i) {
-        res *= (n - i);
-        res /= (i + 1);
+        res *= static_cast<long double>(n - i) / (i + 1);
     }
     return res;
 }
+
+
 
 // one-round biclique counting: 
 // _switch = btf:0, cate:1, biclique:2, quasi-biclique: 3.
@@ -2284,12 +2267,20 @@ long double one_round_biclique_2_K(BiGraph& g, int K, unsigned long seed) {
         }
     }
 
+    cout<<"motif count distribution"<<endl;
+    for (size_t i = 0; i <= 2 * K; ++i) {
+        cout<<"i = "<<i<<" mi = "<< m__[i] <<endl;
+    }
+
     // Output motif counts and verify sum
     long double sum___ = std::accumulate(m__.begin(), m__.end(), 0.0);
     long double target = binomial(n1, 2) * binomial(n2, K);
     std::cout << "Sum of motif counts: " << sum___ << "\n";
     std::cout << "Expected total: " << target << "\n";
     if (std::abs(sum___ - target) > 1e-6 * target) {
+        // when this happens, there is the issue of overflow
+        std::cout << "Sum of motif counts: " << sum___ << "\n";
+        std::cout << "Expected total: " << target << "\n";
         std::cerr << "Warning: Sum of motif counts does not match expected total.\n";
     }
 
@@ -2309,13 +2300,21 @@ long double one_round_biclique_2_K(BiGraph& g, int K, unsigned long seed) {
 
 // Naive biclique count
 long double naive_biclique(BiGraph& g, unsigned long seed, 
-    int p__, int q__)
-    {
+    int p__, int q__){
 
 	BiGraph g2(g); 
     
+    long double res = 0; 
+
 	construct_noisy_graph(g, g2, seed);
 
+    // if(p__ == 2 && q__ ==2){
+    //     res = BFC_EVP(g2);
+    //     cout<<"btf res = "<<res<<endl;
+    //     return res;
+    // }
+
+    // only do this when larger biclique
     biGraph convertedGraph = convertBiGraphTobiGraph(g2);
 
     cout << "Converted graph: n1=" << convertedGraph.n1 << ", n2=" << convertedGraph.n2 << ", m=" << convertedGraph.m << std::endl;
@@ -2323,9 +2322,9 @@ long double naive_biclique(BiGraph& g, unsigned long seed,
     // Create and use BCListPlusPlus
     BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, p__, q__);
 
-    long double res = counter->exactCount();
+    res = counter->exactCount();
 
-    cout<<"naive bicliq count = "<<res<<endl;
+    cout<<"res = "<<res<<endl;
 
 	return res;
 }
@@ -2972,7 +2971,7 @@ bool BCListPlusPlus::costEstimate() {
     return costU > costV;
 }
 
-unsigned long long int BCListPlusPlus::exactCount() {
+long double BCListPlusPlus::exactCount() {
 
     collect2HopNeighbors();
     // printf("collect 2\n"); fflush(stdout);
@@ -3004,11 +3003,11 @@ unsigned long long int BCListPlusPlus::exactCount() {
 
     layerBasedListing(0, g->n1, g->n2);
 
-    // printf("ans %.2f\n", ans);
+    printf("ans %.2Lf\n", ans);
 
-    unsigned long long int res = ans;
+    // unsigned long long int res = ans;
 
-    return res;
+    return ans ; 
     // fflush(stdout);
 }
 

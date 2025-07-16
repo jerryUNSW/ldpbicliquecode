@@ -154,7 +154,12 @@ void BiGraph::loadGraph(string dir) {
     cout<<"computing degrees"<<endl;
 	for(int u=0;u<num_nodes();u++){
 		degree[u] = neighbor[u].size();
-		// v1_max_degree = v1_max_degree > degree[u] ? v1_max_degree : degree[u]; 
+        if(is_upper(u)){
+            v1_max_degree = v1_max_degree > degree[u] ? v1_max_degree : degree[u]; 
+        }else{
+            v2_max_degree = v2_max_degree > degree[u] ? v2_max_degree : degree[u]; 
+        }
+		
 	}
 
     fclose(metaGraph);

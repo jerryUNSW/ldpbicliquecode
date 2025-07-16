@@ -7,7 +7,7 @@
 
 void printMemoryUsage() ;
 
-long long binomial(int n, int k);
+long double binomial(int n, int k) ;
 
 long double one_round_biclique_2_3(BiGraph& g, unsigned long seed);
 
@@ -27,6 +27,9 @@ long double weighted_pair_sampling(BiGraph& g, unsigned long seed);
 
 // (2, K)
 long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) ; 
+
+// layer based:
+long double layer_based_wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) ;
 
 // (3, K)
 long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) ;
@@ -122,7 +125,7 @@ struct VectorHasher {
 
 // biclique counting related code:
 class BCListPlusPlus {
-private:
+public:
     const int maxD = 100000;
     int p, q;
     // great, this specifies input P and Q.
@@ -148,7 +151,7 @@ private:
             }
         }
     }
-    double ans;
+    long double ans;
 
 private:
     struct twoHopGraph {
@@ -220,7 +223,7 @@ public:
         fflush(stdout);
     }
     
-    unsigned long long int exactCount();
+    long double exactCount();
     void layerBasedListing(int l, int pH, int pS);
 
     bool costEstimate();

@@ -1,8 +1,8 @@
-# ldp-pq (Local Differential Privacy Biclique Counting)
+# ldp-pq (Local Differential Privacy (p,q)-Biclique Counting)
 
 ## Overview
 
-ldp-pq is a C++ project focused on biclique counting in bipartite graphs with edge-local differential privacy.
+ldp-pq is a C++ project focused on (p,q)-biclique counting in bipartite graphs with edge-local differential privacy.
 
 ## Project Structure
 
@@ -45,9 +45,9 @@ To run the ldp-pq program, use the following command:
 
 - **0**: Naive algorithm (single round recommended).
 - **1**: One-round algorithm (feasible only on smaller datasets like "to" and "co").
-- **2**: Advanced base algorithm (adv-base).
-- **3**: Advanced+ algorithm (adv+).
-- **4**: Advanced++ algorithm (adv++).
+- **2**: The MRCN algorithm.
+- **3**: The MRCN algorithm + Multi-center optimization.
+- **4**: The MRCN algorithm + Multi-center optimization + Refined Noisy Graph Construction.
 
 ## Data Format for Bipartite Graphs
 
@@ -75,31 +75,6 @@ The metadata file provides essential information about the bipartite graph in th
 - `Lower Vertices Count`: The number of lower vertices.
 - `Edges Count`: The total number of edges.
 
-## Supported Datasets
-
-The program supports the following datasets (located in `../bidata/`):
-
-- `to`
-- `co`
-- `big`
-- `crime`
-- `M_PL_030`
-- `unicode`
-- `lrcwiki`
-- `librec-filmtrust-ratings`
-- `rmwiki`
-- `amazon-ratings`
-- `edit-iowiktionary`
-- `opsahl-collaboration`
-- `csbwiki`
-- `bag-kos`
-- `bpywiki`
-- `nips`
-- `lastfm_band`
-- `discogs_lstyle_lstyle`
-- `digg-votes`
-- `movielens-10m_rating`
-
 ## Example Usage
 
 1. Run the naive algorithm to count (2,3)-bicliques for 1 round with a privacy budget epsilon = 1 on the dataset `to`:
@@ -119,10 +94,3 @@ The program supports the following datasets (located in `../bidata/`):
 ```bash
 ./biclique 1 ../bidata/unicode 10 4 3 2
 ```
-
-## Notes
-
-- The naive algorithm (switch 0) is optimized for a single round, as additional rounds do not improve its performance.
-- The one-round algorithm (switch 1) is only feasible for smaller datasets like `to` and `co`.
-- For large epsilon values, the naive algorithm may produce overly optimistic results, so use with caution.
-- Output can be filtered for specific algorithm results using `grep adv` (e.g., for advanced algorithms).
