@@ -5,8 +5,6 @@ epsilon=2.5
 # when epsilon is too large, naive becomes too good
 
 round=10
-# DBpath="/data/yizhangh/biclq_counts.db"  # Define the path to the SQLite database
-
 
 # need to input $1 and $2 as p and q. 
 datasets=(
