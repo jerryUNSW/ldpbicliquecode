@@ -2455,9 +2455,19 @@ void fetch_or_compute_biclique_count(int P___, int K___,
 
     sqlite3* db;
     if (sqlite3_open("../biclq_counts.db", &db) != SQLITE_OK) {
-        std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-        exit(1);
+        std::cerr << "Warning: Could not open database, falling back to online counting: " << sqlite3_errmsg(db) << std::endl;
+        
+        // Compute count ad hoc and return early
+        biGraph convertedGraph = convertBiGraphTobiGraph(g);
+        std::cout << "Converted graph: n1=" << convertedGraph.n1 
+                  << ", n2=" << convertedGraph.n2 
+                  << ", m=" << convertedGraph.m << std::endl;
+        BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, K___);
+        real = counter->exactCount();
+        cout<<"cliq count = "<<real<<endl;
+        return;
     }
+    
     // Dataset, p, and q values to filter
     size_t found = dataset.find_last_of("/\\");  // Find the last slash
     std::string dataset_to_find = dataset.substr(found + 1);  // Extract part after the last slash
