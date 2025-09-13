@@ -2,7 +2,6 @@
 
 # Define experiment parameters
 round=10
-# DBpath="/data/yizhangh/biclq_counts.db"  # Define the path to your SQLite database (uncomment if needed)
 
 # Define datasets (you can uncomment additional datasets as needed)
 datasets=(
