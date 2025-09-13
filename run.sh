@@ -1,8 +1,6 @@
 #!/bin/bash
 
 epsilon=2.5
-# issue:
-# when epsilon is too large, naive becomes too good
 
 round=10
 
