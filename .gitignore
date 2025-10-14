@@ -42,3 +42,8 @@ biclique
 biclique-results/
 plot_biclique_errors.py
 plots/
+
+# Research directories
+overleaf-paper/
+SIGMOD-Revision/
+results_vary_eps_q_p2/
