@@ -17,6 +17,7 @@ unordered_map<int, bool> in_sampled_up, in_sampled_lo;
 bool samling_one_round = false;
 long double verified = 0, not_verified = 0;
 extern long double Eps, Eps0, Eps1, Eps2, p, m3__, m2__, m1__, m0__, communication_cost;
+extern long double alpha0, alpha1, alpha2;
 extern vector<int> priv_deg;
 extern vector<long double> naive_estis;
 extern int priv_dmax_1, priv_dmax_2;
@@ -763,12 +764,90 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
 	start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
 	end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
 
-	#pragma omp parallel
-	{
-	#pragma omp for schedule(static)
-		for(int u =start__ ; u <end__ ; u++) {
-			for(int w =start__ ; w <end__ ; w++) {
-                if(u<=w) continue;
+    // Probability filtering logic
+    if (use_probability_filtering) {
+        cout << "Using probability-based filtering..." << endl;
+        
+        // First pass: compute all f_u_w and esti_var_f values
+        struct PairData {
+            int u, w;
+            long double f_u_w;
+            long double esti_var_f;
+        };
+        
+        vector<PairData> all_pairs;
+        
+        for(int u = start__; u < end__; u++) {
+            for(int w = start__; w < end__; w++) {
+                if(u <= w) continue;
+                
+                long double f_u_w, f_w_u;    
+                if(two_noisy_graph_switch){
+                    f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
+                    f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
+                } else {
+                    f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
+                    if(multi_estimator_switch){
+                        f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+                    }
+                }
+                
+                long double esti_var_f;
+                if(!multi_estimator_switch){
+                    esti_var_f = 2 * pow(gamma__,2) / pow(Eps2,2) + p * (1 - p) * deg_estis[u] / pow(1-2*p,2); 
+                } else {
+                    f_u_w = (f_u_w + f_w_u)/2;
+                    long double variance_f_u = 2 * pow(gamma__,2) / pow(Eps2,2);
+                    long double variance_f_w = 2 * pow(gamma__,2) / pow(Eps2,2);
+                    long double main_fu = p * (1 - p) * deg_estis[u] / pow(1-2*p,2);
+                    long double main_fw = p * (1 - p) * deg_estis[w] / pow(1-2*p,2);
+                    if(two_noisy_graph_switch){
+                        main_fu/=2;
+                        main_fw/=2;
+                    }
+                    variance_f_u += main_fu;
+                    variance_f_w += main_fw;
+                    esti_var_f = (variance_f_u + variance_f_w) / 4;
+                }
+                
+                all_pairs.push_back({u, w, f_u_w, esti_var_f});
+            }
+        }
+        
+        // Filter pairs based on probability P(f_true >= K) >= 90%
+        vector<PairData> pairs_to_process;
+        long double prob_threshold = 0.90;
+        
+        for(const auto& pair : all_pairs) {
+            // Clamp variance to avoid numerical issues
+            long double f_variance = max(pair.esti_var_f, (long double)1e-6);
+            
+            // Compute P(f_true >= K) using normal approximation
+            long double z_score = (K - pair.f_u_w) / sqrt(f_variance);
+            long double prob_f_ge_K = 0.5 * erfc(z_score / sqrt(2.0));
+            
+            if (prob_f_ge_K >= prob_threshold) {
+                pairs_to_process.push_back(pair);
+            }
+        }
+        
+        cout << "Selected " << pairs_to_process.size() << " pairs out of " << all_pairs.size() 
+             << " based on probability filtering (P(f>=" << K << ") >= " << prob_threshold << ")" << endl;
+        
+        // Second pass: compute local_res for selected pairs
+        for(const auto& pair : pairs_to_process) {
+            long double local_res = compute_local_res(K, pair.f_u_w, pair.esti_var_f);
+            res___ += local_res;
+        }
+        
+    } else {
+        // Original logic without filtering
+        #pragma omp parallel
+        {
+        #pragma omp for schedule(static)
+            for(int u =start__ ; u <end__ ; u++) {
+                for(int w =start__ ; w <end__ ; w++) {
+                    if(u<=w) continue;
 
                 long double f_u_w, f_w_u;    
                 if(two_noisy_graph_switch){
@@ -847,6 +926,7 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
 
 		}
 	}
+    }
     return res___;
 }
 

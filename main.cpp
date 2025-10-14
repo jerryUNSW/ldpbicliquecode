@@ -7,6 +7,8 @@ vector<long double> estis, naive_estis;
 extern bool one_round, count_cate; 
 
 long double p, Eps, Eps0, Eps1, Eps2;
+// privacy budget allocation ratios
+long double alpha0, alpha1, alpha2;
 // private degrees:
 vector<int> priv_deg;
 int priv_dmax_1, priv_dmax_2, iteration, num_rounds; 
@@ -34,6 +36,8 @@ extern bool two_noisy_graph_switch;
 
 extern bool multi_estimator_switch ; 
 
+bool use_probability_filtering = false;
+
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
 int main(int argc, char *argv[]) {
@@ -53,8 +57,36 @@ int main(int argc, char *argv[]) {
     P___ = atoi(argv[5]);
     K___ = atoi(argv[6]);
 
+    // Privacy budget allocation ratios (with default values)
+    if (argc >= 10) {
+        alpha0 = stold(argv[7]);
+        alpha1 = stold(argv[8]);
+        alpha2 = stold(argv[9]);
+        
+        // Validate that they sum to 1.0
+        long double sum = alpha0 + alpha1 + alpha2;
+        if (abs(sum - 1.0) > 1e-6) {
+            cerr << "Error: alpha0 + alpha1 + alpha2 must equal 1.0, got " << sum << endl;
+            return 1;
+        }
+    } else {
+        // Default allocation: (0.05, 0.6, 0.35)
+        alpha0 = 0.05;
+        alpha1 = 0.6;
+        alpha2 = 0.35;
+    }
+
+    // 11th parameter: probability filtering (0=disabled, 1=enabled)
+    if (argc >= 11) {
+        use_probability_filtering = (atoi(argv[10]) == 1);
+    } else {
+        use_probability_filtering = false; // Default to disabled
+    }
+
     cout<<"P___ = "<<P___ <<endl;
     cout<<"K___ = "<<K___ <<endl;
+    cout<<"Budget allocation: alpha0="<<alpha0<<", alpha1="<<alpha1<<", alpha2="<<alpha2<<endl;
+    cout<<"Probability filtering: "<<(use_probability_filtering ? "ENABLED" : "DISABLED")<<endl;
 
     // initialize time
     RR_time = 0, server_side_time = 0, naive_server_side = 0;
@@ -62,23 +94,6 @@ int main(int argc, char *argv[]) {
     std::mt19937 rng(std::random_device{}());  // for seeding
 
     BiGraph g(dataset);
-
-    
-    /*
-    long double S1 = binomial(g.num_v1, P___) * g.v1_max_degree;
-    long double S2 = binomial(g.num_v2, K___) * g.v2_max_degree;
-    cout<<"g.v1_max_degree = "<<g.v1_max_degree <<endl;
-    cout<<"g.v2_max_degree = "<<g.v2_max_degree <<endl;
-
-    cout<<"S1 = "<<S1 <<endl;
-    cout<<"S2 = "<<S2 <<endl;
-
-    if(g.num_v1 < g.num_v2 && S1 > S2){
-        cout<<"found it"<<endl;
-    }
-    // */
-
-
 
     long double fill_rate = g.num_edges * 1.0 / ((double)g.num_v1 * (double)g.num_v2);
 
