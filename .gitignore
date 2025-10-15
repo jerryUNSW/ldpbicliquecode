@@ -47,3 +47,7 @@ plots/
 overleaf-paper/
 SIGMOD-Revision/
 results_vary_eps_q_p2/
+larger_p_q_experiment/
+
+# Legacy code archive
+old-functions.cpp

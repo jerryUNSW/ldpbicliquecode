@@ -94,3 +94,68 @@ The metadata file provides essential information about the bipartite graph in th
 ```bash
 ./biclique 1 ../bidata/unicode 10 4 3 2
 ```
+
+## Important: Ground Truth Overflow Issue
+
+### Problem Description
+
+When computing ground truth for large Q values (typically Q ≥ 6), biclique counts can exceed 64-bit integer limits. The SQLite database correctly stores these large numbers as `REAL` (floating point) values in scientific notation, but the original C++ code was using `sqlite3_column_int64()` to retrieve them, causing integer overflow.
+
+### Symptoms
+
+- Ground truth values for Q ≥ 6 appear as the maximum 64-bit integer: `9223372036854775807`
+- Relative error calculations become meaningless (artificially inflated)
+- Algorithm performance appears much worse than it actually is
+- All algorithms show similar poor performance for large Q values
+
+### Example
+
+For LRCWiki dataset:
+- **Q=6**: True count = 4.11×10^19, but retrieved as 9.22×10^18 (overflowed)
+- **Q=7**: True count = 3.27×10^22, but retrieved as 9.22×10^18 (overflowed)
+- **Q=8**: True count = 2.27×10^25, but retrieved as 9.22×10^18 (overflowed)
+- **Q=9**: True count = 1.40×10^28, but retrieved as 9.22×10^18 (overflowed)
+
+### Fix Applied
+
+The code has been updated in `biclique.cpp` to properly handle both `INTEGER` and `REAL` database values:
+
+```cpp
+// Get the column type to handle both INTEGER and REAL values
+int column_type = sqlite3_column_type(stmt, 1);
+long double count_value;
+
+if (column_type == SQLITE_INTEGER) {
+    count_value = static_cast<long double>(sqlite3_column_int64(stmt, 1));
+} else if (column_type == SQLITE_FLOAT) {
+    count_value = static_cast<long double>(sqlite3_column_double(stmt, 1));
+}
+```
+
+### Impact
+
+- **Before fix**: Relative errors were artificially inflated due to wrong ground truth
+- **After fix**: Relative errors reflect actual algorithm performance
+- **Result**: Algorithms show much better performance for large Q values than previously reported
+
+### Verification
+
+To verify the fix is working, look for these indicators in the output:
+- Ground truth values are displayed in scientific notation for large Q values
+- Warning messages about precision loss (if any) are shown
+- Relative errors are much smaller and more reasonable for Q ≥ 6
+
+### Database Schema
+
+The ground truth is stored in `../biclq_counts.db` with the following schema:
+```sql
+CREATE TABLE pqbiclique_counts (
+    dataset TEXT NOT NULL,
+    p INTEGER NOT NULL,
+    q INTEGER NOT NULL,
+    count UNSIGNED BIG INT NOT NULL,  -- Can store as REAL for large values
+    PRIMARY KEY (dataset, p, q)
+);
+```
+
+Large values are automatically stored as `REAL` (scientific notation) by SQLite when they exceed integer limits.

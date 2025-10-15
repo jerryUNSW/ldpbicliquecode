@@ -25,6 +25,7 @@ extern bool eva_comm ;
 
 
 unsigned long long int  real ;
+long double real_ld = 0.0;  // High precision ground truth for large numbers
 
 int P___, K___ ; 
 // biclique related 

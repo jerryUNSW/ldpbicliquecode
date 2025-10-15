@@ -16,7 +16,7 @@ long double one_round_biclique_2_K(BiGraph& g, int K, unsigned long seed);
 // convert my graph to biclique-counting expected graph:
 biGraph convertBiGraphTobiGraph(BiGraph& oldGraph); 
 
-long double weighted_pair_sampling_non_DP(BiGraph& g, unsigned long seed); 
+// long double weighted_pair_sampling_non_DP(BiGraph& g, unsigned long seed); // COMMENTED OUT 
     
 double locally_compute_f_given_q_and_x_ad_hoc(int q, int x, BiGraph& g, BiGraph& g2);
 
@@ -27,6 +27,15 @@ long double weighted_pair_sampling(BiGraph& g, unsigned long seed);
 
 // (2, K)
 long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) ; 
+
+// Batch version for multiple Q values
+std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, unsigned long seed);
+
+// Batch version of naive algorithm for multiple Q values
+std::vector<long double> naive_biclique_batch(BiGraph& g, unsigned long seed, int P___);
+
+// Batch version of one_round_biclique_2_K for multiple Q values
+std::vector<long double> one_round_biclique_2_K_batch(BiGraph& g, unsigned long seed);
 
 // layer based:
 long double layer_based_wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) ;
@@ -48,7 +57,7 @@ void fetch_or_compute_biclique_count(int P___, int K___, string dataset, BiGraph
 long double wedge_based_btf_avg(BiGraph& g, unsigned long seed);
 
 // VP based 
-long double VP_wedge_based_two_round_btf(BiGraph& g, unsigned long seed);
+// long double VP_wedge_based_two_round_btf(BiGraph& g, unsigned long seed); // COMMENTED OUT
 
 double locally_compute_f_given_q_and_x_vp(int q, int x, BiGraph& g, BiGraph& g2, int& res__);
 
@@ -79,7 +88,7 @@ long double naive_biclique(BiGraph& g, unsigned long seed, int p__, int q__);
 
 long double one_round_btf(BiGraph& g, unsigned long seed);
 
-long double two_round_btf(BiGraph& g, unsigned long seed);
+// long double two_round_btf(BiGraph& g, unsigned long seed); // COMMENTED OUT
 
 // naive noisy motif counts
 void get_noisy_naive(BiGraph& g, BiGraph& g2, long double& local_btfs,
