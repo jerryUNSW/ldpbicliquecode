@@ -967,21 +967,21 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     // Determine how many triples to sample based on the fraction
     // double sample_fraction = 1e-4;
 
-    // we can increase this for better effectiveness
-    long double T = pow(10,6);
+    // Set T to 2 million for better effectiveness
+    long long T = 2000000LL;
 
-    double sample_fraction = T / total_triples;
+    bool use_exhaustive = (total_triples <= T);
+    double sample_fraction;
+
+    if (use_exhaustive) {
+        sample_fraction = 1.0;  // Process all triplets
+        cout<<"Using EXHAUSTIVE enumeration (total = " << total_triples << ", T = " << T << ")" << endl;
+    } else {
+        sample_fraction = (double)T / total_triples;  // Sample 2M triplets
+        cout<<"Using REJECTION SAMPLING (T = " << T << " of " << total_triples << " total = " << (sample_fraction * 100) << "%)" << endl;
+    }
     
     long long num_triples_to_sample = static_cast<long long>(total_triples * sample_fraction);
-
-    // Random number generation
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dis(0.0, 1.0);
-
-    // Sample the triples
-    cout<<"total triplets: "<<total_triples <<endl;
-    cout << "Sample size = " << num_triples_to_sample <<endl;
 
     bool is_upper_smaller = (g.num_v1 < g.num_v2 );
     gamma__ = (1-p) / (1-2*p);
@@ -993,18 +993,17 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     int start__ = 0; 
     int end__ = g.num_v1; 
 
-    #pragma omp parallel
-	{
-        // #pragma omp for schedule(static)
-        // for (size_t i = 0; i < tripletVec.size(); ++i) {
-        //     const auto& triplet = tripletVec[i];
-        //     auto [v1, v2, v3] = triplet;
-    #pragma omp for schedule(static)
-    for (int v1 = start__; v1 < end__ - 2; ++v1) {
-        for (int v2 = v1 + 1; v2 < end__ - 1; ++v2) {
-            for (int v3 = v2 + 1; v3 < end__; ++v3) {
-
-                if (dis(gen) >= sample_fraction) continue;
+    if (use_exhaustive) {
+        // EXHAUSTIVE ENUMERATION: Process all triplets
+        cout<<"total triplets: "<<total_triples <<endl;
+        cout << "Processing all triplets" <<endl;
+        
+        #pragma omp parallel
+        {
+        #pragma omp for schedule(static)
+        for (int v1 = start__; v1 < end__ - 2; ++v1) {
+            for (int v2 = v1 + 1; v2 < end__ - 1; ++v2) {
+                for (int v3 = v2 + 1; v3 < end__; ++v3) {
 
 
                 // from the neighbors of v1:
@@ -1149,7 +1148,189 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
             }
         }
     }
+    }
+    } else {
+        // REJECTION SAMPLING: Sample exactly T triplets
+        cout<<"total triplets: "<<total_triples <<endl;
+        cout << "Target sample size = " << T <<endl;
         
+        // Random number generation for rejection sampling
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> vertex_dis(0, end__ - 1);
+        
+        // Hash set to store selected triplets (for uniqueness)
+        std::unordered_set<long long> selected_triplets;
+        
+        // Function to encode triplet as unique ID
+        auto encode_triplet = [end__](int v1, int v2, int v3) -> long long {
+            // Ensure v1 < v2 < v3 for consistent encoding
+            if (v1 > v2) std::swap(v1, v2);
+            if (v2 > v3) std::swap(v2, v3);
+            if (v1 > v2) std::swap(v1, v2);
+            
+            // Encode as: v1 * n^2 + v2 * n + v3 (where n = end__)
+            long long n = end__;
+            return v1 * n * n + v2 * n + v3;
+        };
+
+        // Rejection sampling to get exactly T unique triplets
+        while (selected_triplets.size() < T) {
+            // Generate random triplet
+            int v1 = vertex_dis(gen);
+            int v2 = vertex_dis(gen);
+            int v3 = vertex_dis(gen);
+            
+            // Ensure v1 < v2 < v3 (valid triplet)
+            if (v1 >= v2 || v2 >= v3 || v1 >= v3) continue;
+            
+            long long triplet_id = encode_triplet(v1, v2, v3);
+            
+            // Check if already selected
+            if (selected_triplets.find(triplet_id) != selected_triplets.end()) continue;
+            
+            // Add to selected set
+            selected_triplets.insert(triplet_id);
+            
+            // Process this triplet
+            // from the neighbors of v1:
+            long double f1 = 0, f2= 0, f3 = 0, f12 = 0, f13=0;
+            long double local_res = 0, esti_var_f_uvw = 0, fuvw = 0 ;
+
+            if(multi_estimator_switch){
+                // multi-source estimator
+                for(auto nb: g.neighbor[v1]){
+                    long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                    long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+
+                    if (two_noisy_graph_switch) {
+                        A1 = (A1 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                        A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                    }
+                    f1 += A1 * A2; 
+                    f12 += A1; 
+                    f13 += A2; 
+                }
+                // two_noisy_graph_switch does not change GS and Lap noise
+                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                
+                long double f21 = 0, f23=0;
+                for(auto nb: g.neighbor[v2]){
+                    long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                    long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+                    if (two_noisy_graph_switch) {
+                        A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                        A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                    }
+                    f2 += A1 * A2; 
+                    f21 += A1; 
+                    f23 += A2;          
+                }
+                // two_noisy_graph_switch does not change GS and Lap noise
+                f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
+                f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                long double f31 = 0, f32=0;
+                for(auto nb: g.neighbor[v3]){
+                    long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                    long double A2 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                    if (two_noisy_graph_switch) {
+                        A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                        A2 = (A2 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                    }
+                    f3 += A1 * A2; 
+                    f31 += A1; 
+                    f32 += A2;    
+
+                }
+                f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+                // averaging
+                fuvw = (f1 + f2 + f3 )/3 ; 
+
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                if (two_noisy_graph_switch) {
+                    var_phi/=2;
+                }
+
+                long double esti_var_f1, esti_var_f2, esti_var_f3; 
+
+                // this should always be true
+                bool improvement = true;
+                if(improvement){
+                    // averaging f12 and f21 is useful too!
+                    esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                    esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                    esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                    esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                    esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                    esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                    esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                    esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                    esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                }else{ 
+                    // this will be true when switch = 3
+                    esti_var_f1 = var_phi * (f12 + f13) ; 
+                    esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                    esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                    esti_var_f2 = var_phi * (f12 + f23) ; 
+                    esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                    esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                    esti_var_f3 = var_phi * (f13 + f23) ; 
+                    esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                    esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                }
+
+                
+                // include C2(vi, vj)
+                f12 = (f12 + f21)/2;
+                f13 = (f13 + f31)/2;
+                f23 = (f23 + f32)/2;
+
+                // compute terms from var(f1), var(f2), and var(f3)
+                esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3);
+
+                // consider the co-variance of f1, f2, and f3.
+                esti_var_f_uvw += 2 * var_phi * (f12 + f13 + f23); 
+                esti_var_f_uvw /= 9;
+            }else{
+                // single-source estimator: f1
+                for(auto nb: g.neighbor[v1]){
+                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                    A1 = (A1-p) / (1-2*p); 
+
+                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                    A2 = (A2-p) / (1-2*p); 
+
+                    f1 += A1 * A2;
+                }
+                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+
+                // no averaging
+                fuvw = f1;
+                
+                // estimate the variance of f(u, v, w)
+
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+
+                long double esti_var_f1 = var_phi * (f12 + f13) ; 
+                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                esti_var_f_uvw = esti_var_f1;
+            }
+
+            local_res = compute_local_res(K, fuvw, esti_var_f_uvw);
+            res += local_res;
+        }
     }
 
     // assert(count == num_triples_to_sample);
@@ -1202,8 +1383,8 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
                             (smaller_partition_size - 1) * 
                             (smaller_partition_size - 2) / 6; 
 
-    // Target number of triplets to sample (1% of total triplets)
-    long long T = std::max(1000LL, total_triples / 100);  // At least 1000, but 1% of total
+    // Target number of triplets to sample (2 million, or all if less)
+    long long T = std::min(2000000LL, total_triples);  // Use 2M or all triplets if less
     
     // Random number generation for rejection sampling
     std::random_device rd;
@@ -1226,7 +1407,11 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
 
     // Rejection sampling to get exactly T unique triplets
     cout<<"total triplets: "<<total_triples <<endl;
-    cout << "Target sample size = " << T << " (1% of total)" <<endl;
+    if (T == total_triples) {
+        cout << "Target sample size = " << T << " (all triplets)" <<endl;
+    } else {
+        cout << "Target sample size = " << T << " (2M max)" <<endl;
+    }
     
     while (selected_triplets.size() < T) {
         // Generate random triplet
@@ -1412,8 +1597,8 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
                             (smaller_partition_size - 1) * 
                             (smaller_partition_size - 2) / 6; 
 
-    // Target number of triplets to sample (1% of total triplets)
-    long long T = std::max(1000LL, total_triples / 100);  // At least 1000, but 1% of total
+    // Target number of triplets to sample (2 million, or all if less)
+    long long T = std::min(2000000LL, total_triples);  // Use 2M or all triplets if less
     
     // Random number generation for rejection sampling
     std::random_device rd;
@@ -1436,7 +1621,11 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
 
     // Rejection sampling to get exactly T unique triplets
     cout<<"total triplets: "<<total_triples <<endl;
-    cout << "Target sample size = " << T << " (1% of total)" <<endl;
+    if (T == total_triples) {
+        cout << "Target sample size = " << T << " (all triplets)" <<endl;
+    } else {
+        cout << "Target sample size = " << T << " (2M max)" <<endl;
+    }
     
     while (selected_triplets.size() < T) {
         // Generate random triplet

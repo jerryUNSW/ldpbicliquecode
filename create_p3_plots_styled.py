@@ -33,60 +33,47 @@ def get_pos_and_labels(indices):
     return pos, labels
 
 def parse_p3_output(output_text, filename=""):
-    """Parse the output from p3 batch results"""
+    """Parse the output from p3 new results format"""
     
-    # Extract configuration
-    config_match = re.search(r'Dataset: (.+)\nEpsilon: (.+)\nRounds: (.+)', output_text)
-    if config_match:
-        dataset = config_match.group(1).split('/')[-1]  # Extract just the dataset name
-        epsilon = float(config_match.group(2))
-        rounds = int(config_match.group(3))
-    else:
-        # Try to extract dataset name from filename
-        if filename:
-            # Extract dataset name from filename like "p3_librec-filmtrust-ratings_batch_results.txt"
-            match = re.search(r'p3_([^_]+(?:_[^_]+)*)_batch_results\.txt', filename)
-            if match:
-                dataset = match.group(1)
-            else:
-                dataset = "unknown"
+    # Extract dataset name from filename
+    if filename:
+        # Extract dataset name from filename like "p3_lrcwiki_new.txt"
+        match = re.search(r'p3_([^_]+(?:_[^_]+)*)_new\.txt', filename)
+        if match:
+            dataset = match.group(1)
         else:
             dataset = "unknown"
-        epsilon = 1.0
-        rounds = 10
+    else:
+        dataset = "unknown"
     
-    # Extract algorithm comparison summary
-    summary_section = re.search(r'=== Algorithm Comparison Summary ===(.*?)(?=\n\n|\Z)', output_text, re.DOTALL)
-    if not summary_section:
-        print("Could not find algorithm comparison summary")
-        return None, None, None
+    epsilon = 1.0  # Default epsilon for P=3 experiments
     
-    summary_text = summary_section.group(1)
+    # Parse individual algorithm runs
+    # Algorithm mapping: 0=Naive, 2=MRCN, 3=MRCN+, 4=MRCN++
+    alg_mapping = {0: 'Naive', 2: 'MRCN', 3: 'MRCN+', 4: 'MRCN++'}
     
-    # Parse the summary table
-    lines = summary_text.strip().split('\n')
-    header_line = lines[1]  # "Q\tNaive\t\tADV\t\tADV+\t\tADV++"
-    data_lines = lines[2:]  # Skip header and separator line
-    
-    # Extract algorithm names from header - use proper names for p=3
-    algorithms = ['Naive', 'MRCN', 'MRCN+', 'MRCN++']
-    
-    # Parse data
     results = {}
-    for line in data_lines:
-        if line.strip():
-            parts = line.split('\t')
-            if len(parts) >= 5:
-                q = int(parts[0])
-                results[q] = {}
-                for i, alg in enumerate(algorithms):
-                    if i + 1 < len(parts):
-                        # Parse scientific notation
-                        value_str = parts[i + 1].strip()
-                        try:
-                            results[q][alg] = float(value_str)
-                        except ValueError:
-                            results[q][alg] = float('inf')
+    
+    # Find all algorithm runs
+    sections = re.split(r'DATASET: \w+\s+ALG=(\d+)\s+Q=(\d+)', output_text)
+    
+    for i in range(1, len(sections), 3):
+        if i + 2 < len(sections):
+            alg_num = int(sections[i])
+            q_value = int(sections[i + 1])
+            section_content = sections[i + 2]
+            
+            # Extract relative error from this section
+            rel_err_match = re.search(r'adv rel err = ([0-9.e+-]+)', section_content)
+            if rel_err_match:
+                rel_error = float(rel_err_match.group(1))
+                
+                if q_value not in results:
+                    results[q_value] = {}
+                
+                if alg_num in alg_mapping:
+                    alg_name = alg_mapping[alg_num]
+                    results[q_value][alg_name] = rel_error
     
     return dataset, epsilon, results
 
@@ -148,7 +135,7 @@ def create_p3_plot(dataset, epsilon, results):
     ax.set_xticks([x[i] - width for i in range(len(q_values))])
     ax.set_xticklabels([str(q) for q in q_values], fontsize=26)
     
-    # Set y-axis limits and ticks
+    # Set y-axis limits and ticks - always use log scale
     all_values = []
     for q in q_values:
         for alg in algorithms:
@@ -159,11 +146,18 @@ def create_p3_plot(dataset, epsilon, results):
     if all_values:
         y_min = np.min(all_values)
         y_max = np.max(all_values)
+        
+        # Print debug info
+        print(f"Y-axis range: min={y_min:.3f}, max={y_max:.3f}")
+        print(f"All values: {sorted(all_values)}")
+        
+        # Always use log scale with appropriate range
         y_min_adjusted = y_min / 10 if y_min > 0 else y_min * 10
         y_max_adjusted = y_max * 10
+        
         ax.set_ylim(y_min_adjusted, y_max_adjusted)
         
-        # Set y-axis ticks
+        # Set y-axis ticks - always use log scale
         indices = [i for i in range(math.floor(math.log10(y_min_adjusted)), 
                                    math.ceil(math.log10(y_max_adjusted)) + 1, 2)]
         pos, labels = get_pos_and_labels(indices)
@@ -180,12 +174,12 @@ def main():
     # Results directory
     results_dir = "larger_datasets_batch_results_FIXED"
     
-    # Datasets to process (p=3 results)
-    datasets = ["librec-filmtrust-ratings", "bpywiki", "csbwiki", "lrcwiki", "rmwiki"]
+    # Datasets to process (p=3 results) - only include datasets that have _new.txt files
+    datasets = ["csbwiki", "lrcwiki", "nips", "rmwiki"]
     
     for dataset in datasets:
-        # Read the output from the p3 batch test
-        output_file = f"{results_dir}/p3_{dataset}_batch_results.txt"
+        # Read the output from the p3 new results
+        output_file = f"{results_dir}/p3_{dataset}_new.txt"
         
         if not os.path.exists(output_file):
             print(f"Output file {output_file} not found. Skipping {dataset}.")
@@ -211,7 +205,7 @@ def main():
         
         # Create and save main plot
         fig = create_p3_plot(dataset_name, epsilon, results)
-        output_filename = f'algorithm_comparison_{dataset_name}_eps{int(epsilon)}_FIXED.pdf'
+        output_filename = f'algorithm_comparison_{dataset_name}_eps{int(epsilon)}_FIXED_p3.pdf'
         fig.savefig(output_filename, dpi=300, bbox_inches='tight')
         print(f"Plot saved as: {output_filename}")
         plt.close()

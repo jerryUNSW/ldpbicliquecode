@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     } else {
-        noisy_edge_sampling_ratio = 0.1; // Default: 10% edge sampling for speed
+        noisy_edge_sampling_ratio = 1.0; // Default: no sampling
     }
 
 
@@ -152,8 +152,10 @@ int main(int argc, char *argv[]) {
 
             // printMemoryUsage();
             if (noisy_edge_sampling_ratio < 1.0) {
+                cout<<"naive_biclique_with_vertex_sampling"<<endl;
                 estis[iteration] = naive_biclique_with_vertex_sampling(g, seed, P___, K___, noisy_edge_sampling_ratio, 10);
             } else {
+                cout<<"naive_biclique"<<endl;
                 estis[iteration] = naive_biclique(g, seed, P___, K___);
             }
             // printMemoryUsage();
@@ -289,7 +291,8 @@ int main(int argc, char *argv[]) {
             }
             else if(P___ == 3){
                 // this is ready.
-                estis[iteration] = wedge_based_two_round_3_K_biclique_rejection_sampling(g, seed);
+                // estis[iteration] = wedge_based_two_round_3_K_biclique_rejection_sampling(g, seed);
+                estis[iteration] = wedge_based_two_round_3_K_biclique(g, seed);
             }
             // need to implement two_noisy_graph_switch optimization for P in general
             else{

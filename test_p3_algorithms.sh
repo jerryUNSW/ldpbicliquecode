@@ -13,12 +13,12 @@ echo ""
 
 # Datasets to test
 # Datasets to test
-datasets=("csbwiki" "rmwiki" "lrcwiki" "nips" "bag-kos")
+datasets=("lrcwiki" "csbwiki" "rmwiki" "nips" "bag-kos")
 
 # Function to run batch test for a dataset
 run_batch_test() {
     local dataset=$1
-    local output_file="larger_datasets_batch_results_FIXED/p3_${dataset}_new_2.txt"
+    local output_file="larger_datasets_batch_results_FIXED/p3_${dataset}_2M.txt"
     
     echo "=========================================="
     echo "DATASET: $dataset"
@@ -37,13 +37,13 @@ run_batch_test() {
             echo "==========================================" >> "$output_file"
             echo "DATASET: $dataset  ALG=$alg  Q=$q" >> "$output_file"
             echo "==========================================" >> "$output_file"
-            # Run the main biclique binary: ./biclique <epsilon> <data_directory> <num_iterations> <algorithm_switch> <p> <q> [alpha0] [alpha1] [alpha2] [prob_filter] [sampling_ratio]
+            # Run the main biclique binary: ./biclique <epsilon> <data_directory> <num_iterations> <algorithm_switch> <p> <q> [alpha0] [alpha1] [alpha2]
             # Naive algorithm (alg=0) is deterministic, so only 1 round needed
-            # For Naive algorithm, use exact counting (sampling_ratio=1.0) instead of sampling
+            # ADV algorithms (alg=2,3,4) need 10 rounds for statistical significance
             if [ $alg -eq 0 ]; then
-                ./biclique 1 ../bidata/$dataset 1 $alg 3 $q 0.05 0.6 0.35 0 1.0 >> "$output_file" 2>&1
+                ./biclique 1 ../bidata/$dataset 1 $alg 3 $q 0.05 0.6 0.35 >> "$output_file" 2>&1
             else
-                ./biclique 1 ../bidata/$dataset 10 $alg 3 $q 0.05 0.6 0.35 0 0.1 >> "$output_file" 2>&1
+                ./biclique 1 ../bidata/$dataset 10 $alg 3 $q 0.05 0.6 0.35 >> "$output_file" 2>&1
             fi
             echo "" >> "$output_file"
         done
