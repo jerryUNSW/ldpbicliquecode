@@ -24,8 +24,8 @@ long double m3__ = 0, m2__ = 0, m1__ = 0, m0__ = 0, real_stars = 0,
 extern bool eva_comm ;
 
 
-unsigned long long int  real ;
-long double real_ld = 0.0;  // High precision ground truth for large numbers
+long double real = 0.0;  // Use long double consistently for ground truth
+long double real_ld = 0.0;  // High precision ground truth for large numbers (kept for compatibility)
 
 int P___, K___ ; 
 // biclique related 
@@ -151,11 +151,11 @@ int main(int argc, char *argv[]) {
 
 
             // printMemoryUsage();
-        if (noisy_edge_sampling_ratio < 1.0) {
-            estis[iteration] = naive_biclique_with_vertex_sampling(g, seed, P___, K___, noisy_edge_sampling_ratio, 20);
-        } else {
-            estis[iteration] = naive_biclique(g, seed, P___, K___);
-        }
+            if (noisy_edge_sampling_ratio < 1.0) {
+                estis[iteration] = naive_biclique_with_vertex_sampling(g, seed, P___, K___, noisy_edge_sampling_ratio, 10);
+            } else {
+                estis[iteration] = naive_biclique(g, seed, P___, K___);
+            }
             // printMemoryUsage();
 
             cout << "estimate = " << estis[iteration] << endl;

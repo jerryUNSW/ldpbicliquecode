@@ -7,7 +7,7 @@
 #include "biclique.h"
 
 // Global variables
-extern unsigned long long real;
+extern long double real;  // Use long double consistently for ground truth
 extern int P___;
 extern int K___;
 

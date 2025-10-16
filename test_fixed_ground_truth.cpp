@@ -12,7 +12,7 @@ bool multi_estimator_switch = false;
 bool two_noisy_graph_switch = false;
 int P___ = 2;
 int K___ = 4;
-unsigned long long real = 0;
+long double real = 0.0;
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {

@@ -25,7 +25,7 @@ vector<int> priv_deg;
 int priv_dmax_1, priv_dmax_2, iteration, num_rounds;
 vector<long double> estis, naive_estis;
 long double RR_time, server_side_time, naive_server_side, local_count_time, deg_esti_time, communication_cost;
-unsigned long long int real;
+long double real = 0.0;
 long double real_ld = 0.0;  // High precision ground truth for large numbers
 int P___, K___;
 vector<vector<int>> up_options, lo_options;
@@ -46,18 +46,18 @@ long double get_ground_truth(string dataset, BiGraph& g, int P, int Q) {
     fetch_or_compute_biclique_count(P___, K___, dataset, g);
     
     // Return the high precision value if available, otherwise the regular value
-    return (real_ld > 0) ? real_ld : static_cast<long double>(real);
+    return real;  // Now both real and real_ld are long double
 }
 
-// Function to get ground truth for all Q values [4,5,6,7,8,9,10] and filter out zero counts
+// Function to get ground truth for all Q values [2,3,4] and filter out zero counts
 vector<long double> get_all_ground_truth_p3(string dataset, BiGraph& g, int P) {
-    vector<long double> ground_truth(7);
-    vector<bool> valid_q(7, false);
+    vector<long double> ground_truth(3);
+    vector<bool> valid_q(3, false);
     
     cout << "Checking ground truth for (3,Q)-bicliques..." << endl;
     
-    for (int i = 0; i < 7; i++) {
-        int Q = i + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
+    for (int i = 0; i < 3; i++) {
+        int Q = i + 2;  // Q = 2, 3, 4
         ground_truth[i] = get_ground_truth(dataset, g, P, Q);
         
         if (ground_truth[i] > 0) {
@@ -72,10 +72,10 @@ vector<long double> get_all_ground_truth_p3(string dataset, BiGraph& g, int P) {
     vector<long double> filtered_ground_truth;
     vector<int> valid_q_values;
     
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 3; i++) {
         if (valid_q[i]) {
             filtered_ground_truth.push_back(ground_truth[i]);
-            valid_q_values.push_back(i + 4);  // Q values
+            valid_q_values.push_back(i + 2);  // Q values
         }
     }
     
@@ -123,7 +123,7 @@ vector<vector<long double>> run_algorithm_p3(BiGraph& g, int algorithm, int num_
             vector<long double> batch_results = naive_biclique_with_vertex_sampling_batch(g, seed, 3, 0.1, 20, round);
             for (int q_idx = 0; q_idx < num_valid_q; q_idx++) {
                 int Q = valid_q_values[q_idx];
-                int q_array_idx = Q - 4;  // Convert Q to array index (Q=4 -> idx=0, Q=5 -> idx=1, etc.)
+                int q_array_idx = Q - 2;  // Convert Q to array index (Q=2 -> idx=0, Q=3 -> idx=1, Q=4 -> idx=2)
                 results[round][q_idx] = batch_results[q_array_idx];
             }
         } else {
@@ -131,7 +131,7 @@ vector<vector<long double>> run_algorithm_p3(BiGraph& g, int algorithm, int num_
             vector<long double> batch_results = wedge_based_two_round_3_K_biclique_rejection_sampling_batch(g, seed);
             for (int q_idx = 0; q_idx < num_valid_q; q_idx++) {
                 int Q = valid_q_values[q_idx];
-                int q_array_idx = Q - 4;  // Convert Q to array index (Q=4 -> idx=0, Q=5 -> idx=1, etc.)
+                int q_array_idx = Q - 2;  // Convert Q to array index (Q=2 -> idx=0, Q=3 -> idx=1, Q=4 -> idx=2)
                 results[round][q_idx] = batch_results[q_array_idx];
             }
         }
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     cout << "Dataset: " << dataset_path << endl;
     cout << "Epsilon: " << epsilon << endl;
     cout << "Rounds: " << num_rounds << endl;
-    cout << "Q values: [4, 5, 6, 7, 8, 9, 10] (filtered by non-zero ground truth)" << endl;
+    cout << "Q values: [2, 3, 4] (filtered by non-zero ground truth)" << endl;
     cout << "Algorithms: 0=Naive, 2=ADV, 3=ADV+, 4=ADV++" << endl;
     cout << "=====================================================" << endl;
     
@@ -181,10 +181,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Determine valid Q values
+    // Determine valid Q values (Q = 2,3,4)
     vector<int> valid_q_values;
-    for (int i = 0; i < 7; i++) {
-        int Q = i + 4;
+    for (int i = 0; i < 3; i++) {
+        int Q = i + 2;
         long double gt = get_ground_truth(dataset_path, g, 3, Q);
         if (gt > 0) {
             valid_q_values.push_back(Q);

@@ -32,7 +32,7 @@ bool multi_estimator_switch ;
 extern int K___ ; 
 extern int P___;
 
-extern unsigned long long int real; 
+extern long double real; 
 extern long double real_ld;  // High precision ground truth for large numbers 
 
 
@@ -1202,8 +1202,8 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
                             (smaller_partition_size - 1) * 
                             (smaller_partition_size - 2) / 6; 
 
-    // Target number of triplets to sample
-    long long T = 1000000;  // 10^6 triplets
+    // Target number of triplets to sample (1% of total triplets)
+    long long T = std::max(1000LL, total_triples / 100);  // At least 1000, but 1% of total
     
     // Random number generation for rejection sampling
     std::random_device rd;
@@ -1226,7 +1226,7 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
 
     // Rejection sampling to get exactly T unique triplets
     cout<<"total triplets: "<<total_triples <<endl;
-    cout << "Target sample size = " << T <<endl;
+    cout << "Target sample size = " << T << " (1% of total)" <<endl;
     
     while (selected_triplets.size() < T) {
         // Generate random triplet
@@ -1412,8 +1412,8 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
                             (smaller_partition_size - 1) * 
                             (smaller_partition_size - 2) / 6; 
 
-    // Target number of triplets to sample
-    long long T = 1000000;  // 10^6 triplets
+    // Target number of triplets to sample (1% of total triplets)
+    long long T = std::max(1000LL, total_triples / 100);  // At least 1000, but 1% of total
     
     // Random number generation for rejection sampling
     std::random_device rd;
@@ -1436,7 +1436,7 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
 
     // Rejection sampling to get exactly T unique triplets
     cout<<"total triplets: "<<total_triples <<endl;
-    cout << "Target sample size = " << T <<endl;
+    cout << "Target sample size = " << T << " (1% of total)" <<endl;
     
     while (selected_triplets.size() < T) {
         // Generate random triplet
@@ -2724,20 +2724,9 @@ void fetch_or_compute_biclique_count(int P___, int K___,
             exit(1);
         }
         
-        // Store the ground truth value for relative error calculation
-        // We'll use a global long double variable to preserve precision
+        // Store the ground truth value (use long double consistently)
         real_ld = count_value;
-        
-        // Also store as unsigned long long for backward compatibility (with truncation warning)
-        if (count_value > static_cast<long double>(ULLONG_MAX)) {
-            std::cout << "WARNING: Ground truth exceeds unsigned long long limit for dataset: " << dataset 
-                      << ", p = " << P___ << ", q = " << K___ << std::endl;
-            std::cout << "Original value: " << std::scientific << std::setprecision(6) << count_value << std::endl;
-            std::cout << "Will use long double precision for relative error calculation" << std::endl;
-            real = ULLONG_MAX; // Set to max for backward compatibility
-        } else {
-            real = static_cast<unsigned long long>(count_value);
-        }
+        real = count_value;
         
         std::cout << "Dataset: " << dataset << ", p = " << P___ << ", q = " << K___ 
                   << ", biclique count = " << std::scientific << std::setprecision(6) << count_value << std::endl;
@@ -2762,9 +2751,9 @@ void fetch_or_compute_biclique_count(int P___, int K___,
                       << ", p = " << P___ << ", q = " << K___ << std::endl;
             std::cout << "Original value: " << std::scientific << std::setprecision(6) << computed_count << std::endl;
             std::cout << "Will use long double precision for relative error calculation" << std::endl;
-            real = ULLONG_MAX; // Set to max for backward compatibility
+            real = computed_count;  // Store actual value in long double (no truncation)
         } else {
-            real = static_cast<unsigned long long>(computed_count);
+            real = computed_count;  // Use long double consistently
         }
 
         // Insert the new value into the database

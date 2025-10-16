@@ -24,8 +24,8 @@ vector<int> priv_deg;
 int priv_dmax_1, priv_dmax_2, iteration, num_rounds;
 vector<long double> estis, naive_estis;
 long double RR_time, server_side_time, naive_server_side, local_count_time, deg_esti_time, communication_cost;
-unsigned long long int real;
-long double real_ld = 0.0;  // High precision ground truth for large numbers
+long double real = 0.0;  // Use long double consistently for ground truth
+long double real_ld = 0.0;  // High precision ground truth for large numbers (kept for compatibility)
 int P___, K___;
 vector<vector<int>> up_options, lo_options;
 long double avg_estimated_variance;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     cout << "Dataset: " << dataset_path << endl;
     cout << "Epsilon: " << epsilon << endl;
     cout << "Rounds: " << num_rounds << endl;
-    cout << "Q values: [4, 5, 6, 7, 8, 9, 10]" << endl;
+    cout << "Q values: [2, 3, 4]" << endl;
     cout << "Algorithms: 0=Naive, 1=oneR, 2=ADV, 3=ADV+, 4=ADV++" << endl;
     cout << "=====================================================" << endl;
     
@@ -146,11 +146,11 @@ int main(int argc, char* argv[]) {
     Eps = epsilon;
     use_probability_filtering = false; // No filtering for batch version
     
-    // Get ground truth for all Q values
+    // Get ground truth for all Q values (2,3,4)
     cout << "Computing ground truth for (2,Q)-bicliques..." << endl;
     vector<long double> ground_truth = get_all_ground_truth(dataset_path, g, 2);
-    for (int i = 0; i < 7; i++) {
-        int Q = i + 4;
+    for (int i = 0; i < 3; i++) {
+        int Q = i + 2;
         cout << "  (2," << Q << ")-bicliques: " << ground_truth[i] << endl;
     }
     cout << endl;
@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
         cout << "Q\tGround Truth\tMean Estimate\tMean Rel Error\tStd Rel Error" << endl;
         cout << "-\t------------\t-------------\t-------------\t-------------" << endl;
         
-        for (int i = 0; i < 7; i++) {
-            int Q = i + 4;
+        for (int i = 0; i < 3; i++) {
+            int Q = i + 2;
             
             // Calculate mean estimate
             long double mean_estimate = 0;
