@@ -151,11 +151,11 @@ int main(int argc, char *argv[]) {
 
 
             // printMemoryUsage();
-            if (noisy_edge_sampling_ratio < 1.0) {
-                estis[iteration] = naive_biclique_with_sampling(g, seed, P___, K___, noisy_edge_sampling_ratio, 20);
-            } else {
-                estis[iteration] = naive_biclique(g, seed, P___, K___);
-            }
+        if (noisy_edge_sampling_ratio < 1.0) {
+            estis[iteration] = naive_biclique_with_vertex_sampling(g, seed, P___, K___, noisy_edge_sampling_ratio, 20);
+        } else {
+            estis[iteration] = naive_biclique(g, seed, P___, K___);
+        }
             // printMemoryUsage();
 
             cout << "estimate = " << estis[iteration] << endl;

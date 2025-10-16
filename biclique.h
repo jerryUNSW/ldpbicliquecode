@@ -86,7 +86,6 @@ void compute_m3_m2(long double& m4, long double& m3, long double& m2,
 
 
 long double naive_biclique(BiGraph& g, unsigned long seed, int p__, int q__);
-long double naive_biclique_with_sampling(BiGraph& g, unsigned long seed, int p__, int q__, double sampling_ratio, int num_samples = 1);
 long double naive_biclique_with_vertex_sampling(BiGraph& g, unsigned long seed, int p__, int q__, double sampling_ratio, int num_samples = 1);
 
 long double one_round_btf(BiGraph& g, unsigned long seed);
