@@ -32,7 +32,7 @@ bool multi_estimator_switch ;
 extern int K___ ; 
 extern int P___;
 
-extern unsigned long long int real;
+extern unsigned long long int real; 
 extern long double real_ld;  // High precision ground truth for large numbers 
 
 
@@ -582,7 +582,7 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
     */
 
 	Eps2 = Eps - Eps1 - Eps0;
-
+    
 	gamma__ = (1-p) / (1-2*p);
 
 	long double res___ = 0; 
@@ -675,14 +675,14 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
         
     } else {
         // Original logic without filtering
-        #pragma omp parallel
-        {
-        #pragma omp for schedule(static)
-            for(int u =start__ ; u <end__ ; u++) {
-                for(int w =start__ ; w <end__ ; w++) {
-                    if(u<=w) continue;
+	#pragma omp parallel
+	{
+	#pragma omp for schedule(static)
+		for(int u =start__ ; u <end__ ; u++) {
+			for(int w =start__ ; w <end__ ; w++) {
+                if(u<=w) continue;
 
-                long double f_u_w, f_w_u;    
+                long double f_u_w, f_w_u;
                 if(two_noisy_graph_switch){
                     // when this switch is on, by default we expect multiple estimators.
                     f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
@@ -737,8 +737,8 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
 			}
 
 		}
+		}
 	}
-    }
     return res___;
 }
 
@@ -747,8 +747,8 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
 std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, unsigned long seed) {
     // Phase 0. deg_esti_time records the maximum degree perturbation time.
     Eps0 = Eps * 0.05;
-    vector<long double> deg_estis; 
-    deg_estis.resize(g.num_nodes());
+	vector<long double> deg_estis; 
+	deg_estis.resize(g.num_nodes());
     for(int i=0;i<g.num_nodes();i++){
         deg_estis[i] = g.degree[i]+stats::rlaplace(0.0, 1/(Eps0), engine); 
     }
@@ -764,7 +764,7 @@ std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, un
     p = 1.0 / (exp(Eps1) + 1.0);
     BiGraph g2(g);
     cout<<"constructing g2\n";
-    construct_noisy_graph(g, g2, seed);  // upload noisy edges
+	construct_noisy_graph(g, g2, seed);  // upload noisy edges
 
     BiGraph g3(g);
     if(two_noisy_graph_switch){
@@ -777,12 +777,12 @@ std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, un
     cout << "local counting (batch mode)" << endl;
 
     Eps2 = Eps - Eps1 - Eps0;
-    gamma__ = (1-p) / (1-2*p);
+	gamma__ = (1-p) / (1-2*p);
 
     // Initialize results for Q = [4, 5, 6, 7, 8, 9, 10]
     std::vector<long double> results(7, 0.0);  // results[0] = Q=4, results[1] = Q=5, etc.
-    
-    // what if we only consider upper vertices ?  --> better efficiency and effect  
+
+	// what if we only consider upper vertices ?  --> better efficiency and effect  
     int start__, end__; 
     start__ = g.num_v1 < g.num_v2 ? 0 : g.num_v1; 
     end__ = g.num_v1 < g.num_v2 ? g.num_v1 : g.num_nodes(); 
@@ -796,17 +796,17 @@ std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, un
         cout<<"n1 n2 tells me to use L(G)"<<endl;
     }
 
-    #pragma omp parallel
-    {
+	#pragma omp parallel
+	{
         // Local results for each thread
         std::vector<long double> local_results(7, 0.0);
         
-        #pragma omp for schedule(static)
-        for(int u =start__ ; u <end__ ; u++) {
-            for(int w =start__ ; w <end__ ; w++) {
+	#pragma omp for schedule(static)
+		for(int u =start__ ; u <end__ ; u++) {
+			for(int w =start__ ; w <end__ ; w++) {
                 if(u<=w) continue;
 
-                long double f_u_w, f_w_u;    
+                long double f_u_w, f_w_u;
                 if(two_noisy_graph_switch){
                     f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
                     f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
@@ -816,7 +816,7 @@ std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, un
                         f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
                     }
                 }
-
+                
                 long double local_res = 0;
 
                 // define some variables
@@ -856,7 +856,7 @@ std::vector<long double> wedge_based_two_round_2_K_biclique_batch(BiGraph& g, un
         }
         
         // Reduce results from all threads
-        #pragma omp critical
+				#pragma omp critical
         {
             for(int q_idx = 0; q_idx < 7; q_idx++) {
                 results[q_idx] += local_results[q_idx];
@@ -1161,6 +1161,178 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
 
 }
 
+// Improved version with rejection sampling for P=3
+long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, unsigned long seed) {
+    double t1 = omp_get_wtime();
+
+    Eps0 = Eps * 0.05;
+
+    vector<long double> deg_estis; 
+    deg_estis.resize(g.num_nodes());
+    for(int i=0;i<g.num_nodes();i++){
+        deg_estis[i] = g.degree[i];
+    }
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    // two noisy graph technique
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);  // upload noisy edges
+
+    // two noisy graph technique
+    BiGraph g3(g);
+    if(two_noisy_graph_switch){
+        cout<<"constructing g3\n";
+        construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+    }
+
+    Eps2 = Eps - Eps1 - Eps0;
+    
+    long double res___ = 0; 
+
+    int K = K___;  // we are considering (3, K)-biclique right now
+
+    cout<<"p = "<<3 <<endl;
+    cout<<"q = "<<K___ <<endl;
+
+    // Calculate the size of the smaller partition
+    int smaller_partition_size = std::min(g.num_v1, g.num_v2);
+
+    // Calculate the total number of possible triples in the smaller partition
+    long long total_triples = static_cast<long long>(smaller_partition_size) * 
+                            (smaller_partition_size - 1) * 
+                            (smaller_partition_size - 2) / 6; 
+
+    // Target number of triplets to sample
+    long long T = 1000000;  // 10^6 triplets
+    
+    // Random number generation for rejection sampling
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> vertex_dis(0, smaller_partition_size - 1);
+    
+    // Hash set to store selected triplets (for uniqueness)
+    std::unordered_set<long long> selected_triplets;
+    
+    // Function to encode triplet as unique ID
+    auto encode_triplet = [](int v1, int v2, int v3) -> long long {
+        // Ensure v1 < v2 < v3 for consistent encoding
+        if (v1 > v2) std::swap(v1, v2);
+        if (v2 > v3) std::swap(v2, v3);
+        if (v1 > v2) std::swap(v1, v2);
+        
+        // Encode as: v1 * n^2 + v2 * n + v3
+        return static_cast<long long>(v1) * 1000000 + v2 * 1000 + v3;
+    };
+
+    // Rejection sampling to get exactly T unique triplets
+    cout<<"total triplets: "<<total_triples <<endl;
+    cout << "Target sample size = " << T <<endl;
+    
+    while (selected_triplets.size() < T) {
+        // Generate random triplet
+        int v1 = vertex_dis(gen);
+        int v2 = vertex_dis(gen);
+        int v3 = vertex_dis(gen);
+        
+        // Ensure v1 < v2 < v3 (valid triplet)
+        if (v1 >= v2 || v2 >= v3 || v1 >= v3) continue;
+        
+        long long triplet_id = encode_triplet(v1, v2, v3);
+        
+        // Only add if not already selected (rejection sampling)
+        if (selected_triplets.find(triplet_id) == selected_triplets.end()) {
+            selected_triplets.insert(triplet_id);
+        }
+    }
+    
+    cout << "Successfully sampled " << selected_triplets.size() << " unique triplets" << endl;
+
+    bool is_upper_smaller = (g.num_v1 < g.num_v2 );
+    gamma__ = (1-p) / (1-2*p);
+
+    long double res = 0; 
+
+    // Process the selected triplets
+    #pragma omp parallel
+    {
+        long double local_res = 0;
+        
+        // Convert set to vector for parallel processing
+        std::vector<long long> triplet_ids(selected_triplets.begin(), selected_triplets.end());
+        
+        #pragma omp for schedule(static)
+        for (size_t i = 0; i < triplet_ids.size(); ++i) {
+            long long triplet_id = triplet_ids[i];
+            
+            // Decode triplet ID back to vertices
+            int v3 = triplet_id % 1000;
+            triplet_id /= 1000;
+            int v2 = triplet_id % 1000;
+            triplet_id /= 1000;
+            int v1 = triplet_id;
+
+            // Process this triplet (same logic as original)
+            long double f1 = 0, f2= 0, f3 = 0, f12 = 0, f13=0;
+            long double esti_var_f_uvw = 0, fuvw = 0 ;
+
+            if(multi_estimator_switch){
+                // Multi-source estimator logic would go here
+                // For now, use single-source estimator
+                for(auto nb: g.neighbor[v1]){
+                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                    A1 = (A1-p) / (1-2*p); 
+
+                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                    A2 = (A2-p) / (1-2*p); 
+
+                    f1 += A1 * A2;
+                }
+                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                fuvw = f1;
+                
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                long double esti_var_f1 = var_phi * (f12 + f13) ; 
+                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                esti_var_f_uvw = esti_var_f1;
+            } else {
+                // Single-source estimator
+                for(auto nb: g.neighbor[v1]){
+                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                    A1 = (A1-p) / (1-2*p); 
+
+                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                    A2 = (A2-p) / (1-2*p); 
+
+                    f1 += A1 * A2;
+                }
+                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                fuvw = f1;
+                
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                long double esti_var_f1 = var_phi * (f12 + f13) ; 
+                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                esti_var_f_uvw = esti_var_f1;
+            }
+
+            local_res += compute_local_res(K, fuvw, esti_var_f_uvw);
+        }
+        
+        #pragma omp critical
+        res += local_res;
+    }
+
+    double t2 = omp_get_wtime();
+    cout<<"time  = "<<t2 - t1 <<endl;
+    
+    // Scale by the sampling ratio (T / total_triples)
+    long double sample_fraction = static_cast<long double>(T) / total_triples;
+    return res / sample_fraction;
+}
+
 // this function handles p > 3. In experiment, we focus on p = 4.
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
     unsigned long seed, int P___, int K___ ) {
@@ -1269,7 +1441,7 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
             
             // step 2: estimate the variance of f1.
             long double esti_var_f = 0; 
-            long double theta = p * (1-p) / pow(1-2*p, 2); 
+            long double theta = p * (1-p) / pow(1-2*p, 2);
             // X is the set excluding \ v1.
 
             long double esti_var_f_noisy = 0; 
@@ -1295,7 +1467,7 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                         // long double real_fv1 = 1.0; 
                         for(auto xx : Y){
                             long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
-                            A_ = (A_-p) / (1-2*p); 
+                            A_ = (A_-p) / (1-2*p);
                             fv1 = fv1 * A_; 
 
                             // real_fv1 *= (g.has(nb, xx) ? 1 : 0);
@@ -1354,27 +1526,27 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
     if (K == 1) {
         return f;
     }
-    
+
     if (K == 2) {
         return f2 / 2.0 - 0.5 * f - s2 / 2.0;
     }
-    
-    if (K == 3) {
+
+        if (K == 3) {
         return f3 / 6.0 - 0.5 * f2 - f * s2 / 2.0 + 0.333333333333333 * f + 0.5 * s2;
     }
-    
-    if (K == 4) {
+
+        if (K == 4) {
         return f4 / 24.0 - 0.25 * f3 - f2 * s2 / 4.0 + 0.458333333333333 * f2 
                + 0.75 * f * s2 - 0.25 * f + s4 / 8.0 - 0.458333333333333 * s2;
     }
-    
-    if (K == 5) {
+
+        if (K == 5) {
         return f5 / 120.0 - 0.0833333333333333 * f4 - f3 * s2 / 12.0 + 0.291666666666667 * f3 
                + 0.5 * f2 * s2 - 0.416666666666667 * f2 + f * s4 / 8.0 - 0.875 * f * s2 
                + 0.2 * f - 0.25 * s4 + 0.416666666666667 * s2;
     }
-    
-    if (K == 6) {
+
+        if (K == 6) {
         return f6 / 720.0 - 0.0208333333333333 * f5 - f4 * s2 / 48.0 + 0.118055555555556 * f4 
                + 0.208333333333333 * f3 * s2 - 0.3125 * f3 + f2 * s4 / 16.0 
                - 0.708333333333333 * f2 * s2 + 0.380555555555556 * f2 
@@ -1382,7 +1554,7 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
                - s6 / 48.0 + 0.354166666666667 * s4 - 0.380555555555556 * s2;
     }
     
-    if (K == 7) {
+        if (K == 7) {
         return f7 / 5040.0 - 0.00416666666666667 * f6 - f5 * s2 / 240.0 + 0.0347222222222222 * f5 
                + 0.0625 * f4 * s2 - 0.145833333333333 * f4 + f3 * s4 / 48.0 
                - 0.347222222222222 * f3 * s2 + 0.322222222222222 * f3 
@@ -1391,7 +1563,7 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
                + 0.142857142857143 * f + 0.0625 * s6 - 0.4375 * s4 + 0.35 * s2;
     }
     
-    if (K == 8) {
+        if (K == 8) {
         return f8 / 40320.0 - 0.000694444444444444 * f7 - f6 * s2 / 1440.0 
                + 0.00798611111111111 * f6 + 0.0145833333333333 * f5 * s2 
                - 0.0486111111111111 * f5 + f4 * s4 / 192.0 - 0.119791666666667 * f4 * s2 
@@ -1404,7 +1576,7 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
                - 0.324107142857143 * s2;
     }
     
-    if (K == 9) {
+        if (K == 9) {
         return f9 / 362880.0 - 9.92063492063492e-5 * f8 - f7 * s2 / 10080.0 
                + 0.00150462962962963 * f7 + 0.00277777777777778 * f6 * s2 - 0.0125 * f6 
                + f5 * s4 / 960.0 - 0.0315972222222222 * f5 * s2 + 0.0618634259259259 * f5 
@@ -1417,7 +1589,7 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
                - 0.0104166666666667 * s8 + 0.1875 * s6 - 0.55625 * s4 
                + 0.301984126984127 * s2;
     }
-    
+
     if (K == 10) {
         long double s10 = s8 * s2;
         return f10 / 3628800.0 - 1.24007936507936e-5 * f9 - f8 * s2 / 80640.0 
@@ -1434,7 +1606,7 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
                - s10 / 3840.0 + 0.0251736111111111 * s8 - 0.261545138888889 * s6 
                + 0.598280423280423 * s4 - 0.282896825396825 * s2;
     }
-    
+
     // Unsupported K
     return 0;
 }
@@ -1991,7 +2163,7 @@ std::vector<long double> one_round_biclique_2_K_batch(BiGraph& g, unsigned long 
     // Build noisy graph once
     BiGraph g2(g);
     construct_noisy_graph(g, g2, seed);
-    
+
     int p__ = 2;
     std::cout << "p__ = " << p__ << "\n";
 
@@ -2017,65 +2189,65 @@ std::vector<long double> one_round_biclique_2_K_batch(BiGraph& g, unsigned long 
     for (int q_idx = 0; q_idx < 7; q_idx++) {
         int K = q_idx + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
         std::cout << "Processing Q = " << K << "\n";
-        
-        // Array to store motif counts (B_i for i = 0 to 2*K)
-        std::vector<long double> m__(2 * K + 1, 0.0);
+
+    // Array to store motif counts (B_i for i = 0 to 2*K)
+    std::vector<long double> m__(2 * K + 1, 0.0);
 
         std::cout << "Counting Bi numbers (optimized) for Q=" << K << "\n";
-        #pragma omp parallel
-        {
-            std::vector<long double> local_m(2 * K + 1, 0.0); // Private array for each thread
+    #pragma omp parallel
+    {
+        std::vector<long double> local_m(2 * K + 1, 0.0); // Private array for each thread
 
-            #pragma omp for collapse(2) nowait
-            for (size_t u1_idx = 0; u1_idx < n1; ++u1_idx) {
-                for (size_t u2_idx = u1_idx + 1; u2_idx < n1; ++u2_idx) {
-                    int u1 = U[u1_idx];
-                    int u2 = U[u2_idx];
+        #pragma omp for collapse(2) nowait
+        for (size_t u1_idx = 0; u1_idx < n1; ++u1_idx) {
+            for (size_t u2_idx = u1_idx + 1; u2_idx < n1; ++u2_idx) {
+                int u1 = U[u1_idx];
+                int u2 = U[u2_idx];
 
-                    // Compute s2 = |N(u1) ∩ N(u2)|
-                    int s2 = 0;
-                    for (int v : g2.neighbor[u1]) {
-                        if (adj[u2].count(v)) ++s2;
-                    }
+                // Compute s2 = |N(u1) ∩ N(u2)|
+                int s2 = 0;
+                for (int v : g2.neighbor[u1]) {
+                    if (adj[u2].count(v)) ++s2;
+                }
 
-                    // Compute degrees
-                    int deg_u1 = g2.neighbor[u1].size();
-                    int deg_u2 = g2.neighbor[u2].size();
+                // Compute degrees
+                int deg_u1 = g2.neighbor[u1].size();
+                int deg_u2 = g2.neighbor[u2].size();
 
-                    // Compute s1 = deg(u1) + deg(u2) - 2 * s2
-                    int s1 = deg_u1 + deg_u2 - 2 * s2;
+                // Compute s1 = deg(u1) + deg(u2) - 2 * s2
+                int s1 = deg_u1 + deg_u2 - 2 * s2;
 
-                    // Compute s0 = n2 - (deg(u1) + deg(u2) - s2)
-                    int s0 = n2 - (deg_u1 + deg_u2 - s2);
+                // Compute s0 = n2 - (deg(u1) + deg(u2) - s2)
+                int s0 = n2 - (deg_u1 + deg_u2 - s2);
 
-                    // Compute contributions to m__[i] for i = 0 to 2*K
-                    for (int c = 0; c <= K; ++c) {
-                        for (int b = 0; b <= K - c; ++b) {
-                            int a = K - b - c;
-                            if (a >= 0) {
-                                int i = 2 * c + b;
-                                long double contrib = binomial(s0, a) * binomial(s1, b) * binomial(s2, c);
-                                local_m[i] += contrib;
-                            }
+                // Compute contributions to m__[i] for i = 0 to 2*K
+                for (int c = 0; c <= K; ++c) {
+                    for (int b = 0; b <= K - c; ++b) {
+                        int a = K - b - c;
+                        if (a >= 0) {
+                            int i = 2 * c + b;
+                            long double contrib = binomial(s0, a) * binomial(s1, b) * binomial(s2, c);
+                            local_m[i] += contrib;
                         }
                     }
                 }
             }
-
-            // Reduce results
-            #pragma omp critical
-            for (size_t i = 0; i <= 2 * K; ++i) {
-                #pragma omp atomic
-                m__[i] += local_m[i];
-            }
         }
 
-        // Compute unbiased estimate using Theorem 2
-        long double res = 0, mu = std::exp(Eps);
+        // Reduce results
+        #pragma omp critical
         for (size_t i = 0; i <= 2 * K; ++i) {
-            res += std::pow(-mu, i) * m__[i];
+            #pragma omp atomic
+            m__[i] += local_m[i];
         }
-        res /= std::pow(1 - mu, 2 * K);
+    }
+
+    // Compute unbiased estimate using Theorem 2
+    long double res = 0, mu = std::exp(Eps);
+    for (size_t i = 0; i <= 2 * K; ++i) {
+        res += std::pow(-mu, i) * m__[i];
+    }
+    res /= std::pow(1 - mu, 2 * K);
         
         results[q_idx] = res;
         std::cout << "Q" << K << " one_round estimate = " << res << "\n";
