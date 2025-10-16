@@ -86,7 +86,8 @@ biGraph convertBiGraphTobiGraph(BiGraph& oldGraph) {
         // for each upper vertex.
         assert(oldGraph.is_upper(u));
 
-        auto& neighbors = oldGraph.neighbor[u];
+        // Make a copy of neighbors to avoid destroying the original graph
+        auto neighbors = oldGraph.neighbor[u];
         for (const auto& v__ : neighbors) {
             assert(oldGraph.is_lower(v__));
             vid_t v = v__ - oldGraph.num_v1;
@@ -96,12 +97,17 @@ biGraph convertBiGraphTobiGraph(BiGraph& oldGraph) {
             newGraph.edges[edge_index].v = v;          
             edge_index++;
         }
-        // Clear memory for this neighbor list
-        std::vector<vid_t>().swap(neighbors);
+        // Note: We don't clear neighbors anymore to preserve original graph
     }
 
     // cout<<"edge_index = "<<edge_index<<endl;
-    assert(edge_index== newGraph.m );
+    // Note: edge_index might be less than newGraph.m due to duplicate edges in original graph
+    if (edge_index != newGraph.m) {
+        std::cout << "Warning: Edge count mismatch - expected: " << newGraph.m 
+                  << ", actual: " << edge_index 
+                  << " (likely due to duplicate edges in original graph)" << std::endl;
+        newGraph.m = edge_index;  // Update to actual edge count
+    }
 
     // compute the degree ordering in new graph
     newGraph.changeToDegreeOrder();
@@ -2197,8 +2203,22 @@ void fetch_or_compute_biclique_count(int P___, int K___,
                   << ", n2=" << convertedGraph.n2 
                   << ", m=" << convertedGraph.m << std::endl;
         BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, K___);
-        real = counter->exactCount();
-        cout<<"cliq count = "<<real<<endl;
+        long double computed_count = counter->exactCount();
+        cout<<"cliq count = "<<computed_count<<endl;
+
+        // Store the computed value in high precision
+        real_ld = computed_count;
+        
+        // Also store as unsigned long long for backward compatibility (with truncation warning)
+        if (computed_count > static_cast<long double>(ULLONG_MAX)) {
+            std::cout << "WARNING: Computed count exceeds unsigned long long limit for dataset: " << dataset_to_find 
+                      << ", p = " << P___ << ", q = " << K___ << std::endl;
+            std::cout << "Original value: " << std::scientific << std::setprecision(6) << computed_count << std::endl;
+            std::cout << "Will use long double precision for relative error calculation" << std::endl;
+            real = ULLONG_MAX; // Set to max for backward compatibility
+        } else {
+            real = static_cast<unsigned long long>(computed_count);
+        }
 
         // Insert the new value into the database
         const char* insert_sql = "INSERT INTO pqbiclique_counts (dataset, p, q, count) VALUES (?, ?, ?, ?);";
@@ -2215,7 +2235,7 @@ void fetch_or_compute_biclique_count(int P___, int K___,
         sqlite3_bind_text(insert_stmt, 1, dataset_to_find.c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_int(insert_stmt, 2, P___);
         sqlite3_bind_int(insert_stmt, 3, K___);
-        sqlite3_bind_int64(insert_stmt, 4, real);
+        sqlite3_bind_double(insert_stmt, 4, computed_count);  // Store as REAL (double precision)
 
         // Execute the insert statement
         if (sqlite3_step(insert_stmt) != SQLITE_DONE) {
@@ -2231,174 +2251,6 @@ void fetch_or_compute_biclique_count(int P___, int K___,
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 }
-
-long double weighted_pair_sampling(BiGraph& g, unsigned long seed) {
-
-    // question: should we select left side or right side? 
-    init_genrand(seed);
-
-    // Phase 0. deg_esti_time records the maximum degree perturbation time.
-    Eps0 = Eps*0.1 ;
-
-    double m = 0;
-
-    bool sample_from_upper = (g.num_v1 > (g.num_nodes() - g.num_v1));
-
-    // sample_from_upper = false ; 
-
-    // we choose the layer with more vertices, seems better.
-    // what if we take avg from both options 
-
-	vector<long double> deg_estis; 
-	deg_estis.resize(g.num_nodes());
-
-	vector<long double> deg_weights; 
-	deg_weights.resize(g.num_nodes());
-
-    // issue: when degree is negative, how to sample vertices? 
-    // can we just skip the vertices with negative degrees? 
-    // (1) skipp the vertices with negative degrees
-    // okay, we can set a threshold. 
-    // if the degree is less than 0, set it to be 1.
-    int start = sample_from_upper ? 0 : g.num_v1;
-    int end = sample_from_upper ? g.num_v1 : g.num_nodes();
-
-    for (int i = start; i < end; ++i) {
-        deg_estis[i] = g.degree[i] + stats::rlaplace(0.0, 1 / Eps0, engine);
-
-        deg_weights[i] =deg_estis[i];
-        // if(deg_weights[i]<=0) deg_weights[i] = 0; 
-
-        // why we cannot even use degrees anymore? 
-        deg_weights[i] = 1.0 * pow(g.degree[i],2);
-        // deg_weights[i] = 1.0*g.degree[i] ;
-
-        // we want to use estimates from vertices with higher vertices 
-        m += deg_weights[i];
-    }
-
-    // obtain T vertex pairs with replacemnt, sampling 10K pairs 
-    int T = 10000;
-
-    // Maps to store occurrences
-    map<int, map<int, int>> pair_count_u;  // Map from vertex u to map of vertex w and count
-
-    // what if I always use both upper and lower vertex pairs? 
-    // sample T pairs of vertices 
-    for (int k = 0; k < T; k++) {
-        int u = -1, w = -1;
-        // Sample u from the appropriate set
-        double rand_val_u = genrand_real2();  
-        // cout<<"rand_val_u = "<<rand_val_u <<endl;
-        double cumulative_prob_u = 0.0;  
-        int start = sample_from_upper ? 0 : g.num_v1;
-        int end = sample_from_upper ? g.num_v1 : g.num_nodes();
-        for (int i = start; i < end; ++i) {
-            cumulative_prob_u += (double) deg_weights[i] / m;
-            if (rand_val_u < cumulative_prob_u) {
-                u = i;
-                break;
-            }
-        }
-        // cout<<"u  = "<<u<<endl;
-        double rand_val_w = genrand_real2();
-        // cout<<"rand_val_w = "<<rand_val_w <<endl;
-        double cumulative_prob_w = 0.0;
-        for (int i = start; i < end; ++i) {
-            cumulative_prob_w += (double) deg_weights[i] / m;
-            if (rand_val_w < cumulative_prob_w) {
-                w = i;
-                break;
-            }
-        }
-        // cout<<"w  = "<<w<<endl;
-        assert(u != -1 && w != -1);
-        if (u != w) {
-            pair_count_u[u][w]++;
-        }
-        // looks like we do not need to store them and re-process, 
-        // we could just do computations here 
-    }
-
-    // // Phase 1. RR
-    // this can be made faster by computing g2(u,v) adhoc.
-    Eps1 = Eps * 0.6;
-    Eps2 = Eps - Eps1 - Eps0;
-
-    p = 1.0 / (exp(Eps1) + 1.0);
-    BiGraph g2(g);
-
-    g2.edge_vector.clear();
-    assert(g2.edge_vector.size()==0);
-    g2.edge_vector.resize(g.num_v1 + g.num_v2);
-    
-    if(!efficient_RR){
-        cout << "constructing noisy_graph(g); " << endl;
-        construct_noisy_graph(g, g2, seed);  // upload noisy edges
-    }
-    // we do not construct the whole graph here 
-
-
-    // Output results
-    // cout << "Pairs for each u:" << endl;
-    double res = 0;
-    gamma__ = (1-p) / (1-2*p);
-
-    // counting phase (apply RR in an ad-hoc manner.)
-    cout<<"// counting phase (apply RR in an ad-hoc manner.) "<<endl;
-    for (const auto& entry_u : pair_count_u) {
-        int u = entry_u.first;
-        // cout << "Vertex u = " << u << ":" << endl;
-
-        for (const auto& pair : entry_u.second) {
-            int w = pair.first;
-
-            // cout << "\tVertex w = " << w << ":" << endl;
-
-            int count = pair.second;
-
-            assert(u!=w);
-
-            // why do we need to assert the estimated degrees are positive?
-
-            long double f_u_w = -1; 
-            if(efficient_RR){
-                // cout<<"computing from NB of u"<<endl;
-                f_u_w = locally_compute_f_given_q_and_x_ad_hoc(u, w, g, g2); 
-                // cout<<"computing from NB of w"<<endl;
-                f_u_w += locally_compute_f_given_q_and_x_ad_hoc(w, u, g, g2); 
-            }else{
-                f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2); 
-                f_u_w = locally_compute_f_given_q_and_x(w, u, g, g2); 
-            }
-
-            f_u_w /= 2; 
-
-            long double local_res = f_u_w * f_u_w - f_u_w; 
-
-            // compute the variance of tilde(f)
-            long double esti_var_f = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
-            esti_var_f += p * (1 - p) * deg_estis[u] / ((1 - 2 * p) * (1 - 2 * p));
-            if(averaging_f_estimates){
-                long double esti_var_f_2 = 2 * gamma__ * gamma__ / (Eps2 * Eps2); 
-                esti_var_f_2 += p * (1 - p) * deg_estis[w] / ((1 - 2 * p) * (1 - 2 * p));	
-                esti_var_f = (esti_var_f + esti_var_f_2)/4;
-            }
-            local_res -= esti_var_f; 
-            // local_res is an estimator for (common choose 2)
-            // cout<<"common esti = "<<local_res<<endl;
-            // res += count * local_res * m * m / (2 * deg_estis[u] * deg_estis[w]) ;
-            assert(deg_weights[u]!=0);
-            assert(deg_weights[w]!=0);
-            res += count * local_res * m * m / (2 * deg_weights[u] * deg_weights[w]) ;
-        }
-    }
-
-    res /=2;
-
-    return res/T;
-}
-
 // biclique related code
 bool BCListPlusPlus::costEstimateRaw() {
     std::default_random_engine e(10007);

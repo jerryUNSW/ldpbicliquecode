@@ -7,15 +7,24 @@ import os
 import math
 
 def plt_settings():
-    """Set matplotlib settings to match old plotting style"""
+    """Set matplotlib settings to match budget allocation styled plotting"""
+    # Set publication-quality plot parameters (matching budget allocation script)
+    plt.rcParams['savefig.dpi'] = 300
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['axes.linewidth'] = 1.5
+    plt.rcParams["legend.framealpha"] = 0
+    plt.rcParams["legend.handletextpad"] = 0.1
+    plt.rcParams["legend.columnspacing"] = 0.2
+    plt.rcParams['pdf.fonttype'] = 42
+    plt.rcParams['lines.linewidth'] = 2
+    plt.rcParams['lines.markersize'] = 8
     plt.rcParams['font.family'] = 'serif'
     plt.rcParams['font.serif'] = ['Times New Roman']
-    plt.rcParams['font.size'] = 12
-    plt.rcParams['axes.linewidth'] = 1.2
-    plt.rcParams['xtick.major.width'] = 1.2
-    plt.rcParams['ytick.major.width'] = 1.2
-    plt.rcParams['xtick.minor.width'] = 0.8
-    plt.rcParams['ytick.minor.width'] = 0.8
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['xtick.major.width'] = 1.5
+    plt.rcParams['ytick.major.width'] = 1.5
+    plt.rcParams['xtick.minor.width'] = 1.0
+    plt.rcParams['ytick.minor.width'] = 1.0
 
 def get_pos_and_labels(indices):
     """Get positions and labels for y-axis ticks"""
@@ -23,7 +32,7 @@ def get_pos_and_labels(indices):
     labels = [f'$10^{{{i}}}$' for i in indices]
     return pos, labels
 
-def parse_output(output_text):
+def parse_output(output_text, filename=""):
     """Parse the output from test_batch_with_ground_truth.cpp"""
     
     # Extract configuration
@@ -33,7 +42,16 @@ def parse_output(output_text):
         epsilon = float(config_match.group(2))
         rounds = int(config_match.group(3))
     else:
-        dataset = "unknown"
+        # Try to extract dataset name from filename
+        if filename:
+            # Extract dataset name from filename like "movielens-100k_rating_eps1_results.txt"
+            match = re.search(r'([^_]+)_eps\d+_results\.txt', filename)
+            if match:
+                dataset = match.group(1)
+            else:
+                dataset = "unknown"
+        else:
+            dataset = "unknown"
         epsilon = 1.0
         rounds = 3
     
@@ -98,8 +116,9 @@ def create_plot(dataset, epsilon, results, ground_truth):
         'MRCN++': {'color': 'darkgrey', 'hatch': '//', 'edgecolor': 'black'}
     }
     
-    # Create figure
-    fig, ax = plt.subplots(figsize=(12, 8))
+    # Create figure with more bottom margin
+    fig, ax = plt.subplots(figsize=(10, 7))
+    plt.subplots_adjust(bottom=0.15)  # Add more bottom margin
     
     # Plot bars for each algorithm
     x = np.arange(len(q_values))
@@ -110,35 +129,47 @@ def create_plot(dataset, epsilon, results, ground_truth):
     positions = [x + i * width - (n * width / 2) for i in range(n)]
     
     for i, alg in enumerate(algorithms):
-        values = [results[q].get(alg, float('inf')) for q in q_values]
-        # Handle infinite values by setting them to a large number for plotting
-        values = [v if v != float('inf') else 1e6 for v in values]
+        values = []
+        valid_positions = []
+        for j, q in enumerate(q_values):
+            # Skip bars where ground truth is 0
+            if ground_truth.get(q, 0) == 0:
+                continue
+            val = results[q].get(alg, float('inf'))
+            # Handle infinite values by setting them to a large number for plotting
+            val = val if val != float('inf') else 1e6
+            values.append(val)
+            valid_positions.append(positions[i][j])
         
-        style = method_styles[alg]
-        ax.bar(positions[i], values, width=width, 
-               label=alg, 
-               linewidth=0.5, 
-               edgecolor=style['edgecolor'],
-               fc=style['color'],
-               hatch=style['hatch'])
+        if values:  # Only plot if there are valid values
+            style = method_styles[alg]
+            ax.bar(valid_positions, values, width=width, 
+                   label=alg, 
+                   linewidth=0.5, 
+                   edgecolor=style['edgecolor'],
+                   fc=style['color'],
+                   hatch=style['hatch'])
     
     # Customize plot
-    ax.set_xlabel('q', fontsize=20)
-    ax.set_ylabel('Mean Relative Error', fontsize=20)
-    ax.set_title(f'{dataset.upper()} Dataset (P=2, ε={epsilon}) - FIXED', fontsize=20)
+    ax.set_xlabel('q', fontsize=24)
+    ax.set_ylabel('Mean Relative Error', fontsize=24)
+    ax.set_title('(P = 2, ε = 1)', fontsize=22)
     ax.set_yscale('log')
     
-    # Set x-axis ticks
-    ax.set_xticks(x - width)
-    ax.set_xticklabels([str(q) for q in q_values], fontsize=18)
+    # Set x-axis ticks - only show Q values where ground truth is not 0
+    valid_q_values = [q for q in q_values if ground_truth.get(q, 0) != 0]
+    valid_x_positions = [i for i, q in enumerate(q_values) if ground_truth.get(q, 0) != 0]
+    ax.set_xticks([x[i] - width for i in valid_x_positions])
+    ax.set_xticklabels([str(q) for q in valid_q_values], fontsize=22)
     
-    # Set y-axis limits and ticks
+    # Set y-axis limits and ticks - only consider valid Q values
     all_values = []
     for q in q_values:
-        for alg in algorithms:
-            val = results[q].get(alg, float('inf'))
-            if val != float('inf'):
-                all_values.append(val)
+        if ground_truth.get(q, 0) != 0:  # Only consider Q values with non-zero ground truth
+            for alg in algorithms:
+                val = results[q].get(alg, float('inf'))
+                if val != float('inf'):
+                    all_values.append(val)
     
     if all_values:
         y_min = np.min(all_values)
@@ -152,13 +183,14 @@ def create_plot(dataset, epsilon, results, ground_truth):
                                    math.ceil(math.log10(y_max_adjusted)) + 1, 2)]
         pos, labels = get_pos_and_labels(indices)
         ax.set_yticks(pos)
-        ax.set_yticklabels(labels, fontsize=20)
+        ax.set_yticklabels(labels, fontsize=22)
     
     # Legend
-    ax.legend(fontsize=20, ncol=5, loc="upper center", columnspacing=0.5, frameon=False)
+    ax.legend(fontsize=22, ncol=3, loc="upper center", columnspacing=0.5, frameon=False)
     
     plt.tight_layout()
     return fig
+
 
 
 def main():
@@ -166,7 +198,7 @@ def main():
     results_dir = "larger_datasets_batch_results_FIXED"
     
     # Datasets to process
-    datasets = ["co", "unicode", "librec-filmtrust-ratings", "bpywiki", "csbwiki", "rmwiki", "lrcwiki", "nips"]
+    datasets = ["co", "unicode", "librec-filmtrust-ratings", "movielens-100k_rating", "bpywiki", "csbwiki", "rmwiki", "lrcwiki", "nips", "bag-kos"]
     
     for dataset in datasets:
         # Read the output from the test
@@ -184,7 +216,7 @@ def main():
             continue
         
         # Parse the output
-        dataset_name, epsilon, results, ground_truth = parse_output(output_text)
+        dataset_name, epsilon, results, ground_truth = parse_output(output_text, output_file)
         
         if results is None:
             print(f"Failed to parse results for {dataset}")
