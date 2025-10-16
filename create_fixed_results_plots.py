@@ -151,9 +151,9 @@ def create_plot(dataset, epsilon, results, ground_truth):
                    hatch=style['hatch'])
     
     # Customize plot
-    ax.set_xlabel('q', fontsize=28)
-    ax.set_ylabel('Mean Relative Error', fontsize=28)
-    ax.set_title('(P = 2, ε = 1)', fontsize=26)
+    ax.set_xlabel('q', fontsize=32)
+    ax.set_ylabel('Mean Relative Error', fontsize=32)
+    ax.set_title('(P = 2, ε = 1)', fontsize=30)
     ax.set_yscale('log')
     
     # Set x-axis ticks - only show Q values where ground truth is not 0

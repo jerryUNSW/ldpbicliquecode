@@ -151,8 +151,7 @@ void my_init_genrand(unsigned long seed) { init_genrand(seed); }
 void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
     const int range_from = g2.num_v1;
     const int range_to = g2.num_nodes() - 1;
-    std::random_device rand_dev;
-    std::mt19937 generator(rand_dev());
+    std::mt19937 generator(seed);  // Use the provided seed instead of random_device
     std::uniform_int_distribution<int> distr(range_from, range_to);
 
     init_genrand(seed);
@@ -217,8 +216,7 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
 void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
     const int range_from = g2.num_v1;
     const int range_to = g2.num_nodes() - 1;
-    std::random_device rand_dev;
-    std::mt19937 generator(rand_dev());
+    std::mt19937 generator(seed);  // Use the provided seed instead of random_device
     std::uniform_int_distribution<int> distr(range_from, range_to);
 
     init_genrand(seed);
@@ -1273,50 +1271,88 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
             triplet_id /= 1000;
             int v1 = triplet_id;
 
-            // Process this triplet (same logic as original)
-            long double f1 = 0, f2= 0, f3 = 0, f12 = 0, f13=0;
-            long double esti_var_f_uvw = 0, fuvw = 0 ;
+            // Process this triplet (same logic as batch function)
+            long double f1 = 0, f2 = 0, f3 = 0, f12 = 0, f13 = 0, f23 = 0;
+            long double f21 = 0, f31 = 0, f32 = 0;
+            long double fuvw = 0;
+            
+            // Compute f1 (same as batch function)
+            for (auto nb : g.neighbor[v1]) {
+                long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
 
-            if(multi_estimator_switch){
-                // Multi-source estimator logic would go here
-                // For now, use single-source estimator
-                for(auto nb: g.neighbor[v1]){
-                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
-                    A1 = (A1-p) / (1-2*p); 
-
-                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
-                    A2 = (A2-p) / (1-2*p); 
-
-                    f1 += A1 * A2;
+                if (two_noisy_graph_switch) {
+                    A1 = (A1 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                    A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
                 }
-                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
-                fuvw = f1;
-                
-                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
-                long double esti_var_f1 = var_phi * (f12 + f13) ; 
-                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
-                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-                esti_var_f_uvw = esti_var_f1;
-            } else {
-                // Single-source estimator
-                for(auto nb: g.neighbor[v1]){
-                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
-                    A1 = (A1-p) / (1-2*p); 
-
-                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
-                    A2 = (A2-p) / (1-2*p); 
-
-                    f1 += A1 * A2;
-                }
-                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
-                fuvw = f1;
-                
-                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
-                long double esti_var_f1 = var_phi * (f12 + f13) ; 
-                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
-                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-                esti_var_f_uvw = esti_var_f1;
+                f1 += A1 * A2; 
+                f12 += A1; 
+                f13 += A2; 
             }
+            f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+            f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            
+            // Compute f2 (same as batch function)
+            for(auto nb: g.neighbor[v2]){
+                long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+                if (two_noisy_graph_switch) {
+                    A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                    A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                }
+                f2 += A1 * A2; 
+                f21 += A1; 
+                f23 += A2;          
+            }
+            f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
+            f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            
+            // Compute f3 (same as batch function)
+            for(auto nb: g.neighbor[v3]){
+                long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                long double A2 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                if (two_noisy_graph_switch) {
+                    A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                    A2 = (A2 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                }
+                f3 += A1 * A2; 
+                f31 += A1; 
+                f32 += A2;    
+            }
+            f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+            f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+            // averaging
+            fuvw = (f1 + f2 + f3 )/3 ; 
+
+            long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+            if (two_noisy_graph_switch) {
+                var_phi/=2;
+            }
+
+            long double esti_var_f1, esti_var_f2, esti_var_f3; 
+
+            // this should always be true
+            bool improvement = true;
+            if(improvement){
+                // averaging f12 and f21 is useful too!
+                esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+            }
+
+            long double esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
 
             local_res += compute_local_res(K, fuvw, esti_var_f_uvw);
         }
@@ -1332,6 +1368,234 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
     long double sample_fraction = static_cast<long double>(T) / total_triples;
     return res / sample_fraction;
 }
+
+
+// Batch version of wedge_based_two_round_3_K_biclique_rejection_sampling
+std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_batch(BiGraph& g, unsigned long seed) {
+    double t1 = omp_get_wtime();
+
+    Eps0 = Eps * 0.05;
+
+    vector<long double> deg_estis; 
+    deg_estis.resize(g.num_nodes());
+    for(int i=0;i<g.num_nodes();i++){
+        deg_estis[i] = g.degree[i];
+    }
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    // two noisy graph technique
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);  // upload noisy edges
+
+    // two noisy graph technique
+    BiGraph g3(g);
+    if(two_noisy_graph_switch){
+        cout<<"constructing g3\n";
+        construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+    }
+
+    Eps2 = Eps - Eps1 - Eps0;
+    
+    // Initialize results for Q = [4, 5, 6, 7, 8, 9, 10]
+    std::vector<long double> results(7, 0.0);
+
+    cout<<"p = "<<3 <<endl;
+    cout<<"q = [4,5,6,7,8,9,10]" <<endl;
+
+    // Calculate the size of the smaller partition
+    int smaller_partition_size = std::min(g.num_v1, g.num_v2);
+
+    // Calculate the total number of possible triples in the smaller partition
+    long long total_triples = static_cast<long long>(smaller_partition_size) * 
+                            (smaller_partition_size - 1) * 
+                            (smaller_partition_size - 2) / 6; 
+
+    // Target number of triplets to sample
+    long long T = 1000000;  // 10^6 triplets
+    
+    // Random number generation for rejection sampling
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> vertex_dis(0, smaller_partition_size - 1);
+    
+    // Hash set to store selected triplets (for uniqueness)
+    std::unordered_set<long long> selected_triplets;
+    
+    // Function to encode triplet as unique ID
+    auto encode_triplet = [](int v1, int v2, int v3) -> long long {
+        // Ensure v1 < v2 < v3 for consistent encoding
+        if (v1 > v2) std::swap(v1, v2);
+        if (v2 > v3) std::swap(v2, v3);
+        if (v1 > v2) std::swap(v1, v2);
+        
+        // Encode as: v1 * n^2 + v2 * n + v3
+        return static_cast<long long>(v1) * 1000000 + v2 * 1000 + v3;
+    };
+
+    // Rejection sampling to get exactly T unique triplets
+    cout<<"total triplets: "<<total_triples <<endl;
+    cout << "Target sample size = " << T <<endl;
+    
+    while (selected_triplets.size() < T) {
+        // Generate random triplet
+        int v1 = vertex_dis(gen);
+        int v2 = vertex_dis(gen);
+        int v3 = vertex_dis(gen);
+        
+        // Ensure v1 < v2 < v3 (valid triplet)
+        if (v1 >= v2 || v2 >= v3 || v1 >= v3) continue;
+        
+        long long triplet_id = encode_triplet(v1, v2, v3);
+        
+        // Only add if not already selected (rejection sampling)
+        if (selected_triplets.find(triplet_id) == selected_triplets.end()) {
+            selected_triplets.insert(triplet_id);
+        }
+    }
+    
+    cout << "Successfully sampled " << selected_triplets.size() << " unique triplets" << endl;
+
+    bool is_upper_smaller = (g.num_v1 < g.num_v2 );
+    gamma__ = (1-p) / (1-2*p);
+
+    // Process the selected triplets
+    #pragma omp parallel
+    {
+        // Local results for each thread
+        std::vector<long double> local_results(7, 0.0);
+        
+        // Convert set to vector for parallel processing
+        std::vector<long long> triplet_ids(selected_triplets.begin(), selected_triplets.end());
+        
+        #pragma omp for schedule(static)
+        for (size_t i = 0; i < triplet_ids.size(); ++i) {
+            long long triplet_id = triplet_ids[i];
+            
+            // Decode triplet ID back to vertices
+            int v3 = triplet_id % 1000;
+            int v2 = (triplet_id / 1000) % 1000;
+            int v1 = triplet_id / 1000000;
+            
+            // Process this triplet (same logic as original function)
+            long double f1 = 0, f2 = 0, f3 = 0, f12 = 0, f13 = 0, f23 = 0;
+            long double f21 = 0, f31 = 0, f32 = 0;
+            long double fuvw = 0;
+            
+            // Compute f1 (same as original)
+            for (auto nb : g.neighbor[v1]) {
+                long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+
+                if (two_noisy_graph_switch) {
+                    A1 = (A1 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                    A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                }
+                f1 += A1 * A2; 
+                f12 += A1; 
+                f13 += A2; 
+            }
+            f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+            f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            
+            // Compute f2 (same as original)
+            for(auto nb: g.neighbor[v2]){
+                long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+                if (two_noisy_graph_switch) {
+                    A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                    A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                }
+                f2 += A1 * A2; 
+                f21 += A1; 
+                f23 += A2;          
+            }
+            f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
+            f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            
+            // Compute f3 (same as original)
+            for(auto nb: g.neighbor[v3]){
+                long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                long double A2 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                if (two_noisy_graph_switch) {
+                    A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                    A2 = (A2 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                }
+                f3 += A1 * A2; 
+                f31 += A1; 
+                f32 += A2;    
+            }
+            f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+            f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+            f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+            // averaging
+            fuvw = (f1 + f2 + f3 )/3 ; 
+
+            long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+            if (two_noisy_graph_switch) {
+                var_phi/=2;
+            }
+
+            long double esti_var_f1, esti_var_f2, esti_var_f3; 
+
+            // this should always be true
+            bool improvement = true;
+            if(improvement){
+                // averaging f12 and f21 is useful too!
+                esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+            }
+
+            long double esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
+            
+            // Compute results for all Q values [4, 5, 6, 7, 8, 9, 10]
+            for (int q_idx = 0; q_idx < 7; q_idx++) {
+                int K = q_idx + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
+                long double local_res_q = compute_local_res(K, fuvw, esti_var_f_uvw);
+                local_results[q_idx] += local_res_q;
+            }
+        }
+        
+        // Reduce results from all threads
+        #pragma omp critical
+        {
+            for (int q_idx = 0; q_idx < 7; q_idx++) {
+                results[q_idx] += local_results[q_idx];
+            }
+        }
+    }
+        
+    // Scale by the sampling ratio (same as original function)
+    long double sample_fraction = static_cast<long double>(T) / total_triples;
+    for (int q_idx = 0; q_idx < 7; q_idx++) {
+        results[q_idx] = results[q_idx] / sample_fraction;
+    }
+    
+    double t2 = omp_get_wtime();
+    cout<<"time  = "<<t2 - t1 <<endl;
+    
+    cout << "Batch results for Q=[4,5,6,7,8,9,10]: ";
+    for(int q_idx = 0; q_idx < 7; q_idx++) {
+        cout << "Q" << (q_idx + 4) << "=" << results[q_idx] << " ";
+    }
+    cout << endl;
+    
+    return results;
+}
+
 
 // this function handles p > 3. In experiment, we focus on p = 4.
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
@@ -2300,7 +2564,7 @@ long double naive_biclique(BiGraph& g, unsigned long seed,
 long double naive_biclique_with_vertex_sampling(BiGraph& g, unsigned long seed, 
     int p__, int q__, double sampling_ratio, int num_samples){
 
-	BiGraph g2(g); 
+    BiGraph g2(g);
     
     long double res = 0; 
 
@@ -2827,4 +3091,123 @@ twotwo += C[sum[w]][q];
         l = 0;
     }
 // printf("2-2 clique %.0f\n", twotwo);
+}
+
+// Batch version of naive_biclique_with_vertex_sampling for P=3
+std::vector<long double> naive_biclique_with_vertex_sampling_batch(BiGraph& g, unsigned long seed, int P___, double sampling_ratio, int num_samples, int round) {
+    cout << "Running naive vertex sampling batch algorithm for P=3 (round " << round << ")..." << endl;
+    
+    BiGraph g2(g); 
+    // Use round to vary the seed for noisy graph construction
+    unsigned long noisy_graph_seed = seed + round * 10000;
+    construct_noisy_graph(g, g2, noisy_graph_seed);
+
+    cout << "Original noisy graph: n1=" << g2.num_v1 << ", n2=" << g2.num_v2 << ", edges=" << g2.num_edges << endl;
+
+    // Initialize results for Q = [4, 5, 6, 7, 8, 9, 10]
+    std::vector<long double> results(7, 0.0);
+
+    // Apply vertex sampling if sampling_ratio < 1.0
+    if (sampling_ratio < 1.0) {
+        cout << "Applying vertex sampling with ratio: " << sampling_ratio << " (" << num_samples << " samples)" << endl;
+        
+        // For each sample, create one sampled subgraph and estimate all Q values on it
+        for (int sample = 0; sample < num_samples; sample++) {
+            // Create vertex-sampled graph (once per sample)
+            BiGraph g2_sampled;
+            g2_sampled.init(g2.num_v1, g2.num_v2);
+            
+            // Initialize random number generator with different seed for each sample
+            init_genrand(seed + 12345 + sample * 1000);
+            
+            // Sample vertices from both partitions
+            vector<bool> sampled_v1(g2.num_v1, false);
+            vector<bool> sampled_v2(g2.num_v2, false);
+            
+            int sampled_v1_count = 0;
+            int sampled_v2_count = 0;
+            
+            // Sample vertices from partition 1 (upper)
+            for (int u = 0; u < g2.num_v1; u++) {
+                if (genrand_real2() < sampling_ratio) {
+                    sampled_v1[u] = true;
+                    sampled_v1_count++;
+                }
+            }
+            
+            // Sample vertices from partition 2 (lower)
+            for (int v = 0; v < g2.num_v2; v++) {
+                if (genrand_real2() < sampling_ratio) {
+                    sampled_v2[v] = true;
+                    sampled_v2_count++;
+                }
+            }
+            
+            // Add edges between sampled vertices
+            int sampled_edges = 0;
+            for (int u = 0; u < g2.num_v1; u++) {
+                if (sampled_v1[u]) {
+                    for (auto v : g2.neighbor[u]) {
+                        int v_lower = v - g2.num_v1;  // Convert to lower partition index
+                        if (sampled_v2[v_lower]) {
+                            g2_sampled.addEdge(u, v);
+                            sampled_edges++;
+                        }
+                    }
+                }
+            }
+            
+            if (sample == 0) {  // Only print details for first sample
+                cout << "Sample " << (sample+1) << " - Sampled vertices: " << sampled_v1_count << " (upper), " << sampled_v2_count << " (lower)" << endl;
+                cout << "Sample " << (sample+1) << " - Sampled graph edges: " << sampled_edges << endl;
+            }
+            
+            // Convert sampled graph once per sample
+            biGraph convertedGraph = convertBiGraphTobiGraph(g2_sampled);
+            
+            // For this sample, estimate all Q values on the same sampled subgraph
+            for (int q_idx = 0; q_idx < 7; q_idx++) {
+                int Q = q_idx + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
+                
+                // Count bicliques on the same sampled graph for this Q
+                BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, Q);
+                long double sparse_count = counter->exactCount();
+                delete counter;
+                
+                // Unbiased estimate: scale by 1/sampling_ratio^(p+q) (for vertex sampling)
+                long double scaling_factor = pow(sampling_ratio, P___ + Q);
+                long double sample_estimate = sparse_count / scaling_factor;
+                
+                // Accumulate this sample's estimate
+                results[q_idx] += sample_estimate;
+            }
+        }
+        
+        // Average the estimates across all samples
+        for (int q_idx = 0; q_idx < 7; q_idx++) {
+            results[q_idx] = results[q_idx] / num_samples;
+        }
+        
+    } else {
+        // No sampling - use original method for all Q values
+        biGraph convertedGraph = convertBiGraphTobiGraph(g2);
+        cout << "Converted graph: n1=" << convertedGraph.n1 << ", n2=" << convertedGraph.n2 << ", m=" << convertedGraph.m << std::endl;
+        
+        for (int q_idx = 0; q_idx < 7; q_idx++) {
+            int Q = q_idx + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
+            cout << "Processing Q = " << Q << " (exact counting)" << endl;
+            
+            BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, P___, Q);
+            results[q_idx] = counter->exactCount();
+            delete counter;
+        }
+    }
+    
+    cout << "Batch results for Q=[4,5,6,7,8,9,10]: ";
+    for(int q_idx = 0; q_idx < 7; q_idx++) {
+        cout << "Q" << (q_idx + 4) << "=" << results[q_idx] << " ";
+    }
+    cout << endl;
+    
+    return results;
 }
