@@ -42,6 +42,7 @@ long double layer_based_wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned 
 
 // (3, K)
 long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) ;
+long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, unsigned long seed) ;
 
 // general shape: 
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
@@ -85,6 +86,8 @@ void compute_m3_m2(long double& m4, long double& m3, long double& m2,
 
 
 long double naive_biclique(BiGraph& g, unsigned long seed, int p__, int q__);
+long double naive_biclique_with_sampling(BiGraph& g, unsigned long seed, int p__, int q__, double sampling_ratio, int num_samples = 1);
+long double naive_biclique_with_vertex_sampling(BiGraph& g, unsigned long seed, int p__, int q__, double sampling_ratio, int num_samples = 1);
 
 long double one_round_btf(BiGraph& g, unsigned long seed);
 

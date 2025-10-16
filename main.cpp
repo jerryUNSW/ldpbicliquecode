@@ -39,6 +39,9 @@ extern bool multi_estimator_switch ;
 
 bool use_probability_filtering = false;
 
+// Noisy edge sampling ratio for naive algorithm
+double noisy_edge_sampling_ratio = 0.1;  // Default: 10% edge sampling for speed
+
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
 int main(int argc, char *argv[]) {
@@ -84,10 +87,23 @@ int main(int argc, char *argv[]) {
         use_probability_filtering = false; // Default to disabled
     }
 
+    // 12th parameter: noisy edge sampling ratio (0.0-1.0, default 0.1 = 10% sampling for speed)
+    if (argc >= 12) {
+        noisy_edge_sampling_ratio = stod(argv[11]);
+        if (noisy_edge_sampling_ratio <= 0.0 || noisy_edge_sampling_ratio > 1.0) {
+            cerr << "Error: noisy edge sampling ratio must be in (0.0, 1.0], got " << noisy_edge_sampling_ratio << endl;
+            return 1;
+        }
+    } else {
+        noisy_edge_sampling_ratio = 0.1; // Default: 10% edge sampling for speed
+    }
+
+
     cout<<"P___ = "<<P___ <<endl;
     cout<<"K___ = "<<K___ <<endl;
     cout<<"Budget allocation: alpha0="<<alpha0<<", alpha1="<<alpha1<<", alpha2="<<alpha2<<endl;
     cout<<"Probability filtering: "<<(use_probability_filtering ? "ENABLED" : "DISABLED")<<endl;
+    cout<<"Noisy edge sampling ratio: "<<noisy_edge_sampling_ratio<<endl;
 
     // initialize time
     RR_time = 0, server_side_time = 0, naive_server_side = 0;
@@ -122,7 +138,12 @@ int main(int argc, char *argv[]) {
         // the naive algorithm for pq bcilqiue counting.
         if (algorithm_switch == 0) {
             cout << "Naive algorithm for biclique counting" << endl;
-            cout << "EPS = " << Eps << endl;     
+            cout << "EPS = " << Eps << endl;
+            if (noisy_edge_sampling_ratio < 1.0) {
+                cout << "Using VERTEX SAMPLING approach: " << (noisy_edge_sampling_ratio * 100) << "% vertex sampling with 20 samples per iteration" << endl;
+            } else {
+                cout << "Using EXACT COUNTING approach: no sampling" << endl;
+            }     
 
             p = 1.0 / (exp(Eps) + 1.0);
             unsigned int seed = rng();
@@ -130,7 +151,11 @@ int main(int argc, char *argv[]) {
 
 
             // printMemoryUsage();
-            estis[iteration] = naive_biclique(g, seed, P___, K___);
+            if (noisy_edge_sampling_ratio < 1.0) {
+                estis[iteration] = naive_biclique_with_sampling(g, seed, P___, K___, noisy_edge_sampling_ratio, 20);
+            } else {
+                estis[iteration] = naive_biclique(g, seed, P___, K___);
+            }
             // printMemoryUsage();
 
             cout << "estimate = " << estis[iteration] << endl;
@@ -264,7 +289,7 @@ int main(int argc, char *argv[]) {
             }
             else if(P___ == 3){
                 // this is ready.
-                estis[iteration] = wedge_based_two_round_3_K_biclique(g, seed);
+                estis[iteration] = wedge_based_two_round_3_K_biclique_rejection_sampling(g, seed);
             }
             // need to implement two_noisy_graph_switch optimization for P in general
             else{

@@ -2294,6 +2294,203 @@ long double naive_biclique(BiGraph& g, unsigned long seed,
 
 	return res;
 }
+
+// Naive biclique counting with edge sampling for speed
+long double naive_biclique_with_sampling(BiGraph& g, unsigned long seed, 
+    int p__, int q__, double sampling_ratio, int num_samples){
+
+	BiGraph g2(g); 
+    
+    long double res = 0; 
+
+	construct_noisy_graph(g, g2, seed);
+
+    cout << "Original noisy graph edges: " << g2.num_edges << endl;
+
+    // Apply edge sampling if sampling_ratio < 1.0
+    if (sampling_ratio < 1.0) {
+        cout << "EDGE SAMPLING DISABLED - Using vertex sampling instead" << endl;
+        // Commented out edge sampling - using vertex sampling instead
+        /*
+        cout << "Applying edge sampling with ratio: " << sampling_ratio << " (" << num_samples << " samples)" << endl;
+        
+        long double total_estimate = 0.0;
+        
+        for (int sample = 0; sample < num_samples; sample++) {
+            // Create sampled graph
+            BiGraph g2_sampled;
+            g2_sampled.init(g2.num_v1, g2.num_v2);
+            
+            // Initialize random number generator with different seed for each sample
+            init_genrand(seed + 12345 + sample * 1000);
+            
+            int sampled_edges = 0;
+            for (int u = 0; u < g2.num_v1; u++) {
+                for (auto v : g2.neighbor[u]) {
+                    if (genrand_real2() < sampling_ratio) {
+                        g2_sampled.addEdge(u, v);
+                        sampled_edges++;
+                    }
+                }
+            }
+            
+            if (sample == 0) {  // Only print details for first sample
+                cout << "Sample " << (sample+1) << " - Sampled graph edges: " << sampled_edges << endl;
+                cout << "Sample " << (sample+1) << " - Sampling ratio achieved: " << (double)sampled_edges / g2.num_edges << endl;
+            }
+            
+            // Use sampled graph for counting
+            biGraph convertedGraph = convertBiGraphTobiGraph(g2_sampled);
+            
+            // Count bicliques on sparse graph
+            BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, p__, q__);
+            long double sparse_count = counter->exactCount();
+            delete counter;
+            
+            // Unbiased estimate: scale by 1/sampling_ratio^(p*q)
+            long double scaling_factor = pow(sampling_ratio, p__ * q__);
+            long double sample_estimate = sparse_count / scaling_factor;
+            
+            total_estimate += sample_estimate;
+            
+            if (sample == 0) {  // Only print details for first sample
+                cout << "Sample " << (sample+1) << " - Sparse graph biclique count: " << sparse_count << endl;
+                cout << "Sample " << (sample+1) << " - Scaling factor: " << scaling_factor << endl;
+                cout << "Sample " << (sample+1) << " - Unbiased estimate: " << sample_estimate << endl;
+            }
+        }
+        
+        // Average the estimates
+        res = total_estimate / num_samples;
+        cout << "Average of " << num_samples << " samples: " << res << endl;
+        */
+        
+        // Use vertex sampling instead
+        res = naive_biclique_with_vertex_sampling(g, seed, p__, q__, sampling_ratio, num_samples);
+        
+    } else {
+        // No sampling - use original method
+        biGraph convertedGraph = convertBiGraphTobiGraph(g2);
+        cout << "Converted graph: n1=" << convertedGraph.n1 << ", n2=" << convertedGraph.n2 << ", m=" << convertedGraph.m << std::endl;
+        
+        BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, p__, q__);
+        res = counter->exactCount();
+        delete counter;
+        
+        cout << "Exact count: " << res << endl;
+    }
+
+	return res;
+}
+
+// Naive biclique counting with vertex sampling for speed
+long double naive_biclique_with_vertex_sampling(BiGraph& g, unsigned long seed, 
+    int p__, int q__, double sampling_ratio, int num_samples){
+
+	BiGraph g2(g); 
+    
+    long double res = 0; 
+
+	construct_noisy_graph(g, g2, seed);
+
+    cout << "Original noisy graph: n1=" << g2.num_v1 << ", n2=" << g2.num_v2 << ", edges=" << g2.num_edges << endl;
+
+    // Apply vertex sampling if sampling_ratio < 1.0
+    if (sampling_ratio < 1.0) {
+        cout << "Applying vertex sampling with ratio: " << sampling_ratio << " (" << num_samples << " samples)" << endl;
+        
+        long double total_estimate = 0.0;
+        
+        for (int sample = 0; sample < num_samples; sample++) {
+            // Create vertex-sampled graph
+            BiGraph g2_sampled;
+            g2_sampled.init(g2.num_v1, g2.num_v2);
+            
+            // Initialize random number generator with different seed for each sample
+            init_genrand(seed + 12345 + sample * 1000);
+            
+            // Sample vertices from both partitions
+            vector<bool> sampled_v1(g2.num_v1, false);
+            vector<bool> sampled_v2(g2.num_v2, false);
+            
+            int sampled_v1_count = 0;
+            int sampled_v2_count = 0;
+            
+            // Sample vertices from partition 1 (upper)
+            for (int u = 0; u < g2.num_v1; u++) {
+                if (genrand_real2() < sampling_ratio) {
+                    sampled_v1[u] = true;
+                    sampled_v1_count++;
+                }
+            }
+            
+            // Sample vertices from partition 2 (lower)
+            for (int v = 0; v < g2.num_v2; v++) {
+                if (genrand_real2() < sampling_ratio) {
+                    sampled_v2[v] = true;
+                    sampled_v2_count++;
+                }
+            }
+            
+            // Add edges between sampled vertices
+            int sampled_edges = 0;
+            for (int u = 0; u < g2.num_v1; u++) {
+                if (sampled_v1[u]) {
+                    for (auto v : g2.neighbor[u]) {
+                        int v_lower = v - g2.num_v1;  // Convert to lower partition index
+                        if (sampled_v2[v_lower]) {
+                            g2_sampled.addEdge(u, v);
+                            sampled_edges++;
+                        }
+                    }
+                }
+            }
+            
+            if (sample == 0) {  // Only print details for first sample
+                cout << "Sample " << (sample+1) << " - Sampled vertices: " << sampled_v1_count << " (upper), " << sampled_v2_count << " (lower)" << endl;
+                cout << "Sample " << (sample+1) << " - Sampled graph edges: " << sampled_edges << endl;
+                cout << "Sample " << (sample+1) << " - Vertex sampling ratio achieved: " << (double)sampled_v1_count / g2.num_v1 << " (upper), " << (double)sampled_v2_count / g2.num_v2 << " (lower)" << endl;
+            }
+            
+            // Use sampled graph for counting
+            biGraph convertedGraph = convertBiGraphTobiGraph(g2_sampled);
+            
+            // Count bicliques on sparse graph
+            BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, p__, q__);
+            long double sparse_count = counter->exactCount();
+            delete counter;
+            
+            // Unbiased estimate: scale by 1/sampling_ratio^(p+q) (for vertex sampling)
+            long double scaling_factor = pow(sampling_ratio, p__ + q__);
+            long double sample_estimate = sparse_count / scaling_factor;
+            
+            total_estimate += sample_estimate;
+            
+            if (sample == 0) {  // Only print details for first sample
+                cout << "Sample " << (sample+1) << " - Sparse graph biclique count: " << sparse_count << endl;
+                cout << "Sample " << (sample+1) << " - Scaling factor: " << scaling_factor << endl;
+                cout << "Sample " << (sample+1) << " - Unbiased estimate: " << sample_estimate << endl;
+            }
+        }
+        
+        // Average the estimates
+        res = total_estimate / num_samples;
+        cout << "Average of " << num_samples << " samples: " << res << endl;
+        
+    } else {
+        // No sampling - use original method
+        biGraph convertedGraph = convertBiGraphTobiGraph(g2);
+        cout << "Converted graph: n1=" << convertedGraph.n1 << ", n2=" << convertedGraph.n2 << ", m=" << convertedGraph.m << std::endl;
+        
+        BCListPlusPlus* counter = new BCListPlusPlus(&convertedGraph, p__, q__);
+        res = counter->exactCount();
+        delete counter;
+        
+        cout << "Exact count: " << res << endl;
+    }
+
+	return res;
+}
 // todo: implement the vertex-priority-based wedge butterfly counting 
 
 // TODO: (1) use estimated priority instead
