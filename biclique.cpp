@@ -1,5 +1,6 @@
 #include "biclique.h"
 #include "include/mt19937ar.h"
+#include <unordered_set>
 
 #include <sys/resource.h>
 void printMemoryUsage() {
