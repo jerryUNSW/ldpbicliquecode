@@ -37,8 +37,8 @@ def parse_p3_output(output_text, filename=""):
     
     # Extract dataset name from filename
     if filename:
-        # Extract dataset name from filename like "p3_lrcwiki_new.txt"
-        match = re.search(r'p3_([^_]+(?:_[^_]+)*)_new\.txt', filename)
+        # Extract dataset name from filename like "p3_lrcwiki_2M.txt"
+        match = re.search(r'p3_([^_]+(?:_[^_]+)*)_2M\.txt', filename)
         if match:
             dataset = match.group(1)
         else:
@@ -179,7 +179,7 @@ def main():
     
     for dataset in datasets:
         # Read the output from the p3 new results
-        output_file = f"{results_dir}/p3_{dataset}_new.txt"
+        output_file = f"{results_dir}/p3_{dataset}_2M.txt"
         
         if not os.path.exists(output_file):
             print(f"Output file {output_file} not found. Skipping {dataset}.")
