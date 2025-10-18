@@ -15,6 +15,8 @@
 #include <chrono>
 #include <cstdlib>
 #include <cmath>
+#include <random>
+#include <map>
 
 using namespace std;
 
@@ -49,15 +51,15 @@ long double get_ground_truth(string dataset, BiGraph& g, int P, int Q) {
     return real;  // Now both real and real_ld are long double
 }
 
-// Function to get ground truth for all Q values [2,3,4] and filter out zero counts
+// Function to get ground truth for all Q values [4,5,6,7,8,9,10] and filter out zero counts
 vector<long double> get_all_ground_truth_p3(string dataset, BiGraph& g, int P) {
-    vector<long double> ground_truth(3);
-    vector<bool> valid_q(3, false);
+    vector<long double> ground_truth(7);
+    vector<bool> valid_q(7, false);
     
     cout << "Checking ground truth for (3,Q)-bicliques..." << endl;
     
-    for (int i = 0; i < 3; i++) {
-        int Q = i + 2;  // Q = 2, 3, 4
+    for (int i = 0; i < 7; i++) {
+        int Q = i + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
         ground_truth[i] = get_ground_truth(dataset, g, P, Q);
         
         if (ground_truth[i] > 0) {
@@ -72,10 +74,10 @@ vector<long double> get_all_ground_truth_p3(string dataset, BiGraph& g, int P) {
     vector<long double> filtered_ground_truth;
     vector<int> valid_q_values;
     
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 7; i++) {
         if (valid_q[i]) {
             filtered_ground_truth.push_back(ground_truth[i]);
-            valid_q_values.push_back(i + 2);  // Q values
+            valid_q_values.push_back(i + 4);  // Q values
         }
     }
     
@@ -115,24 +117,41 @@ vector<vector<long double>> run_algorithm_p3(BiGraph& g, int algorithm, int num_
         two_noisy_graph_switch = true;
     }
     
+    // Initialize random number generator for proper seed generation
+    std::mt19937 rng(std::random_device{}());
+    
     for (int round = 0; round < num_rounds; round++) {
-        unsigned long seed = 12345 + round;
+        unsigned int seed = rng();
         
         if (algorithm == 0) {
             // Run naive batch algorithm (builds noisy graph once, handles all Q values)
             vector<long double> batch_results = naive_biclique_with_vertex_sampling_batch(g, seed, 3, 0.1, 20, round);
+            
+            // Create intuitive Q->result mapping: Q=4->idx=0, Q=5->idx=1, Q=6->idx=2, Q=7->idx=3, Q=8->idx=4, Q=9->idx=5, Q=10->idx=6
+            map<int, long double> q_to_result;
+            for (int q = 4; q <= 10; q++) {
+                q_to_result[q] = batch_results[q - 4];
+            }
+            
             for (int q_idx = 0; q_idx < num_valid_q; q_idx++) {
                 int Q = valid_q_values[q_idx];
-                int q_array_idx = Q - 2;  // Convert Q to array index (Q=2 -> idx=0, Q=3 -> idx=1, Q=4 -> idx=2)
-                results[round][q_idx] = batch_results[q_array_idx];
+                results[round][q_idx] = q_to_result[Q];
             }
         } else {
             // Run ADV batch algorithm (builds noisy graph once, handles all Q values)
-            vector<long double> batch_results = wedge_based_two_round_3_K_biclique_rejection_sampling_batch(g, seed);
+            vector<long double> batch_results = wedge_based_two_round_3_K_biclique_no_sampling_batch(g, seed);
+            // vector<long double> batch_results = wedge_based_two_round_3_K_biclique_rejection_sampling_batch(g, seed);
+
+            
+            // Create intuitive Q->result mapping: Q=4->idx=0, Q=5->idx=1, Q=6->idx=2, Q=7->idx=3, Q=8->idx=4, Q=9->idx=5, Q=10->idx=6
+            map<int, long double> q_to_result;
+            for (int q = 4; q <= 10; q++) {
+                q_to_result[q] = batch_results[q - 4];
+            }
+            
             for (int q_idx = 0; q_idx < num_valid_q; q_idx++) {
                 int Q = valid_q_values[q_idx];
-                int q_array_idx = Q - 2;  // Convert Q to array index (Q=2 -> idx=0, Q=3 -> idx=1, Q=4 -> idx=2)
-                results[round][q_idx] = batch_results[q_array_idx];
+                results[round][q_idx] = q_to_result[Q];
             }
         }
     }
@@ -144,7 +163,7 @@ int main(int argc, char* argv[]) {
     if (argc != 4) {
         cout << "Usage: " << argv[0] << " <dataset_path> <epsilon> <num_rounds>" << endl;
         cout << "Example: " << argv[0] << " ../bidata/librec-filmtrust-ratings 1.0 10" << endl;
-        cout << "Algorithms tested: 0=Naive, 2=ADV, 3=ADV+, 4=ADV++" << endl;
+        cout << "Algorithms tested: 2=ADV, 3=ADV+, 4=ADV++ (Q values: 4-10)" << endl;
         return 1;
     }
     
@@ -156,8 +175,8 @@ int main(int argc, char* argv[]) {
     cout << "Dataset: " << dataset_path << endl;
     cout << "Epsilon: " << epsilon << endl;
     cout << "Rounds: " << num_rounds << endl;
-    cout << "Q values: [2, 3, 4] (filtered by non-zero ground truth)" << endl;
-    cout << "Algorithms: 0=Naive, 2=ADV, 3=ADV+, 4=ADV++" << endl;
+    cout << "Q values: [4, 5, 6, 7, 8, 9, 10] (filtered by non-zero ground truth)" << endl;
+    cout << "Algorithms: 2=ADV, 3=ADV+, 4=ADV++ (Naive skipped)" << endl;
     cout << "=====================================================" << endl;
     
     // Load the graph
@@ -181,10 +200,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Determine valid Q values (Q = 2,3,4)
+    // Determine valid Q values (Q = 4,5,6,7,8,9,10)
     vector<int> valid_q_values;
-    for (int i = 0; i < 3; i++) {
-        int Q = i + 2;
+    for (int i = 0; i < 7; i++) {
+        int Q = i + 4;
         long double gt = get_ground_truth(dataset_path, g, 3, Q);
         if (gt > 0) {
             valid_q_values.push_back(Q);
@@ -193,13 +212,13 @@ int main(int argc, char* argv[]) {
     
     cout << endl;
     
-    // Test all algorithms
-    vector<int> algorithms = {0, 2, 3, 4}; // Naive, ADV, ADV+, ADV++
-    vector<string> algorithm_names = {"Naive", "ADV", "ADV+", "ADV++"};
+    // Test all algorithms (skip Naive since it's already tested in other settings)
+    vector<int> algorithms = {2, 3, 4}; // ADV, ADV+, ADV++
+    vector<string> algorithm_names = {"ADV", "ADV+", "ADV++"};
     
     // Store results for all algorithms
-    vector<vector<vector<long double>>> all_algorithm_results(4);
-    vector<vector<vector<long double>>> all_algorithm_errors(4);
+    vector<vector<vector<long double>>> all_algorithm_results(3);
+    vector<vector<vector<long double>>> all_algorithm_errors(3);
     
     auto total_start_time = chrono::high_resolution_clock::now();
     
@@ -274,8 +293,8 @@ int main(int argc, char* argv[]) {
     
     // Algorithm comparison summary
     cout << "\n=== Algorithm Comparison Summary ===" << endl;
-    cout << "Q\tNaive\t\tADV\t\tADV+\t\tADV++" << endl;
-    cout << "-\t-----\t\t---\t\t----\t\t-----" << endl;
+    cout << "Q\tADV\t\tADV+\t\tADV++" << endl;
+    cout << "-\t---\t\t----\t\t-----" << endl;
     
     for (int q_idx = 0; q_idx < valid_q_values.size(); q_idx++) {
         int Q = valid_q_values[q_idx];

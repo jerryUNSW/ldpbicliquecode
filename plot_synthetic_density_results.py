@@ -47,14 +47,14 @@ def plot_synthetic_results(db_path='density-exp/synthetic_density_experiment.db'
     algorithm_display_names = {
         'Naive': 'Naive',
         'oneR': 'oneR', 
-        'ADV++': 'MCN++'
+        'ADV++': 'MRCN++'
     }
     
     # Algorithm colors and styles (black, red, blue with distinct markers)
     algorithm_styles = {
         'Naive': {'color': 'black', 'marker': 'o', 'linestyle': '-'},
         'oneR': {'color': 'red', 'marker': 's', 'linestyle': '-'},
-        'MCN++': {'color': 'blue', 'marker': '^', 'linestyle': '-'}
+        'MRCN++': {'color': 'blue', 'marker': '^', 'linestyle': '-'}
     }
     
     # Only plot the algorithms we want (Naive, oneR, ADV++ from database)
@@ -71,6 +71,10 @@ def plot_synthetic_results(db_path='density-exp/synthetic_density_experiment.db'
         
         # Filter data for this combination
         size_data = df[(df['n1'] == n1) & (df['n2'] == n2) & (df['p'] == p) & (df['q'] == q)]
+        
+        # Filter to only include densities from 10% to 100% (0.1 to 1.0) with 10% increments
+        density_values = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        size_data = size_data[size_data['edge_density'].isin(density_values)]
         
         if size_data.empty:
             print(f"  No data found for graph size {n1}×{n2}, P={p}, Q={q}")
@@ -94,7 +98,7 @@ def plot_synthetic_results(db_path='density-exp/synthetic_density_experiment.db'
                 if len(alg_data_clean) > 0:
                     # Plot with professional style (matching budget allocation plots)
                     plt.plot(
-                        alg_data_clean['edge_density'],  # Keep as decimal (0.1, 0.2, etc.)
+                        alg_data_clean['edge_density'] * 100,  # Convert to percentage (10, 20, etc.)
                         alg_data_clean['mean_rel_error'],
                         marker=style['marker'], 
                         markerfacecolor='white', 
@@ -103,16 +107,15 @@ def plot_synthetic_results(db_path='density-exp/synthetic_density_experiment.db'
                         color=style['color'], 
                         linewidth=2,
                         linestyle=style['linestyle'],
+                        markersize=8,  # Match biclique plot marker size
                         label=display_name
                     )
         
         # Labels (matching budget allocation plot style)
         plt.xlabel('Density (%)', fontsize=20)
-        plt.ylabel('relative error', fontsize=20)
+        plt.ylabel('mean relative error', fontsize=20)
         
-        # Title format - more informative
-        title = f'Synthetic Graph, n1={n1}, n2={n2}, P={p}, Q={q}'
-        plt.title(title, fontsize=16)
+        # No title for density plots
         
         # Legend
         plt.legend(loc='best', fontsize=14, ncol=1)
@@ -121,9 +124,9 @@ def plot_synthetic_results(db_path='density-exp/synthetic_density_experiment.db'
         plt.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
         plt.yscale('log')
         
-        # Format x-axis to show density values nicely (every 10%)
-        plt.xticks([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 
-                   ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100'], 
+        # Format x-axis to show density values nicely (every 20% from 20% to 100%)
+        plt.xticks([20, 40, 60, 80, 100], 
+                   ['20', '40', '60', '80', '100'], 
                    rotation=0, fontsize=20)
         plt.tick_params(axis='y', labelsize=20)
         
@@ -178,7 +181,7 @@ def plot_specific_combinations(db_path='density-exp/synthetic_density_experiment
     algorithm_styles = {
         'Naive': {'color': 'black', 'marker': 'o', 'linestyle': '-'},
         'oneR': {'color': 'red', 'marker': 's', 'linestyle': '-'},
-        'MCN++': {'color': 'blue', 'marker': '^', 'linestyle': '-'}
+        'MRCN++': {'color': 'blue', 'marker': '^', 'linestyle': '-'}
     }
     
     algorithms_to_plot = ['Naive', 'oneR', 'MCN++']
@@ -221,7 +224,7 @@ def plot_specific_combinations(db_path='density-exp/synthetic_density_experiment
                 if len(alg_data_clean) > 0:
                     # Plot with professional style (matching budget allocation plots)
                     plt.plot(
-                        alg_data_clean['edge_density'],  # Keep as decimal (0.1, 0.2, etc.)
+                        alg_data_clean['edge_density'] * 100,  # Convert to percentage (10, 20, etc.)
                         alg_data_clean['mean_rel_error'],
                         marker=style['marker'], 
                         markerfacecolor='white', 
@@ -230,6 +233,7 @@ def plot_specific_combinations(db_path='density-exp/synthetic_density_experiment
                         color=style['color'], 
                         linewidth=2,
                         linestyle=style['linestyle'],
+                        markersize=8,  # Match biclique plot marker size
                         label=display_name
                     )
         

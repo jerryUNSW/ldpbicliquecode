@@ -47,6 +47,7 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
 // Batch version for P=3 algorithms
 std::vector<long double> naive_biclique_with_vertex_sampling_batch(BiGraph& g, unsigned long seed, int P___, double sampling_ratio, int num_samples, int round = 0);
 std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_batch(BiGraph& g, unsigned long seed);
+std::vector<long double> wedge_based_two_round_3_K_biclique_no_sampling_batch(BiGraph& g, unsigned long seed);
 
 // general shape: 
 long double wedge_based_two_round_general_biclique(BiGraph& g, 

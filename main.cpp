@@ -81,15 +81,16 @@ int main(int argc, char *argv[]) {
     }
 
     // 11th parameter: probability filtering (0=disabled, 1=enabled)
-    if (argc >= 11) {
-        use_probability_filtering = (atoi(argv[10]) == 1);
-    } else {
-        use_probability_filtering = false; // Default to disabled
-    }
+    // if (argc >= 11) {
+    //     use_probability_filtering = (atoi(argv[10]) == 1);
+    // } else {
+    //     use_probability_filtering = false; // Default to disabled
+    // }
+    use_probability_filtering = false; // Default to disabled
 
-    // 12th parameter: noisy edge sampling ratio (0.0-1.0, default 0.1 = 10% sampling for speed)
-    if (argc >= 12) {
-        noisy_edge_sampling_ratio = stod(argv[11]);
+    // 11th parameter: noisy edge sampling ratio (0.0-1.0, default 0.1 = 10% sampling for speed)
+    if (argc >= 11) {
+        noisy_edge_sampling_ratio = stod(argv[10]);
         if (noisy_edge_sampling_ratio <= 0.0 || noisy_edge_sampling_ratio > 1.0) {
             cerr << "Error: noisy edge sampling ratio must be in (0.0, 1.0], got " << noisy_edge_sampling_ratio << endl;
             return 1;
@@ -140,7 +141,7 @@ int main(int argc, char *argv[]) {
             cout << "Naive algorithm for biclique counting" << endl;
             cout << "EPS = " << Eps << endl;
             if (noisy_edge_sampling_ratio < 1.0) {
-                cout << "Using VERTEX SAMPLING approach: " << (noisy_edge_sampling_ratio * 100) << "% vertex sampling with 20 samples per iteration" << endl;
+                cout << "Using VERTEX SAMPLING approach: " << (noisy_edge_sampling_ratio * 100) << "% vertex sampling with 10 samples per iteration" << endl;
             } else {
                 cout << "Using EXACT COUNTING approach: no sampling" << endl;
             }     

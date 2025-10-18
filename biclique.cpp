@@ -1,6 +1,7 @@
 #include "biclique.h"
 #include "include/mt19937ar.h"
 #include <unordered_set>
+#include <fstream>
 
 #include <sys/resource.h>
 void printMemoryUsage() {
@@ -913,7 +914,7 @@ std::vector<long double> naive_biclique_batch(BiGraph& g, unsigned long seed, in
     return results;
 }
 
-// this function is here to handle when p = 3, sample size = 10^6
+// this function is here to handle when p = 3, sample size = 2*10^6
 long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
     double t1 = omp_get_wtime();
 
@@ -1340,6 +1341,210 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
 
 }
 
+// No-sampling batch version that processes all triplets for Q = 4 to 10
+std::vector<long double> wedge_based_two_round_3_K_biclique_no_sampling_batch(BiGraph& g, unsigned long seed) {
+    double t1 = omp_get_wtime();
+
+    Eps0 = Eps * 0.05;
+
+    vector<long double> deg_estis; 
+    deg_estis.resize(g.num_nodes());
+    for(int i=0;i<g.num_nodes();i++){
+        deg_estis[i] = g.degree[i] + stats::rlaplace(0.0, 1/(Eps0), engine);
+    }
+
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps - Eps1 - Eps0;
+
+    // Set the flip probability for randomized response
+    p = 1.0 / (exp(Eps1) + 1.0);
+
+    // two noisy graph technique
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);  // upload noisy edges
+
+    // two noisy graph technique
+    BiGraph g3(g);
+    if(two_noisy_graph_switch){
+        cout<<"constructing g3\n";
+        construct_noisy_graph_2(g, g3, seed);  // upload noisy edges
+    }
+
+    Eps2 = Eps - Eps1 - Eps0;
+    
+    // Initialize results for Q = [4, 5, 6, 7, 8, 9, 10]
+    std::vector<long double> results(7, 0.0);
+
+    cout<<"p = "<<3 <<endl;
+    cout<<"q = [4,5,6,7,8,9,10]" <<endl;
+
+    // Calculate the size of the smaller partition
+    int smaller_partition_size = std::min(g.num_v1, g.num_v2);
+
+    // Calculate the total number of possible triples in the smaller partition
+    long long total_triples = static_cast<long long>(smaller_partition_size) * 
+                            (smaller_partition_size - 1) * 
+                            (smaller_partition_size - 2) / 6; 
+
+    cout<<"total triplets: "<<total_triples <<endl;
+    cout << "Processing ALL triplets (no sampling)" <<endl;
+
+    bool is_upper_smaller = (g.num_v1 < g.num_v2 );
+    gamma__ = (1-p) / (1-2*p);
+
+    // Process all triplets using exhaustive enumeration
+    #pragma omp parallel
+    {
+        // Local results for each thread
+        std::vector<long double> local_results(7, 0.0);
+        
+        #pragma omp for schedule(static)
+        for (int v1 = 0; v1 < smaller_partition_size - 2; ++v1) {
+            for (int v2 = v1 + 1; v2 < smaller_partition_size - 1; ++v2) {
+                for (int v3 = v2 + 1; v3 < smaller_partition_size; ++v3) {
+                    
+                    // Process this triplet with proper multi_estimator_switch logic
+                    long double f1 = 0, f2 = 0, f3 = 0, f12 = 0, f13 = 0, f23 = 0;
+                    long double f21 = 0, f31 = 0, f32 = 0;
+                    long double fuvw = 0;
+                    long double esti_var_f_uvw = 0;
+                    
+                    if(multi_estimator_switch){
+                    
+                        // Multi-source estimator
+                        // Compute f1 (same as batch function)
+                    for (auto nb : g.neighbor[v1]) {
+                        long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                        long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+
+                        if (two_noisy_graph_switch) {
+                            A1 = (A1 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                            A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                        }
+                        f1 += A1 * A2; 
+                        f12 += A1; 
+                        f13 += A2; 
+                    }
+                    f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                    f12 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    f13 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    
+                    // Compute f2 (same as batch function)
+                    for(auto nb: g.neighbor[v2]){
+                        long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                        long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
+                        if (two_noisy_graph_switch) {
+                            A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                            A2 = (A2 + (static_cast<long double>(g3.has(nb, v3)) - p) / (1 - 2 * p)) / 2;
+                        }
+                        f2 += A1 * A2; 
+                        f21 += A1; 
+                        f23 += A2;          
+                    }
+                    f2 += stats::rlaplace(0.0,  (gamma__*gamma__/Eps2), engine); 
+                    f21 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    f23 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    
+                    // Compute f3 (same as batch function)
+                    for(auto nb: g.neighbor[v3]){
+                        long double A1 = (static_cast<long double>(g2.has(nb, v1)) - p) / (1 - 2 * p);
+                        long double A2 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
+                        if (two_noisy_graph_switch) {
+                            A1 = (A1 + (static_cast<long double>(g3.has(nb, v1)) - p) / (1 - 2 * p)) / 2;
+                            A2 = (A2 + (static_cast<long double>(g3.has(nb, v2)) - p) / (1 - 2 * p)) / 2;
+                        }
+                        f3 += A1 * A2; 
+                        f31 += A1; 
+                        f32 += A2;    
+                    }
+                    f3 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+                    f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+                    f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
+
+                        // averaging
+                        fuvw = (f1 + f2 + f3 )/3 ; 
+
+                        long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                        if (two_noisy_graph_switch) {
+                            var_phi/=2;
+                        }
+
+                        long double esti_var_f1, esti_var_f2, esti_var_f3; 
+
+                        bool improvement = true;
+                        if(improvement){
+                            // averaging f12 and f21 is useful too!
+                            esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                            esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                            esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                            esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                            esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                            esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                            esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                            esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                            esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                        }
+
+                        esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
+                    } else {
+                        // Single-source estimator: f1 only
+                        for (auto nb : g.neighbor[v1]) {
+                            long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                            A1 = (A1-p) / (1-2*p); 
+
+                            long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                            A2 = (A2-p) / (1-2*p); 
+
+                            f1 += A1 * A2;
+                        }
+                        f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+
+                        // no averaging
+                        fuvw = f1;
+                        
+                        // estimate the variance of f(u, v, w)
+                        long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+
+                        long double esti_var_f1 = var_phi * (f12 + f13) ; 
+                        esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                        esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                        esti_var_f_uvw = esti_var_f1;
+                    }
+                    
+                    // Compute results for all Q values [4, 5, 6, 7, 8, 9, 10]
+                    for (int q_idx = 0; q_idx < 7; q_idx++) {
+                        int K = q_idx + 4;  // Q = 4, 5, 6, 7, 8, 9, 10
+                        long double local_res_q = compute_local_res(K, fuvw, esti_var_f_uvw);
+                        local_results[q_idx] += local_res_q;
+                    }
+                }
+            }
+        }
+        
+        // Reduce results from all threads
+        #pragma omp critical
+        {
+            for (int q_idx = 0; q_idx < 7; q_idx++) {
+                results[q_idx] += local_results[q_idx];
+            }
+        }
+    }
+        
+    double t2 = omp_get_wtime();
+    cout<<"time  = "<<t2 - t1 <<endl;
+    
+    cout << "No-sampling batch results for Q=[4,5,6,7,8,9,10]: ";
+    for(int q_idx = 0; q_idx < 7; q_idx++) {
+        cout << "Q" << (q_idx + 4) << "=" << results[q_idx] << " ";
+    }
+    cout << endl;
+    
+    return results;
+}
+
 // Improved version with rejection sampling for P=3
 long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, unsigned long seed) {
     double t1 = omp_get_wtime();
@@ -1354,6 +1559,9 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
 
     Eps1 = Eps * 0.6;
     Eps2 = Eps - Eps1 - Eps0;
+
+    // Set the flip probability for randomized response
+    p = 1.0 / (exp(Eps1) + 1.0);
 
     // two noisy graph technique
     BiGraph g2(g);
@@ -1456,12 +1664,15 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
             triplet_id /= 1000;
             int v1 = triplet_id;
 
-            // Process this triplet (same logic as batch function)
+            // Process this triplet with proper multi_estimator_switch logic
             long double f1 = 0, f2 = 0, f3 = 0, f12 = 0, f13 = 0, f23 = 0;
             long double f21 = 0, f31 = 0, f32 = 0;
             long double fuvw = 0;
+            long double esti_var_f_uvw = 0;
             
-            // Compute f1 (same as batch function)
+            if(multi_estimator_switch){
+                // Multi-source estimator
+                // Compute f1 (same as batch function)
             for (auto nb : g.neighbor[v1]) {
                 long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
                 long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
@@ -1510,34 +1721,58 @@ long double wedge_based_two_round_3_K_biclique_rejection_sampling(BiGraph& g, un
             f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
             f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
 
-            // averaging
-            fuvw = (f1 + f2 + f3 )/3 ; 
+                // averaging
+                fuvw = (f1 + f2 + f3 )/3 ; 
 
-            long double var_phi = p * (1-p) / pow(1-2*p, 2); 
-            if (two_noisy_graph_switch) {
-                var_phi/=2;
-            }
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                if (two_noisy_graph_switch) {
+                    var_phi/=2;
+                }
 
-            long double esti_var_f1, esti_var_f2, esti_var_f3; 
+                long double esti_var_f1, esti_var_f2, esti_var_f3; 
 
-            // this should always be true
-            bool improvement = true;
-            if(improvement){
-                // averaging f12 and f21 is useful too!
-                esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                bool improvement = true;
+                if(improvement){
+                    // averaging f12 and f21 is useful too!
+                    esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                    esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                    esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                    esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                    esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                    esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                    esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                    esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                    esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                }
+
+                esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
+            } else {
+                // Single-source estimator: f1 only
+                for (auto nb : g.neighbor[v1]) {
+                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                    A1 = (A1-p) / (1-2*p); 
+
+                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                    A2 = (A2-p) / (1-2*p); 
+
+                    f1 += A1 * A2;
+                }
+                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+
+                // no averaging
+                fuvw = f1;
+                
+                // estimate the variance of f(u, v, w)
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+
+                long double esti_var_f1 = var_phi * (f12 + f13) ; 
                 esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
-                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
 
-                esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
-                esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
-                esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-
-                esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
-                esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
-                esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                esti_var_f_uvw = esti_var_f1;
             }
-
-            long double esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
 
             local_res += compute_local_res(K, fuvw, esti_var_f_uvw);
         }
@@ -1569,6 +1804,9 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
 
     Eps1 = Eps * 0.6;
     Eps2 = Eps - Eps1 - Eps0;
+
+    // Set the flip probability for randomized response
+    p = 1.0 / (exp(Eps1) + 1.0);
 
     // two noisy graph technique
     BiGraph g2(g);
@@ -1667,12 +1905,15 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
             int v2 = (triplet_id / 1000) % 1000;
             int v1 = triplet_id / 1000000;
             
-            // Process this triplet (same logic as original function)
+            // Process this triplet with proper multi_estimator_switch logic
             long double f1 = 0, f2 = 0, f3 = 0, f12 = 0, f13 = 0, f23 = 0;
             long double f21 = 0, f31 = 0, f32 = 0;
             long double fuvw = 0;
+            long double esti_var_f_uvw = 0;
             
-            // Compute f1 (same as original)
+            if(multi_estimator_switch){
+                // Multi-source estimator
+                // Compute f1 (same as original)
             for (auto nb : g.neighbor[v1]) {
                 long double A1 = (static_cast<long double>(g2.has(nb, v2)) - p) / (1 - 2 * p);
                 long double A2 = (static_cast<long double>(g2.has(nb, v3)) - p) / (1 - 2 * p);
@@ -1721,34 +1962,58 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
             f31 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
             f32 += stats::rlaplace(0.0, (gamma__/Eps2), engine); 
 
-            // averaging
-            fuvw = (f1 + f2 + f3 )/3 ; 
+                // averaging
+                fuvw = (f1 + f2 + f3 )/3 ; 
 
-            long double var_phi = p * (1-p) / pow(1-2*p, 2); 
-            if (two_noisy_graph_switch) {
-                var_phi/=2;
-            }
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+                if (two_noisy_graph_switch) {
+                    var_phi/=2;
+                }
 
-            long double esti_var_f1, esti_var_f2, esti_var_f3; 
+                long double esti_var_f1, esti_var_f2, esti_var_f3; 
 
-            // this should always be true
-            bool improvement = true;
-            if(improvement){
-                // averaging f12 and f21 is useful too!
-                esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                bool improvement = true;
+                if(improvement){
+                    // averaging f12 and f21 is useful too!
+                    esti_var_f1 = var_phi * (f12 + f21 + f13 + f31)/2 ; 
+                    esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
+                    esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+
+                    esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
+                    esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
+                    esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+
+                    esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
+                    esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
+                    esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                }
+
+                esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
+            } else {
+                // Single-source estimator: f1 only
+                for (auto nb : g.neighbor[v1]) {
+                    long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
+                    A1 = (A1-p) / (1-2*p); 
+
+                    long double A2 = g2.has(nb, v3) ? 1 : 0 ; 
+                    A2 = (A2-p) / (1-2*p); 
+
+                    f1 += A1 * A2;
+                }
+                f1 += stats::rlaplace(0.0, (gamma__*gamma__/Eps2), engine); 
+
+                // no averaging
+                fuvw = f1;
+                
+                // estimate the variance of f(u, v, w)
+                long double var_phi = p * (1-p) / pow(1-2*p, 2); 
+
+                long double esti_var_f1 = var_phi * (f12 + f13) ; 
                 esti_var_f1 += deg_estis[v1] * pow(var_phi,2);
-                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2); // lap noise
+                esti_var_f1 += 2 * pow(gamma__,4) / pow(Eps2, 2);
 
-                esti_var_f2 = var_phi * (f12 + f21 + f23 + f32)/2 ; 
-                esti_var_f2 += deg_estis[v2] * pow(var_phi,2);
-                esti_var_f2 += 2 * pow(gamma__,4) / pow(Eps2, 2);
-
-                esti_var_f3 = var_phi * (f13 + f31 + f23 + f32)/2 ; 
-                esti_var_f3 += deg_estis[v3] * pow(var_phi,2);
-                esti_var_f3 += 2 * pow(gamma__,4) / pow(Eps2, 2);
+                esti_var_f_uvw = esti_var_f1;
             }
-
-            long double esti_var_f_uvw = (esti_var_f1 + esti_var_f2 + esti_var_f3) / 3;
             
             // Compute results for all Q values [4, 5, 6, 7, 8, 9, 10]
             for (int q_idx = 0; q_idx < 7; q_idx++) {
@@ -1816,26 +2081,67 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
 	long double res___ = 0; 
 
     int N = g.num_v1 ; 
-
-    // prepare the subsets in advance
+    
+    // For general P, always use sampling since p-tuples grow exponentially
+    long long T = 100LL;  // Only process 100 p-tuples for debugging
+    cout << "Using SAMPLING for P=" << P___ << " (T = " << T << " p-tuples)" << endl;
+    
+    // Calculate total possible p-tuples for reference
+    long long total_p_tuples = 1;
+    for (int i = 0; i < P___; i++) {
+        total_p_tuples = total_p_tuples * (N - i) / (i + 1);
+    }
+    cout << "Total p-tuples: " << total_p_tuples << ", sampling " << T << endl;
+    
+    // Sample T p-tuples using rejection sampling
     vector<vector<int>> subsets;
-    vector<int> subset(P___);
-    for (int i = 0; i < P___; ++i) subset[i] = i;
-    // generating all combinations of size P___ from N elements. 
-    while (true) {
-        subsets.push_back(subset); // Store the current subset
-        int i;
-        for (i = P___ - 1; i >= 0; --i) {
-            if (subset[i] != i + N - P___) {
-                ++subset[i];
-                for (int j = i + 1; j < P___; ++j) {
-                    subset[j] = subset[j - 1] + 1;
-                }
-                break;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> vertex_dis(0, N - 1);
+    
+    // Hash set to store selected p-tuples (for uniqueness)
+    std::unordered_set<long long> selected_p_tuples;
+    
+    // Function to encode p-tuple as unique ID
+    auto encode_p_tuple = [N](const vector<int>& p_tuple) -> long long {
+        vector<int> sorted_tuple = p_tuple;
+        std::sort(sorted_tuple.begin(), sorted_tuple.end());
+        
+        // Encode as: v1 * n^(p-1) + v2 * n^(p-2) + ... + vp
+        long long encoding = 0;
+        for (int i = 0; i < sorted_tuple.size(); i++) {
+            encoding = encoding * N + sorted_tuple[i];
+        }
+        return encoding;
+    };
+    
+    // Rejection sampling to get exactly T unique p-tuples
+    while (selected_p_tuples.size() < T) {
+        // Generate random p-tuple
+        vector<int> p_tuple;
+        std::unordered_set<int> used_vertices;
+        
+        // Generate P___ distinct vertices
+        while (p_tuple.size() < P___) {
+            int vertex = vertex_dis(gen);
+            if (used_vertices.find(vertex) == used_vertices.end()) {
+                p_tuple.push_back(vertex);
+                used_vertices.insert(vertex);
             }
         }
-        if (i < 0) break; // Finished all combinations
+        
+        long long p_tuple_id = encode_p_tuple(p_tuple);
+        
+        // Check if already selected
+        if (selected_p_tuples.find(p_tuple_id) != selected_p_tuples.end()) continue;
+        
+        // Add to selected set
+        selected_p_tuples.insert(p_tuple_id);
+        subsets.push_back(p_tuple);
     }
+    
+    double sample_fraction = (double)T / total_p_tuples;
+    cout << "Sample fraction: " << (sample_fraction * 100) << "%" << endl;
 
 
 
@@ -1858,13 +2164,137 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
         
         // std::cout << "Min deg vertex (v1): " << v1 << ", deg_est: " << min_deg << "\n";
 
-        // given a central vertex v1 and construct its sup set: X
+        long double local_res;
 
-        // instead loop through vertices in subset
-        // long double aggregated_local_res = 0;
-        // for(auto v1:subset){
-            // if(v1!=subset[0]) continue;
 
+        // if we estimate f_avg, then var(f_avg) will be hard to estimate due to a lot of covariances. 
+        // what we can do instead, is to ask each vertex to estimate f' and var(f'). 
+        // use compute_local_res to estimate local biclique count for each vertex. 
+        // at last aggregate. 
+        
+        if(multi_estimator_switch) {
+            // Multi-source estimator: use all vertices in subset as sources
+            vector<long double> f_estimates(P___);
+            vector<long double> f1_estimates(P___);
+            
+            // Compute true common neighbor count for the current subset
+            // Use the first vertex in subset as reference
+            int reference_vertex = subset[0];
+            int true_common_neighbors_subset = 0;
+            for(auto nb: g.neighbor[reference_vertex]) {
+                bool is_common_neighbor = true;
+                for(int i = 1; i < P___; i++) {  // Start from 1 since we already know nb is neighbor of subset[0]
+                    if(!g.has(nb, subset[i])){
+                        is_common_neighbor = false;
+                        break;
+                    }
+                }
+                if(is_common_neighbor){
+                    true_common_neighbors_subset++;
+                }
+            }
+            
+            // Print subset information to file (single-threaded)
+            static std::ofstream debug_file("/tmp/biclique_debug.txt");
+            debug_file << "--- 4-tuple: " << subset[0] << "," << subset[1] << "," << subset[2] << "," << subset[3] 
+                       << " true=" << true_common_neighbors_subset << " ---" << std::endl;
+            debug_file.flush();
+            
+            for(int source_idx = 0; source_idx < P___; source_idx++) {
+                int v1 = subset[source_idx];
+            
+                // construct the X set based on v1 (everything minus v1)
+                vector<int> X;
+                for (int i = 0; i < P___; ++i) {
+                    if (subset[i] != v1){
+                        X.emplace_back(subset[i]);
+                    }
+                }
+                
+                // construct estimator using v1
+                // step 1: estimate the number of common neighbors among all vertices in subset
+                
+                long double f1 = 0;
+                for(auto nb: g.neighbor[v1]){
+                    long double fv1 = 1.0; 
+
+                    // computing a product
+                    for(auto xx : X){
+                        long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
+                        A_ = (A_-p) / (1-2*p); 
+                        fv1 = fv1 * A_;
+                    }
+                    f1 += fv1; 
+                }
+                f1 += stats::rlaplace(0.0, (pow(gamma__,X.size())/Eps2), engine);
+                
+                // Debug output: show f1 estimate from each vertex
+                debug_file << "  vertex " << v1 << " f1=" << f1 << std::endl;
+                debug_file.flush();
+                
+                // step 2: estimate the variance of f1.
+                long double esti_var_f = 0; 
+                long double theta = p * (1-p) / pow(1-2*p, 2);
+
+                long double esti_var_f_noisy = 0; 
+                int X_size = X.size();
+                for (int mask = 0; mask < (1 << X_size) - 1; ++mask) {
+                    // Include all subsets, from 0 to (1 << X_size) - 1
+                    vector<int> Y;
+                    for (int i = 0; i < X_size; ++i) {
+                        if (mask & (1 << i)) {
+                            Y.push_back(X[i]);
+                        }
+                    }
+                    // processing subset Y:
+                    // estimate the number of common neighbors among Y \cup v1.
+                    long double f1Y = 0; 
+                    if(Y.size()==0){
+                        f1Y = 1; 
+                    }else{
+                        for(auto nb: g.neighbor[v1]){
+                            long double fv1 = 1.0; 
+                            for(auto xx : Y){
+                                long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
+                                A_ = (A_-p) / (1-2*p);
+                                fv1 = fv1 * A_; 
+                            }
+                            f1Y += fv1; 
+                        }
+                    }
+                    esti_var_f_noisy += pow(theta, P___-1-Y.size()) * f1Y;
+                }
+                esti_var_f_noisy += 2 *pow(gamma__,2*P___-2) / pow(Eps2, 2);
+                esti_var_f = esti_var_f_noisy;
+
+                // Each vertex computes its own local result
+                long double vertex_local_res = compute_local_res(K___, f1, esti_var_f);
+                f_estimates[source_idx] = vertex_local_res;
+                f1_estimates[source_idx] = f1;
+            }
+            
+            // Multi-source: average all local results
+            long double aggregated_local_res = 0;
+            for(int i = 0; i < P___; i++) {
+                aggregated_local_res += f_estimates[i];
+            }
+            aggregated_local_res /= P___;
+            
+            local_res = aggregated_local_res;
+            
+            // Calculate and show average of f1 estimates
+            long double avg_f1 = 0;
+            for(int i = 0; i < P___; i++) {
+                avg_f1 += f1_estimates[i];
+            }
+            avg_f1 /= P___;
+            debug_file << "  avg_f1=" << avg_f1 << std::endl;
+            
+            // Empty line to separate p-tuples
+            debug_file << std::endl;
+            debug_file.flush();
+        } else {
+            // Single-source estimator: use only the minimum degree vertex
             // construct the X set based on v1 (everything minus v1)
             vector<int> X;
             for (int i = 0; i < P___; ++i) {
@@ -1872,10 +2302,9 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                     X.emplace_back(subset[i]);
                 }
             }
-            // construct estimators using v1
-            // step 1: estimate the number of common neighbors among all vertices in subset
+            
+            // construct estimator using v1
             long double f1 = 0;
-            // long double real_f1 = 0; 
             for(auto nb: g.neighbor[v1]){
                 long double fv1 = 1.0; 
 
@@ -1884,71 +2313,45 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
                     long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
                     A_ = (A_-p) / (1-2*p); 
                     fv1 = fv1 * A_;
-                    // real_fv1 = real_fv1 * (g.has(nb, xx) ? 1 : 0 );
                 }
                 f1 += fv1; 
-                // real_f1 += real_fv1;
             }
-            f1 += stats::rlaplace(0.0, (pow(gamma__,X.size())/Eps2), engine); 
-            
+            f1 += stats::rlaplace(0.0, (pow(gamma__,X.size())/Eps2), engine);
             
             // step 2: estimate the variance of f1.
             long double esti_var_f = 0; 
             long double theta = p * (1-p) / pow(1-2*p, 2);
-            // X is the set excluding \ v1.
 
             long double esti_var_f_noisy = 0; 
             int X_size = X.size();
-            // for (int mask = 0; mask < (1 << X_size); ++mask) { 
             for (int mask = 0; mask < (1 << X_size) - 1; ++mask) {
-                // Include all subsets, from 0 to (1 << X_size) - 1
                 vector<int> Y;
                 for (int i = 0; i < X_size; ++i) {
                     if (mask & (1 << i)) {
                         Y.push_back(X[i]);
                     }
                 }
-                // processing subset Y:
-                // estimate the number of common neighbors among Y \cup v1.
                 long double f1Y = 0; 
                 if(Y.size()==0){
                     f1Y = 1; 
                 }else{
-                    // what if I make f1Y deterministic. 
                     for(auto nb: g.neighbor[v1]){
                         long double fv1 = 1.0; 
-                        // long double real_fv1 = 1.0; 
                         for(auto xx : Y){
                             long double A_ = g2.has(nb, xx) ? 1 : 0 ; 
                             A_ = (A_-p) / (1-2*p);
                             fv1 = fv1 * A_; 
-
-                            // real_fv1 *= (g.has(nb, xx) ? 1 : 0);
                         }
                         f1Y += fv1; 
-                        // f1Y += real_fv1; 
                     }
-                    // f1Y += stats::rlaplace(0.0, (pow(gamma__,Y.size())/Eps2), engine); 
                 }
                 esti_var_f_noisy += pow(theta, P___-1-Y.size()) * f1Y;
-
             }
             esti_var_f_noisy += 2 *pow(gamma__,2*P___-2) / pow(Eps2, 2);
             esti_var_f = esti_var_f_noisy;
 
-
-
-
-
-
-            // to do: need to debug why variance estimation is off.
-
-            // naive_estis[iteration] = esti_var_f ;
-            naive_estis[iteration] = esti_var_f_noisy ;
-
-            // special handling
-
-            long double local_res = compute_local_res(K___, f1, esti_var_f);
+            local_res = compute_local_res(K___, f1, esti_var_f);
+        }
 
         #pragma omp critical
         res___ += local_res;
@@ -1956,7 +2359,10 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
     }
     }
 
-    return res___ ;
+    double t2 = omp_get_wtime();
+    cout << "time = " << t2 - t1 << endl;
+    
+    return res___ / sample_fraction;
 }
 
 long double compute_local_res(int K, long double f_u_w, long double esti_var_f) {
@@ -3276,8 +3682,8 @@ std::vector<long double> naive_biclique_with_vertex_sampling_batch(BiGraph& g, u
     cout << "Running naive vertex sampling batch algorithm for P=3 (round " << round << ")..." << endl;
     
     BiGraph g2(g); 
-    // Use round to vary the seed for noisy graph construction
-    unsigned long noisy_graph_seed = seed + round * 10000;
+    // Use the provided seed directly for noisy graph construction
+    unsigned long noisy_graph_seed = seed;
     construct_noisy_graph(g, g2, noisy_graph_seed);
 
     cout << "Original noisy graph: n1=" << g2.num_v1 << ", n2=" << g2.num_v2 << ", edges=" << g2.num_edges << endl;
