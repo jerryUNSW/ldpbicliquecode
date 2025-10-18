@@ -42,7 +42,7 @@ def get_data_from_db(db_path, dataset, epsilon=1.0):
     query = """
     SELECT algorithm, q, relative_error, T_samples
     FROM algorithm_comparison_p3 
-    WHERE dataset = ? AND epsilon = ? AND p = 3
+    WHERE dataset = ? AND epsilon = ? AND p = 2
     ORDER BY algorithm, q
     """
     
@@ -50,45 +50,35 @@ def get_data_from_db(db_path, dataset, epsilon=1.0):
     rows = cursor.fetchall()
     conn.close()
     
-    # Organize data into results dictionary
-    results = {}
-    algorithms = set()
+    if not rows:
+        return None, None, None
     
-    for row in rows:
-        algorithm_name, q_value, relative_error, t_samples = row
-        algorithms.add(algorithm_name)
-        
-        if q_value not in results:
-            results[q_value] = {}
-        
-        results[q_value][algorithm_name] = relative_error
+    # Organize data by algorithm
+    algorithms = {}
+    q_values = set()
     
-    # Sort algorithms with Naive first, then others alphabetically
-    # Map ADV names to MRCN names for display
-    algorithm_mapping = {
-        'ADV': 'MRCN',
-        'ADV+': 'MRCN+', 
-        'ADV++': 'MRCN++'
-    }
+    for algorithm, q, relative_error, T_samples in rows:
+        if algorithm not in algorithms:
+            algorithms[algorithm] = {}
+        algorithms[algorithm][q] = relative_error
+        q_values.add(q)
     
-    # Apply mapping to algorithm names
-    mapped_algorithms = [algorithm_mapping.get(alg, alg) for alg in algorithms]
-    algorithm_order = ['Naive'] + sorted([alg for alg in mapped_algorithms if alg != 'Naive'])
+    q_values = sorted(list(q_values))
     
-    return results, algorithm_order
+    return algorithms, q_values, None
 
-def create_p3_plot(dataset, epsilon, results, algorithms):
-    """Create the algorithm comparison plot with proper styling for p=3"""
+def create_p2_plot(dataset, algorithms, q_values, output_file):
+    """Create the algorithm comparison bar plot for p=2"""
     
     plt_settings()
     
     # Prepare data
-    q_values = sorted(results.keys())
+    q_values = sorted(q_values)
     
-    # Define colors and styles matching the p=2 plots
+    # Define colors and styles matching the p=3 plots
     method_styles = {
         'Naive': {'color': 'white', 'hatch': '', 'edgecolor': 'black'},
-        'OneR': {'color': 'lightgray', 'hatch': '', 'edgecolor': 'black'},
+        'OneR': {'color': 'lightgrey', 'hatch': '', 'edgecolor': 'black'},
         'MRCN': {'color': 'grey', 'hatch': '', 'edgecolor': 'black'},
         'MRCN+': {'color': 'black', 'hatch': '////', 'edgecolor': 'black'},
         'MRCN++': {'color': 'darkgrey', 'hatch': '//', 'edgecolor': 'black'}
@@ -103,20 +93,11 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
     total_width, n = 0.8, len(algorithms)
     width = total_width / n
     
-    # Create mapping from display names back to database names
-    reverse_mapping = {
-        'MRCN': 'ADV',
-        'MRCN+': 'ADV+', 
-        'MRCN++': 'ADV++'
-    }
-    
     for i, alg in enumerate(algorithms):
         values = []
-        # Get the database name for data lookup
-        db_alg = reverse_mapping.get(alg, alg)
         
         for j, q in enumerate(q_values):
-            val = results[q].get(db_alg, float('inf'))
+            val = algorithms[alg].get(q, float('inf'))
             # Handle infinite values by setting them to a large number for plotting
             val = val if val != float('inf') else 1e6
             values.append(val)
@@ -133,7 +114,7 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
     # Customize plot
     ax.set_xlabel('q', fontsize=32)
     ax.set_ylabel('Mean Relative Error', fontsize=32)
-    ax.set_title('(P = 3, ε = 1)', fontsize=30)
+    ax.set_title('(P = 2, ε = 1)', fontsize=30)
     ax.set_yscale('log')
     
     # Set x-axis ticks - center them under the bars
@@ -142,18 +123,9 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
     
     # Set y-axis limits and ticks - always use log scale
     all_values = []
-    # Create mapping from display names back to database names
-    reverse_mapping = {
-        'MRCN': 'ADV',
-        'MRCN+': 'ADV+', 
-        'MRCN++': 'ADV++'
-    }
-    
-    for q in q_values:
-        for alg in algorithms:
-            # Get the database name for data lookup
-            db_alg = reverse_mapping.get(alg, alg)
-            val = results[q].get(db_alg, float('inf'))
+    for alg in algorithms:
+        for q in q_values:
+            val = algorithms[alg].get(q, float('inf'))
             if val != float('inf'):
                 all_values.append(val)
     
@@ -208,10 +180,14 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
     ax.legend(fontsize=26, ncol=2, loc="upper left", columnspacing=0.5, frameon=False)
     
     plt.tight_layout()
-    return fig
+    
+    # Save the plot
+    plt.savefig(output_file, bbox_inches='tight', dpi=300)
+    print(f"Plot saved as: {output_file}")
+    
+    plt.close()
 
 def main():
-    # Database path
     db_path = "algorithm_comparison_p3.db"
     
     if not os.path.exists(db_path):
@@ -219,45 +195,74 @@ def main():
         return
     
     # List of datasets to plot (modify this list as needed)
-    datasets_to_plot = ["lrcwiki", "edit-stwiktionary", "nips", "csbwiki", "librec-filmtrust-ratings", "jester2-swapped"]
+    datasets_to_plot = ["jester2-swapped"]
     
     print(f"Plotting datasets: {datasets_to_plot}")
     
     for dataset in datasets_to_plot:
         print(f"\nProcessing {dataset}...")
         
-        try:
-            # Get data from database
-            results, algorithms = get_data_from_db(db_path, dataset, epsilon=1.0)
-            
-            if not results:
-                print(f"No results found for {dataset}")
-                continue
-            
-            print(f"Found results for {dataset} dataset, ε=1.0")
-            print(f"Q values: {sorted(results.keys())}")
-            print(f"Algorithms: {algorithms}")
-            
-            # Print summary of results
-            for q in sorted(results.keys()):
-                print(f"  Q={q}:")
-                for alg in algorithms:
-                    if alg in results[q]:
-                        print(f"    {alg}: {results[q][alg]:.3f}")
-            
-            # Create and save main plot
-            fig = create_p3_plot(dataset, 1.0, results, algorithms)
-            output_filename = f'algorithm_comparison_{dataset}_eps1_FIXED_p3.pdf'
-            fig.savefig(output_filename, dpi=300, bbox_inches='tight')
-            print(f"Plot saved as: {output_filename}")
-            plt.close()
-            
-            print(f"Completed plots for {dataset}")
-            print("---")
-            
-        except Exception as e:
-            print(f"Error processing {dataset}: {e}")
+        # Get data from database
+        algorithms, q_values, _ = get_data_from_db(db_path, dataset)
+        
+        if algorithms is None:
+            print(f"No data found for {dataset}")
             continue
+        
+        print(f"Found results for {dataset} dataset, ε=1.0")
+        print(f"Q values: {q_values}")
+        print(f"Algorithms: {list(algorithms.keys())}")
+        
+        # Map algorithm names for display
+        algorithm_mapping = {
+            'OneR': 'OneR',
+            'ADV': 'MRCN',
+            'ADV+': 'MRCN+', 
+            'ADV++': 'MRCN++'
+        }
+        
+        # Create mapping from display names back to database names
+        reverse_mapping = {
+            'OneR': 'OneR',
+            'MRCN': 'ADV',
+            'MRCN+': 'ADV+', 
+            'MRCN++': 'ADV++'
+        }
+        
+        # Create ordered algorithm list: Naive, OneR, MRCN, MRCN+, MRCN++
+        display_algorithms = ['Naive']
+        if 'OneR' in algorithms:
+            display_algorithms.append('OneR')
+        for alg in ['ADV', 'ADV+', 'ADV++']:
+            if alg in algorithms:
+                display_algorithms.append(algorithm_mapping[alg])
+        
+        # Create new algorithms dict with display names
+        display_algorithms_dict = {}
+        for display_alg in display_algorithms:
+            if display_alg == 'Naive':
+                display_algorithms_dict[display_alg] = algorithms['Naive']
+            elif display_alg == 'OneR':
+                if 'OneR' in algorithms:
+                    display_algorithms_dict[display_alg] = algorithms['OneR']
+            else:
+                db_alg = reverse_mapping[display_alg]
+                if db_alg in algorithms:
+                    display_algorithms_dict[display_alg] = algorithms[db_alg]
+        
+        # Print some sample data
+        for q in q_values[:3]:  # Show first 3 Q values
+            print(f"  Q={q}:")
+            for alg in display_algorithms:
+                if alg in display_algorithms_dict and q in display_algorithms_dict[alg]:
+                    print(f"    {alg}: {display_algorithms_dict[alg][q]:.3f}")
+        
+        # Create the plot
+        output_file = f"algorithm_comparison_{dataset}_eps1_FIXED.pdf"
+        create_p2_plot(dataset, display_algorithms_dict, q_values, output_file)
+        
+        print(f"Completed plots for {dataset}")
+        print("---")
 
 if __name__ == "__main__":
     main()

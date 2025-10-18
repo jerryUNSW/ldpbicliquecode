@@ -198,7 +198,7 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
     // the dominating cost is incurred in server side butterfly counting on the
     // dense noisy graph
 
-    cout << "noisy edges = " << flip1 << endl;
+    // cout << "noisy edges = " << flip1 << endl;
 
     if (eva_comm) {
         cout<<"computing the of Randomized responses (1)"<<endl;
@@ -208,7 +208,7 @@ void construct_noisy_graph(BiGraph& g, BiGraph& g2, unsigned long seed) {
     }
 
     long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
-    cout << "expected E = " << expected_E << endl;
+    // cout << "expected E = " << expected_E << endl;
 
     g2.computePriority();
 }
@@ -266,7 +266,7 @@ void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
     // the dominating cost is incurred in server side butterfly counting on the
     // dense noisy graph
 
-    cout << "noisy edges = " << flip1 << endl;
+    // cout << "noisy edges = " << flip1 << endl;
 
     // if (eva_comm) {
     //     cout<<"computing the of Randomized responses (1)"<<endl;
@@ -279,7 +279,7 @@ void construct_noisy_graph_2(BiGraph& g, BiGraph& g2, unsigned long seed) {
         // communication_cost += flip1 * sizeof(int);
     }
     long double expected_E =g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p;
-    cout << "expected E = " << expected_E << endl;
+    // cout << "expected E = " << expected_E << endl;
 
     g2.computePriority();
 }
@@ -882,8 +882,8 @@ std::vector<long double> naive_biclique_batch(BiGraph& g, unsigned long seed, in
     BiGraph g2(g);
     construct_noisy_graph(g, g2, seed);
     
-    cout << "noisy edges = " << g2.num_edges << endl;
-    cout << "expected E = " << (g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p) << endl;
+    // cout << "noisy edges = " << g2.num_edges << endl;
+    // cout << "expected E = " << (g.num_edges * (1 - p) + (g.num_v1 * g.num_v2 - g.num_edges) * p) << endl;
     
     // Convert to the format needed by naive algorithm (do this once)
     biGraph convertedGraph = convertBiGraphTobiGraph(g2);
@@ -1117,6 +1117,20 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
                     esti_var_f_uvw /= 9;
                 }else{
                     // single-source estimator: f1
+                    // bool use_min_degree_vertex = false; // Switch to enable/disable min degree selection
+                    
+                    // if (use_min_degree_vertex) {
+                    //     // Choose vertex with minimum estimated degree
+                    //     // Swap vertices so that the one with minimum degree becomes v1
+                    //     if (deg_estis[v2] < deg_estis[v1]) {
+                    //         std::swap(v1, v2);
+                    //     }
+                    //     if (deg_estis[v3] < deg_estis[v1]) {
+                    //         std::swap(v1, v3);
+                    //     }
+                    // }
+                    
+                    // Now v1 is either the original v1 or the vertex with minimum estimated degree
                     for(auto nb: g.neighbor[v1]){
                         long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
                         A1 = (A1-p) / (1-2*p); 
@@ -1304,6 +1318,20 @@ long double wedge_based_two_round_3_K_biclique(BiGraph& g, unsigned long seed) {
                 esti_var_f_uvw /= 9;
             }else{
                 // single-source estimator: f1
+                // bool use_min_degree_vertex = true; // Switch to enable/disable min degree selection
+                
+                // if (use_min_degree_vertex) {
+                //     // Choose vertex with minimum estimated degree
+                //     // Swap vertices so that the one with minimum degree becomes v1
+                //     if (deg_estis[v2] < deg_estis[v1]) {
+                //         std::swap(v1, v2);
+                //     }
+                //     if (deg_estis[v3] < deg_estis[v1]) {
+                //         std::swap(v1, v3);
+                //     }
+                // }
+                
+                // Now v1 is either the original v1 or the vertex with minimum estimated degree
                 for(auto nb: g.neighbor[v1]){
                     long double A1 = g2.has(nb, v2) ? 1 : 0 ; 
                     A1 = (A1-p) / (1-2*p); 
@@ -2771,6 +2799,126 @@ long double binomial(int n, int k) {
 
 // one-round biclique counting: 
 // _switch = btf:0, cate:1, biclique:2, quasi-biclique: 3.
+// Function to test f distribution for Gaussian assumption
+void test_f_distribution_p2(string dataset, int num_samples) {
+    cout << "=== Testing f_avg distribution for Gaussian assumption ===" << endl;
+    cout << "Method: 10 fixed pairs × " << num_samples << " noise iterations" << endl;
+    
+    // Load dataset
+    BiGraph g;
+    string filename = "/data/yizhangh/bidata/" + dataset;
+    g.loadGraph(filename);
+    cout << "Loaded dataset: " << dataset << " with " << g.num_nodes() << " nodes" << endl;
+    
+    // Set up parameters like the existing function
+    Eps = 1.0;
+    Eps0 = Eps * 0.05;
+    Eps1 = Eps * 0.6;
+    Eps2 = Eps * 0.35;
+    p = 1.0 / (exp(Eps1) + 1.0);
+    gamma__ = (1-p) / (1-2*p);
+    
+    // Initialize degree estimates
+    vector<long double> deg_estis;
+    deg_estis.resize(g.num_nodes());
+    for(int i=0; i<g.num_nodes(); i++){
+        deg_estis[i] = g.degree[i] + stats::rlaplace(0.0, 1/(Eps0), engine);
+    }
+    
+    // Find vertex pairs with the most common neighbors
+    vector<pair<int,int>> fixed_pairs;
+    vector<pair<pair<int,int>, int>> all_pairs_with_cn;  // Store (pair, cn_count)
+    
+    cout << "Searching for vertex pairs with the most common neighbors..." << endl;
+    
+    // First, find all pairs and their common neighbor counts
+    for (int u = 0; u < g.num_v1; u++) {
+        for (int w = u + 1; w < g.num_v1; w++) {
+            // Count common neighbors for this pair
+            int common_neighbors = 0;
+            for (int v = 0; v < g.num_v2; v++) {
+                if (g.has(u, v) && g.has(w, v)) {
+                    common_neighbors++;
+                }
+            }
+            
+            if (common_neighbors > 0) {
+                all_pairs_with_cn.push_back({{u, w}, common_neighbors});
+            }
+        }
+    }
+    
+    // Sort by common neighbor count (descending)
+    sort(all_pairs_with_cn.begin(), all_pairs_with_cn.end(), 
+         [](const pair<pair<int,int>, int>& a, const pair<pair<int,int>, int>& b) {
+             return a.second > b.second;
+         });
+    
+    cout << "Found " << all_pairs_with_cn.size() << " pairs with common neighbors" << endl;
+    cout << "Top 20 pairs by common neighbor count:" << endl;
+    for (int i = 0; i < min(20, (int)all_pairs_with_cn.size()); i++) {
+        cout << "  Rank " << i+1 << ": vertices (" << all_pairs_with_cn[i].first.first 
+             << "," << all_pairs_with_cn[i].first.second << ") with " 
+             << all_pairs_with_cn[i].second << " common neighbors" << endl;
+    }
+    
+    // Select top 10 pairs
+    for (int i = 0; i < min(10, (int)all_pairs_with_cn.size()); i++) {
+        fixed_pairs.push_back(all_pairs_with_cn[i].first);
+        cout << "Selected Pair " << i << ": vertices (" << all_pairs_with_cn[i].first.first 
+             << "," << all_pairs_with_cn[i].first.second << ") with " 
+             << all_pairs_with_cn[i].second << " common neighbors" << endl;
+    }
+    
+    cout << "Selected 10 fixed pairs for p=2 analysis" << endl;
+    
+    // For each pair, run num_samples iterations with different noise
+    for (int pair_idx = 0; pair_idx < 10; pair_idx++) {
+        int u = fixed_pairs[pair_idx].first;
+        int w = fixed_pairs[pair_idx].second;
+        
+        // Compute real number of common neighbors for this pair
+        int real_common_neighbors = 0;
+        for (int v = 0; v < g.num_v2; v++) {
+            if (g.has(u, v) && g.has(w, v)) {
+                real_common_neighbors++;
+            }
+        }
+        
+        vector<double> f_u_vals, f_w_vals;
+        
+        for (int iter = 0; iter < num_samples; iter++) {
+            // Create noisy graph with different seed each time
+            BiGraph g2(g);
+            construct_noisy_graph(g, g2, iter);
+            
+            // Compute f_u and f_w using the same approach as the working function
+            long double f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
+            long double f_w_u = locally_compute_f_given_q_and_x(w, u, g, g2);
+            
+            f_u_vals.push_back(f_u_w);
+            f_w_vals.push_back(f_w_u);
+        }
+        
+        // Output for this pair
+        cout << "Pair_" << pair_idx << "_real_common_neighbors: " << real_common_neighbors << endl;
+        cout << "Pair_" << pair_idx << "_degree_u: " << g.degree[u] << endl;
+        cout << "Pair_" << pair_idx << "_degree_w: " << g.degree[w] << endl;
+        cout << "Pair_" << pair_idx << "_p2_f_u: ";
+        for (auto v : f_u_vals) cout << v << " ";
+        cout << endl;
+        
+        cout << "Pair_" << pair_idx << "_p2_f_w: ";
+        for (auto v : f_w_vals) cout << v << " ";
+        cout << endl;
+        
+    }
+    
+    cout << "\n=== Data collection complete ===" << endl;
+    cout << "Generated: 10 pairs × " << num_samples << " = " << (10 * num_samples) << " samples for p=2" << endl;
+    cout << "This isolates the noise distribution from graph structure" << endl;
+}
+
 long double one_round_biclique(BiGraph& g, unsigned long seed, 
     int p__, int q__){
 

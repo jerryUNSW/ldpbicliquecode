@@ -65,6 +65,9 @@ long double wedge_based_btf_avg(BiGraph& g, unsigned long seed);
 // VP based 
 // long double VP_wedge_based_two_round_btf(BiGraph& g, unsigned long seed); // COMMENTED OUT
 
+// Function to test f distribution for Gaussian assumption
+void test_f_distribution_p2(string dataset, int num_samples);
+
 double locally_compute_f_given_q_and_x_vp(int q, int x, BiGraph& g, BiGraph& g2, int& res__);
 
 double locally_compute_f_given_q_and_x_vp_2(int q, int x, BiGraph& g, BiGraph& g2, int& res__);
