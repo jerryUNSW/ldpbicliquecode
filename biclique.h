@@ -51,7 +51,7 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_no_sampling_batch(Bi
 
 // general shape: 
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
-    unsigned long seed, int P___, int K___ );
+    unsigned long seed, int P___, int K___, long long T);
 
 long double compute_local_res(int K, long double f_u_w, long double esti_var_f) ;
 

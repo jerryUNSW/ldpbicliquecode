@@ -42,6 +42,9 @@ bool use_probability_filtering = false;
 // Noisy edge sampling ratio for naive algorithm
 double noisy_edge_sampling_ratio = 0.1;  // Default: 10% edge sampling for speed
 
+// 12th parameter: T (number of p-tuples to sample for general P)
+long long T = 100000LL;  // Default: 100,000 p-tuples
+
 // I  think we can have another way of counting caterpillars. 
 // for each vertex, we consider the wedges. 
 int main(int argc, char *argv[]) {
@@ -99,12 +102,24 @@ int main(int argc, char *argv[]) {
         noisy_edge_sampling_ratio = 1.0; // Default: no sampling
     }
 
+    // 12th parameter: T (number of p-tuples to sample for general P)
+    if (argc >= 12) {
+        T = stoll(argv[11]);
+        if (T <= 0) {
+            cerr << "Error: T must be positive, got " << T << endl;
+            return 1;
+        }
+    } else {
+        T = 100000LL; // Default: 100,000 p-tuples
+    }
+
 
     cout<<"P___ = "<<P___ <<endl;
     cout<<"K___ = "<<K___ <<endl;
     cout<<"Budget allocation: alpha0="<<alpha0<<", alpha1="<<alpha1<<", alpha2="<<alpha2<<endl;
     cout<<"Probability filtering: "<<(use_probability_filtering ? "ENABLED" : "DISABLED")<<endl;
     cout<<"Noisy edge sampling ratio: "<<noisy_edge_sampling_ratio<<endl;
+    cout<<"T (p-tuples to sample): "<<T<<endl;
 
     // initialize time
     RR_time = 0, server_side_time = 0, naive_server_side = 0;
@@ -300,7 +315,7 @@ int main(int argc, char *argv[]) {
                 cout<<"P = "<<P___ <<endl;
                 cout<<"Q = "<<K___ <<endl;
                 // we do not test the communication of this
-                estis[iteration] = wedge_based_two_round_general_biclique(g, seed, P___, K___);            
+                estis[iteration] = wedge_based_two_round_general_biclique(g, seed, P___, K___, T);            
                 // cout<<"Need to implement baseline for general P values"<<endl;
             }
             

@@ -2081,7 +2081,7 @@ std::vector<long double> wedge_based_two_round_3_K_biclique_rejection_sampling_b
 
 // this function handles p > 3. In experiment, we focus on p = 4.
 long double wedge_based_two_round_general_biclique(BiGraph& g, 
-    unsigned long seed, int P___, int K___ ) {
+    unsigned long seed, int P___, int K___, long long T) {
     double t1 = omp_get_wtime();
 
     Eps0 = Eps * 0.05;
@@ -2111,7 +2111,8 @@ long double wedge_based_two_round_general_biclique(BiGraph& g,
     int N = g.num_v1 ; 
     
     // For general P, always use sampling since p-tuples grow exponentially
-    long long T = 100LL;  // Only process 100 p-tuples for debugging
+    // T is now passed as a parameter
+    // long long T = 10000LL;
     cout << "Using SAMPLING for P=" << P___ << " (T = " << T << " p-tuples)" << endl;
     
     // Calculate total possible p-tuples for reference
