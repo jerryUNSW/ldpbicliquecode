@@ -1,0 +1,167 @@
+P___ = 4
+K___ = 2
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 1
+Dataset: jester2-swapped, p = 4, q = 2, biclique count = 2.912222e+12
+
+ADV+
+EPS = 1.000000e+00
+random seed = 1975706700
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 3.693785e+01%
+time = 1.372642e+02
+estimate = 2936607334694.3104846478
+real = 2912221707817.0000000000
+relative error = 0.0083735475
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2912806065
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 135.9866241380
+estimate = 2995165007282.1655249596
+real = 2912221707817.0000000000
+relative error = 0.0284811075
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 659986914
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.1943141541
+estimate = 2943424253691.1830801964
+real = 2912221707817.0000000000
+relative error = 0.0107143442
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 3648539908
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 135.8367352840
+estimate = 2818703578522.6295518875
+real = 2912221707817.0000000000
+relative error = 0.0321122973
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2143755785
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 138.0643636691
+estimate = 2946445259768.3661141396
+real = 2912221707817.0000000000
+relative error = 0.0117516987
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 3631640256
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 137.1103391680
+estimate = 2877194112990.1017134190
+real = 2912221707817.0000000000
+relative error = 0.0120277913
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2008337608
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.2737660380
+estimate = 2865592629145.3461878300
+real = 2912221707817.0000000000
+relative error = 0.0160115140
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 3736991066
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.8904563240
+estimate = 2956830308819.4497394562
+real = 2912221707817.0000000000
+relative error = 0.0153177215
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 1449512926
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 137.6918803670
+estimate = 3037377314193.6693303585
+real = 2912221707817.0000000000
+relative error = 0.0429759884
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 1796382020
+P = 4
+Q = 2
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 139.8539271550
+estimate = 2876285993809.3409619331
+real = 2912221707817.0000000000
+relative error = 0.0123396216
+
+time:1371.495550
+# Mean = 2925362579291.656250
+real count = 2912221707817.0000000000
+adv rel err = 0.0190105632

@@ -1,0 +1,167 @@
+P___ = 3
+K___ = 4
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 2
+Dataset: jester2-swapped, p = 3, q = 4, biclique count = 2.132051e+19
+
+ADV
+EPS = 2.000000e+00
+random seed = 2466210134
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 2.811669e+01
+estimate = 21290373925770694666.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0014134515
+
+
+ADV
+EPS = 2.0000000000
+random seed = 2206764317
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 27.1043056860
+estimate = 21539817100920746652.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0102862303
+
+
+ADV
+EPS = 2.0000000000
+random seed = 917497214
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 26.8705390310
+estimate = 21252099425245124152.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0032086478
+
+
+ADV
+EPS = 2.0000000000
+random seed = 3257420794
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 26.5227103969
+estimate = 21318111705509110840.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0001124610
+
+
+ADV
+EPS = 2.0000000000
+random seed = 3401024403
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 26.4210397459
+estimate = 21532097152280577120.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0099241400
+
+
+ADV
+EPS = 2.0000000000
+random seed = 2301209961
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 26.4969186701
+estimate = 21098713540102808278.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0104029358
+
+
+ADV
+EPS = 2.0000000000
+random seed = 3328201246
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 30.5073263259
+estimate = 21645060402059213540.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0152224773
+
+
+ADV
+EPS = 2.0000000000
+random seed = 4078156998
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 31.6713518950
+estimate = 21350451521715709028.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0014043797
+
+
+ADV
+EPS = 2.0000000000
+random seed = 2165332307
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 31.7259822581
+estimate = 21421946009481134784.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0047576995
+
+
+ADV
+EPS = 2.0000000000
+random seed = 1260228734
+construct_noisy_graph(g); 
+p = 3
+q = 4
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 42.9729882749
+estimate = 21450976043603718900.0000000000
+real = 21320509431682650112.0000000000
+relative error = 0.0061193009
+
+time:298.455413
+# Mean = 21389964682668883148.000000
+real count = 21320509431682650112.0000000000
+adv rel err = 0.0062851724

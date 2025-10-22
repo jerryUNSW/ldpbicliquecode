@@ -1,0 +1,177 @@
+P___ = 3
+K___ = 7
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 2
+Dataset: jester2-swapped, p = 3, q = 7, biclique count = 9.725885e+30
+
+ADV++
+EPS = 2.000000e+00
+random seed = 3662591412
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 1.766318e+02
+estimate = 9872120734951918634487011868672.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0150357168
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 3248187792
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 164.3634570260
+estimate = 9415786211224712642579058917376.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0318838715
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 3871178177
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 151.0965119048
+estimate = 9698650718655445173260244746240.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0028001938
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 875479288
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 88.7338787620
+estimate = 9886713112564551672559959015424.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0165360818
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 2576336955
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 91.4104498301
+estimate = 9919310519120993123437339738112.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0198876952
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 2862841534
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 103.7398671790
+estimate = 9680535137564641602070797877248.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0046628089
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 3032626604
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 158.0031518980
+estimate = 9794329793236175693623083401216.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0070373761
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 4019417752
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 151.2253534431
+estimate = 9975929327695100353509003886592.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0257091508
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 4235765372
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 151.0573583359
+estimate = 9738475075808264283307783487488.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0012944831
+
+
+ADV++
+EPS = 2.0000000000
+random seed = 470111097
+construct_noisy_graph(g); 
+constructing g3
+p = 3
+q = 7
+Using EXHAUSTIVE enumeration (total = 22100, T = 2000000)
+total triplets: 22100
+Processing all triplets
+time  = 236.8359153201
+estimate = 9696644083653580603140148822016.0000000000
+real = 9725885081544325890204145549312.0000000000
+relative error = 0.0030065128
+
+time:1473.212302
+# Mean = 9767849471447538424761760612352.000000
+real count = 9725885081544325890204145549312.0000000000
+adv rel err = 0.0127853891

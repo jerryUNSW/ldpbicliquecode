@@ -1,0 +1,167 @@
+P___ = 4
+K___ = 6
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 2
+Dataset: jester2-swapped, p = 4, q = 6, biclique count = 1.804096e+27
+
+ADV
+EPS = 2.000000e+00
+random seed = 3918188469
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 3.693785e+01%
+time = 2.007553e+01
+estimate = 1490724155326910855645233152.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.1737001938
+
+
+ADV
+EPS = 2.0000000000
+random seed = 2610170040
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.9226487610
+estimate = 2064654605883770626709127168.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.1444261465
+
+
+ADV
+EPS = 2.0000000000
+random seed = 876897000
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 20.1410662001
+estimate = 2036035271242389421289373696.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.1285626143
+
+
+ADV
+EPS = 2.0000000000
+random seed = 3733951302
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.8677774579
+estimate = 2030102270480468119602069504.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.1252739862
+
+
+ADV
+EPS = 2.0000000000
+random seed = 3197095305
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.9193313101
+estimate = 1681249099844406997598339072.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.0680933153
+
+
+ADV
+EPS = 2.0000000000
+random seed = 2291632319
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.7472571819
+estimate = 1708411386711491111811022848.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.0530374163
+
+
+ADV
+EPS = 2.0000000000
+random seed = 1863036603
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.8586036030
+estimate = 1371303398584098468086677504.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.2398944309
+
+
+ADV
+EPS = 2.0000000000
+random seed = 3783964861
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 20.5687113260
+estimate = 1796959243921626265028657152.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.0039558495
+
+
+ADV
+EPS = 2.0000000000
+random seed = 2592187709
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.7739946691
+estimate = 1591461127143973718971121664.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.1178622710
+
+
+ADV
+EPS = 2.0000000000
+random seed = 447392780
+P = 4
+Q = 6
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 19.7422285648
+estimate = 1621586259254374399037407232.0000000000
+real = 1804095976062814384876945408.0000000000
+relative error = 0.1011640840
+
+time:199.917573
+# Mean = 1739248681839350987049926656.000000
+real count = 1804095976062814384876945408.0000000000
+adv rel err = 0.1155970308

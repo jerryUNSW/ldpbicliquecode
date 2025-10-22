@@ -1,0 +1,147 @@
+P___ = 4
+K___ = 7
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 1
+Dataset: jester2-swapped, p = 4, q = 7, biclique count = 1.234629e+31
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 318169276
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1123945
+costEstimate 306 ms
+load graph
+ans 3225553221208963811813359616.00
+res = 3.225553e+27
+estimate = 3.225553e+27
+relative error = 9.997387e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 3768874097
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1125039
+costEstimate 306 ms
+load graph
+ans 3306102315497617055348162560.00
+res = 3.306102e+27
+estimate = 3.306102e+27
+relative error = 9.997322e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 1717283580
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1123979
+costEstimate 305 ms
+load graph
+ans 3275187904753399968043106304.00
+res = 3.275188e+27
+estimate = 3.275188e+27
+relative error = 9.997347e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 2341390605
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1124906
+costEstimate 306 ms
+load graph
+ans 3381675876715370956502073344.00
+res = 3.381676e+27
+estimate = 3.381676e+27
+relative error = 9.997261e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 4110391473
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1124491
+costEstimate 304 ms
+load graph
+ans 3342625014251166518957047808.00
+res = 3.342625e+27
+estimate = 3.342625e+27
+relative error = 9.997293e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 160900664
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1124367
+costEstimate 306 ms
+load graph
+ans 3235377655229953094396674048.00
+res = 3.235378e+27
+estimate = 3.235378e+27
+relative error = 9.997379e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 3845723716
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1124448
+costEstimate 305 ms
+load graph
+ans 3213587768873690549761081344.00
+res = 3.213588e+27
+estimate = 3.213588e+27
+relative error = 9.997397e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 4142871142
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1123468
+costEstimate 307 ms
+load graph
+ans 3271496362236793763250831360.00
+res = 3.271496e+27
+estimate = 3.271496e+27
+relative error = 9.997350e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 2103476482
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1123704
+costEstimate 304 ms
+load graph
+ans 3382167847267182849655046144.00
+res = 3.382168e+27
+estimate = 3.382168e+27
+relative error = 9.997261e-01
+
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 940016319
+naive_biclique
+Converted graph: n1=52, n2=50693, m=1124686
+costEstimate 306 ms
+load graph
+ans 3288998586119054775078092800.00
+res = 3.288999e+27
+estimate = 3.288999e+27
+relative error = 9.997336e-01
+
+time:207.942923
+# Mean = 3292277255215319272594079744.000000
+real count = 1.234629e+31
+adv rel err = 9.997333e-01

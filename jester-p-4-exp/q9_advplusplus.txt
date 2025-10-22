@@ -1,0 +1,167 @@
+P___ = 4
+K___ = 9
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 1
+Dataset: jester2-swapped, p = 4, q = 9, biclique count = 4.284687e+38
+
+ADV++
+EPS = 1.000000e+00
+random seed = 1225239208
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 3.693785e+01%
+time = 1.355472e+02
+estimate = 623952489447719949562269978224230400000.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.4562382883
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 1932872714
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.1943276611
+estimate = 462730614237491497514455919938051768320.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0799636976
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 2352284574
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.0851937931
+estimate = 417159015029723492083990770430905417728.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0263955345
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 1907275979
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.4971254680
+estimate = 446619547784884005227795624386520678400.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0423621939
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 3193169419
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.9642941521
+estimate = 498640339580584278702814077393748099072.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.1637731508
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 3101614082
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 135.3423605992
+estimate = 413510413672257885841850871021469433856.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0349109793
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 3720609777
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 136.0432024461
+estimate = 443746675171811922313710735026894667776.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0356572169
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 2895437111
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 135.4911361930
+estimate = 446741550965296565990445240748873875456.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0426469362
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 4240612255
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 135.0316759641
+estimate = 354976234915365222770757373490129534976.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.1715234838
+
+
+ADV++
+EPS = 1.0000000000
+random seed = 1593094096
+P = 4
+Q = 9
+construct_noisy_graph(g); 
+Using SAMPLING for P=4 (T = 100000 p-tuples)
+Total p-tuples: 270725, sampling 100000
+Sample fraction: 36.9378520639%
+time = 137.7824086118
+estimate = 396776044498810764942729678504794783744.0000000000
+real = 428468674720006950023099220964549853184.0000000000
+relative error = 0.0739672048
+
+time:1361.292564
+# Mean = 450485292530394548353062135191050387456.000000
+real count = 428468674720006950023099220964549853184.0000000000
+adv rel err = 0.1127438686

@@ -1,0 +1,30 @@
+P___ = 3
+K___ = 9
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+T (p-tuples to sample): 100000
+n1: 52, n2: 50693
+|E| = 1728847
+computing degrees
+computing priority
+fill_rate = 0.655851
+Eps = 2
+Dataset: jester2-swapped, p = 3, q = 9, biclique count = 3.419788e+38
+Naive algorithm for biclique counting
+EPS = 2.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 11479754
+naive_biclique
+Converted graph: n1=52, n2=50693, m=998984
+costEstimate 301 ms
+load graph
+ans 11280030030580082556933068483926687744.00
+res = 1.128003e+37
+estimate = 1.128003e+37
+relative error = 9.670154e-01
+
+time:8.903645
+# Mean = 11280030030580081483563147694952153088.000000
+real count = 3.419788e+38
+adv rel err = 9.670154e-01
