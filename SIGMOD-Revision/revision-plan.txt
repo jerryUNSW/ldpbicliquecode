@@ -1,0 +1,42 @@
+1. Clarify misunderstandings: This part of the author's response is only to clarify misunderstandings in the reviews (e.g., a reviewer clearly misunderstood parts in your paper). For each of your concerns, refer clearly to point in the review and also describe the misunderstanding. You may also refer to exact passages in the paper to support your clarification. Please use the following format to clarify point OY in reviewer RX's review, no need to copy the comment: RX.OY: Text explaining the misunderstanding.
+R2.O1:
+Thank you. We have cited the work on biclique counting under k-star LDP [1]. Our work differs substantially from [1] for these reasons.
+(1) [1] focuses on introducing k-star LDP, which is based on k-star adjacency lists rather than neighbor lists in edge LDP. (2) [1] only provided a baseline edge LDP solution without Laplace noise, which violates edge LDP.
+For common neighbor counting [2], we build on their multi-round estimator, adapting it in MRCN to use shared privacy budget and weighting parameters.
+We will better discuss these works in the revision.
+R2.O2:
+OneR does not scale to large p and q since it must enumerate all (p, q)-motifs. MRCN and MRCN++ are more scalable, with privacy budget allocation as one hyperparameter. We will conduct more experiments to evaluate this parameter.
+R2.O3:
+Thank you. In moment-based correction, fu is treated as approximately Gaussian by the central limit theorem. We will clarify this with more illustrations.
+
+R3.O1:
+We will conduct experiments on denser graphs in the revision.
+R3.O2:
+In the refined noisy graph, each vertex pair (u,v) is flipped twice, once per endpoint. When randomized response is applied at u, we flip A[u,v] to obtain A'[u,v]; when applied at v, we flip A[v,u] to obtain A'[v,u]. A'[u,v] and A'[v,u] are independent and distinct under edge-LDP [3], ensuring parallel composition. We will better clarify this in the revision.
+R3.O3:
+We will better explain the relevant priors (composition theorems & basic mechanisms). We will clarify how these theorems are applied to make the paper easier to follow.
+R3.O4:
+Under edge LDP, each vertex treats its adjacency list as local, and edges are distinct for the two endpoints [3]. Thus, degree estimation satisfies edge LDP, as each vertex perturbs its edges independently. We will clarify this in the revision.
+R3.O5:
+We will add more intuition and explanations to improve readability.
+R3.O6:
+Thank you. We clarify that MRCN should be preferred because OneR requires inefficiently counting all (p, q)-motifs. Also, the performance gap of MRCN and OneR is wider on sparser graphs. We will use more datasets and better explain the advantages of MRCN.
+
+R4.O1:
+Thank you. The example assumes colluding users possess substantial background knowledge, creating a worst-case scenario where private edges can be inferred from aggregated statistics. This is also done in prior work on triangle counting [3]. We will better clarify these in the revision.
+R4.O2:
+The noisy graph is built via randomized response. By the post-processing property, it can be shared with all vertices, as done in triangle and butterfly [3-5] counting works. We will better clarify this in the revision.
+R4.O3:
+We will make Sec 1 more concise, focusing on motivation and intuition, and enrich Sec 2 with explanations of DP concepts.
+R4.O4:
+We will use notations consistently, remove ambiguities, and refine the definitions.
+R4.O5:
+Thank you for your comment. The code is available at: https://anonymous.4open.science/r/sourcecode-AA60/. This contains all scripts necessary to replicate the experiments.
+R4.O6:
+We will conduct more experiments on larger p and q.
+
+[1] Sun, H., Wu, Z., Li, R. H., Wang, G., & Li, Z. (2024). K-stars LDP: A Novel Framework for (p, q)-clique Enumeration under Local Differential Privacy. arXiv preprint arXiv:2403.01788.
+[2] He, Y., Wang, K., Zhang, W., Lin, X., & Zhang, Y. (2024). Common Neighborhood Estimation over Bipartite Graphs under Local Differential Privacy. (SIGMOD 2024)
+[3] Imola, J., Murakami, T., & Chaudhuri, K. (2021). Locally differentially private analysis of graph statistics. In 30th USENIX security symposium (USENIX Security 21)
+[4] Imola, J., Murakami, T., & Chaudhuri, K. (2022). Communication-Efficient triangle counting under local differential privacy. (USENIX Security 22).
+[5] He, Y., Wang, K., Zhang, W., Lin, X., Ni, W., & Zhang, Y. (2024, May). Butterfly counting over bipartite graphs with local differential privacy. (ICDE).% 

@@ -1,0 +1,10 @@
+1. Recommended Decision
+Major Revision
+2. Suitability to the Conference
+Yes
+3. Associate Editor's Summary of the discussion and recommendation
+The reviewers agree that the paper addresses an important and timely problem, and has technical depth. At the same time, there are significant concerns on the paper's novelty, theoretical analysis, experiments, and presentation, and the proposed methods’ scalability.
+
+During the discussion, all reviewers are satisfied with the revision plan provided by the authors. Accordingly, we recommend that the paper proceed to a major revision, during which the authors should implement all proposed changes as outlined in the revision plan.
+5. Feedback on the Proposed Revision Plan by Authors. Specify if you want to see any changes to the revision plan (if the authors provided it). Number these changes or revision items clearly (C1, C2, ...).
+N/A
