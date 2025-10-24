@@ -1,0 +1,37 @@
+Questions
+1. Overall Evaluation
+Major Revision - Many revisions required and an "accept" post revision is not certain
+3. Novelty
+Novel solution
+4. Importance: select all that apply:
+SIGMOD attendees will learn something interesting from the paper
+5. Summary of contribution (in a few sentences)
+The paper tackles counting (p,q)-bicliques in bipartite graphs under edge local differential privacy. It proposes (i) OneR, a one-round unbiased estimator that corrects perturbation-induced bias via motif transformation probabilities, and (ii) MRCN, a multi-round common-neighbor framework that uses moment-based corrections to recover unbiased biclique counts without explicit enumeration. It further introduces MRCN++ with variance-reduction plus layer-based pruning and tuple sampling for scalability. Experiments on multiple real bipartite graphs demonstrate large accuracy and efficiency gains over the naive approach, with MRCN/MRCN++ generally providing the best utility–cost trade-offs.
+6. Describe in detail all strong points, labeled S1, S2, S3, etc.
+S1. In general, mining bipartite graphs with LDP is an important and meaning full problem.
+
+S2. The paper provides unbiased estimators with formal derivations (motif transformation matrix inversion for OneR; moment-based corrections and sensitivity-calibrated noise for MRCN), and uses standard LDP composition and Laplace mechanisms with sensitivity analyses.
+
+S3. The experiments show large error reductions and better scalability on real bipartite graphs, especially sparse ones.
+7. Describe in detail all opportunities for improvement, labeled O1, O2, O3, etc.
+O1. Limited novelty -- similar problems have already been studied in previous work such as https://arxiv.org/abs/2403.01788 (I don't think this work can be considered "orthogonal" as the authors claim) as well as https://dl.acm.org/doi/10.1145/3698803 (which presented similar ideas).
+
+O2. OneR doesn't scale well to larger values of p and q. MRCN and MRCN++ are rather complex, involving many hyperparameters (e.g., privacy budget allocations), which are non-trivial to tune under LDP.
+
+O3. I don't see an ablation study of MRCN/MRCN++. Meanwhile, it would be nice to have some formal variance analysis for the proposed methods.
+8. Please rank the three most critical strong points and/or opportunities for improvement that led to your overall evaluation rating, e.g., "{S1, O7, O4}"
+{O1, O2, S1}
+9. Do you have specific questions to authors to answer in author feedback? Use Q1, Q2, Q3, etc. for questions.
+Q1. The moment-based correction technique used in the second round of MRCN requires the noisy estimates provided by different users to be independent. It seems that these estimates are all derived from the same noisy, first-round data (f_1 values). So, I wonder why the errors are not correlated.
+
+Q2. In the derivation of the global sensitivity for the f_1 estimator in Equation 2, the bound of γ^(p-1) does not seem to hold for p > 2. Could you clarify?
+
+Q3. In Section 4.1, when generalizing the moment-based correction from q=2 to arbitrary q > 2, why can we assume that $f_u$ is approximately Gaussian with negligible higher-order cumulants?
+10. Minor remarks: Use this field to describe minor remarks that are not listed as opportunities for improvement, e.g., to highlight typos, formatting problems, or minor technical issues, labeled M1, M2, M3, etc.
+M1. Refs. [25] and [26] appear to be duplicates.
+11. Required changes for revision: List required changes for a revision, if appropriate, by identifying subset of previously specified opportunities for improvement (e.g., O1, O3, O6). Authors can respond to this in their proposed initial revision plan along with the author feedback.
+Please address O1-O3, and answer Q1-Q3.
+12. Inclusive writing: does the paper follow the SIGMOD inclusive writing guidelines? See https://dbdni.github.io/pages/inclusivewriting.html for more information. If not, please provide suggestions on how to improve the writing of the paper.
+I agree
+14. Availability of artifacts: All papers were asked to make their code, data, scripts, and notebooks available anonymously if possible. You can find this information in the paper summary on CMT when clicking on the Paper ID next to the title. The call for papers emphasizes the need for artifacts especially for E&A Papers and DI&DS Papers. Are the artifacts available? Do you have any comments or feedback on the artifacts?
+https://anonymous.4open.science/r/sourcecode-AA60/README.md
