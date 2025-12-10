@@ -151,7 +151,6 @@ def create_plot(dataset, epsilon, results, ground_truth):
     # Customize plot
     ax.set_xlabel('q', fontsize=16)
     ax.set_ylabel('Mean Relative Error', fontsize=16)
-    ax.set_title('(P = 2, ε = 1)', fontsize=16)
     ax.set_yscale('log')
     
     # Set x-axis ticks - only show Q values where ground truth is not 0

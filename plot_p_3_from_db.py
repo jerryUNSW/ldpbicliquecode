@@ -131,7 +131,6 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
     # Customize plot
     ax.set_xlabel('q', fontsize=16)
     ax.set_ylabel('Mean Relative Error', fontsize=16)
-    ax.set_title('(P = 3, ε = 1)', fontsize=16)
     ax.set_yscale('log')
     
     # Set x-axis ticks - center them under the bars
