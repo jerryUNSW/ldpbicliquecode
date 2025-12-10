@@ -20,7 +20,7 @@ def plt_settings():
     plt.rcParams['lines.markersize'] = 8
     plt.rcParams['font.family'] = 'serif'
     plt.rcParams['font.serif'] = ['Times New Roman']
-    plt.rcParams['font.size'] = 18
+    plt.rcParams['font.size'] = 12
     plt.rcParams['xtick.major.width'] = 1.5
     plt.rcParams['ytick.major.width'] = 1.5
     plt.rcParams['xtick.minor.width'] = 1.0
@@ -152,16 +152,16 @@ def create_plot(dataset, epsilon, results, ground_truth):
                    hatch=style['hatch'])
     
     # Customize plot
-    ax.set_xlabel('q', fontsize=32)
-    ax.set_ylabel('Mean Relative Error', fontsize=32)
-    ax.set_title('(P = 2, ε = 1)', fontsize=30)
+    ax.set_xlabel('q', fontsize=14)
+    ax.set_ylabel('Mean Relative Error', fontsize=14)
+    ax.set_title('(P = 2, ε = 1)', fontsize=14)
     ax.set_yscale('log')
     
     # Set x-axis ticks - only show Q values where ground truth is not 0
     valid_q_values = [q for q in q_values if ground_truth.get(q, 0) != 0]
     valid_x_positions = [i for i, q in enumerate(q_values) if ground_truth.get(q, 0) != 0]
     ax.set_xticks([x[i] - width for i in valid_x_positions])
-    ax.set_xticklabels([str(q) for q in valid_q_values], fontsize=26)
+    ax.set_xticklabels([str(q) for q in valid_q_values], fontsize=12)
     
     # Set y-axis limits and ticks - only consider valid Q values
     all_values = []
@@ -184,10 +184,10 @@ def create_plot(dataset, epsilon, results, ground_truth):
                                    math.ceil(math.log10(y_max_adjusted)) + 1, 2)]
         pos, labels = get_pos_and_labels(indices)
         ax.set_yticks(pos)
-        ax.set_yticklabels(labels, fontsize=26)
+        ax.set_yticklabels(labels, fontsize=12)
     
     # Legend
-    ax.legend(fontsize=26, ncol=3, loc="upper center", columnspacing=0.5, frameon=False)
+    ax.legend(fontsize=11, ncol=3, loc="upper center", columnspacing=0.5, frameon=False)
     
     plt.tight_layout()
     return fig
