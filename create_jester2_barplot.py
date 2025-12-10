@@ -161,21 +161,10 @@ def create_jester2_plot(results, algorithms):
         y_min_log = math.floor(math.log10(y_min)) if y_min > 0 else -3
         y_max_log = math.ceil(math.log10(y_max)) if y_max > 0 else 3
         
-        # Ensure we have enough range to show all values clearly
-        # For small values, don't go too far below
-        y_min_adjusted = max(10 ** (y_min_log - 1), 0.0001)  # Don't go below 0.0001
-        
-        # Set y_max to be greater than the actual maximum plotted value
-        # Use the next power of 10 above the maximum value
-        if y_max >= 1.0:
-            y_max_adjusted = 10 ** (y_max_log + 1)
-        else:
-            # For values less than 1, go to the next higher value (like 1.0)
-            y_max_adjusted = 1.0
-        
-        # Ensure y_max is at least 10,000 to accommodate very high relative errors
-        # This ensures the plot can show all values clearly, including potential Naive results
-        y_max_adjusted = max(y_max_adjusted, 10000.0)
+        # Standardize y-axis limits for jester plots to ensure consistent visual size
+        # Use fixed limits that work for all jester plots (p3 and p4, eps1 and eps2)
+        y_min_adjusted = 0.001  # Fixed at 10^-3 for all jester plots
+        y_max_adjusted = 10000.0  # Fixed at 10^4 for all jester plots
         
         ax.set_ylim(y_min_adjusted, y_max_adjusted)
         
