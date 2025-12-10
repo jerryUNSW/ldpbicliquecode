@@ -18,9 +18,6 @@ def plt_settings():
     plt.rcParams['pdf.fonttype'] = 42
     plt.rcParams['lines.linewidth'] = 2
     plt.rcParams['lines.markersize'] = 8
-    plt.rcParams['font.family'] = 'serif'
-    plt.rcParams['font.serif'] = ['Times New Roman']
-    plt.rcParams['font.size'] = 12
     plt.rcParams['xtick.major.width'] = 1.5
     plt.rcParams['ytick.major.width'] = 1.5
     plt.rcParams['xtick.minor.width'] = 1.0
@@ -132,14 +129,14 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
                    hatch=style['hatch'])
     
     # Customize plot
-    ax.set_xlabel('q', fontsize=14)
-    ax.set_ylabel('Mean Relative Error', fontsize=14)
-    ax.set_title('(P = 3, ε = 1)', fontsize=14)
+    ax.set_xlabel('q', fontsize=16)
+    ax.set_ylabel('Mean Relative Error', fontsize=16)
+    ax.set_title('(P = 3, ε = 1)', fontsize=16)
     ax.set_yscale('log')
     
     # Set x-axis ticks - center them under the bars
     ax.set_xticks(x + (n-1) * width / 2)
-    ax.set_xticklabels([str(q) for q in q_values], fontsize=12)
+    ax.set_xticklabels([str(q) for q in q_values], fontsize=14)
     
     # Set y-axis limits and ticks - always use log scale
     all_values = []
@@ -203,10 +200,10 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
         indices = [i for i in range(min_tick, max_tick + 1, step)]
         pos, labels = get_pos_and_labels(indices)
         ax.set_yticks(pos)
-        ax.set_yticklabels(labels, fontsize=12)
+        ax.set_yticklabels(labels, fontsize=14)
     
     # Legend
-    ax.legend(fontsize=11, ncol=2, loc="upper left", columnspacing=0.5, frameon=False)
+    ax.legend(fontsize=14, ncol=2, loc="upper left", columnspacing=0.5, frameon=False)
     
     plt.tight_layout()
     return fig
