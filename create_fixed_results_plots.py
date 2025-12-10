@@ -25,6 +25,7 @@ def plt_settings():
     plt.rcParams['ytick.major.width'] = 1.5
     plt.rcParams['xtick.minor.width'] = 1.0
     plt.rcParams['ytick.minor.width'] = 1.0
+    plt.rcParams["figure.figsize"] = (6, 5)
 
 def get_pos_and_labels(indices):
     """Get positions and labels for y-axis ticks"""
@@ -117,7 +118,7 @@ def create_plot(dataset, epsilon, results, ground_truth):
     }
     
     # Create figure with more bottom margin
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots()
     plt.subplots_adjust(bottom=0.15)  # Add more bottom margin
     
     # Plot bars for each algorithm
