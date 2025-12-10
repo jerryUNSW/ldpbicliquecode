@@ -13,8 +13,8 @@ import math
 from pathlib import Path
 
 def plt_settings():
-    """Set matplotlib settings to match budget allocation styled plotting"""
-    # Set publication-quality plot parameters (matching budget allocation script)
+    """Set matplotlib settings to match Figure 12 (density plots)"""
+    # Set publication-quality plot parameters
     plt.rcParams['savefig.dpi'] = 300
     plt.rcParams['figure.dpi'] = 300
     plt.rcParams['axes.linewidth'] = 1.5
@@ -24,13 +24,11 @@ def plt_settings():
     plt.rcParams['pdf.fonttype'] = 42
     plt.rcParams['lines.linewidth'] = 2
     plt.rcParams['lines.markersize'] = 8
-    plt.rcParams['font.family'] = 'serif'
-    plt.rcParams['font.serif'] = ['Times New Roman']
-    plt.rcParams['font.size'] = 18
     plt.rcParams['xtick.major.width'] = 1.5
     plt.rcParams['ytick.major.width'] = 1.5
     plt.rcParams['xtick.minor.width'] = 1.0
     plt.rcParams['ytick.minor.width'] = 1.0
+    plt.rcParams["figure.figsize"] = (6, 5)
 
 def get_pos_and_labels(indices):
     """Get positions and labels for y-axis ticks"""
@@ -73,9 +71,9 @@ def extract_data_from_file(filepath):
         print(f"Error processing {filepath}: {e}")
         return None
 
-def load_all_data():
+def load_all_data(data_dir_str="jester-p-4-exp"):
     """Load data from all result files."""
-    data_dir = Path("jester-p-4-exp")
+    data_dir = Path(data_dir_str)
     all_data = []
     
     if not data_dir.exists():
@@ -105,8 +103,8 @@ def create_jester2_plot(results, algorithms):
         'ADV++': {'color': 'darkgrey', 'hatch': '//', 'edgecolor': 'black'}
     }
     
-    # Create figure with more bottom margin
-    fig, ax = plt.subplots(figsize=(10, 7))
+    # Create figure
+    fig, ax = plt.subplots()
     plt.subplots_adjust(bottom=0.15)  # Add more bottom margin
     
     # Plot bars for each algorithm
@@ -133,14 +131,13 @@ def create_jester2_plot(results, algorithms):
                    hatch=style['hatch'])
     
     # Customize plot
-    ax.set_xlabel('q', fontsize=32)
-    ax.set_ylabel('Mean Relative Error', fontsize=32)
-    ax.set_title('(P = 4, ε = 1)', fontsize=30)
+    ax.set_xlabel('q', fontsize=20)
+    ax.set_ylabel('Mean Relative Error', fontsize=20)
     ax.set_yscale('log')
     
     # Set x-axis ticks - center them under the bars
     ax.set_xticks(x + (n-1) * width / 2)
-    ax.set_xticklabels([str(q) for q in q_values], fontsize=26)
+    ax.set_xticklabels([str(q) for q in q_values], fontsize=20)
     
     # Set y-axis limits and ticks - always use log scale
     all_values = []
@@ -196,63 +193,75 @@ def create_jester2_plot(results, algorithms):
         indices = [i for i in range(min_tick, max_tick + 1, step)]
         pos, labels = get_pos_and_labels(indices)
         ax.set_yticks(pos)
-        ax.set_yticklabels(labels, fontsize=26)
+        ax.set_yticklabels(labels, fontsize=20)
     
     # Legend
-    ax.legend(fontsize=26, ncol=2, loc="upper left", columnspacing=0.5, frameon=False)
+    ax.legend(fontsize=14, ncol=2, loc="upper left", columnspacing=0.5, frameon=False)
     
     plt.tight_layout()
     return fig
 
 def main():
     """Main function to create the professional bar plot."""
-    print("Loading experimental data...")
-    df = load_all_data()
+    # Directories and corresponding epsilon values
+    dir_epsilon_map = [
+        ("jester-p-4-exp", 1.0),
+        ("jester-p-4-exp-eps2", 2.0)
+    ]
     
-    if df.empty:
-        print("No data found!")
-        return
-    
-    print(f"Loaded {len(df)} data points")
-    print(f"Q values: {sorted(df['q'].unique())}")
-    print(f"Algorithms: {df['algorithm'].unique()}")
-    
-    # Organize data into results dictionary matching the reference format
-    results = {}
-    algorithms = ['Naive', 'ADV', 'ADV+', 'ADV++']
-    
-    for q in sorted(df['q'].unique()):
-        results[q] = {}
-        q_data = df[df['q'] == q]
-        for algo in algorithms:
-            algo_data = q_data[q_data['algorithm'] == algo]
-            if len(algo_data) > 0:
-                results[q][algo] = algo_data['relative_error'].iloc[0]
-            else:
-                results[q][algo] = float('inf')
-    
-    print("\nCreating professional bar plot...")
-    fig = create_jester2_plot(results, algorithms)
-    
-    # Save the plot
-    output_filename = 'algorithm_comparison_jester2-swapped_eps1_FIXED_p4.pdf'
-    fig.savefig(output_filename, dpi=300, bbox_inches='tight')
-    print(f"Plot saved as: {output_filename}")
-    plt.close()
-    
-    # Print summary
-    print("\n" + "="*80)
-    print("ALGORITHM PERFORMANCE SUMMARY")
-    print("="*80)
-    
-    for q in sorted(results.keys()):
-        print(f"\nQ = {q}:")
-        for alg in algorithms:
-            val = results[q].get(alg, float('inf'))
-            if val != float('inf'):
-                print(f"  {alg:6s}: {val:.6f} ({val*100:.2f}%)")
-            else:
-                print(f"  {alg:6s}: No data")
+    for data_dir_str, epsilon in dir_epsilon_map:
+        print(f"\n{'='*80}")
+        print(f"Processing {data_dir_str}, ε={epsilon}")
+        print(f"{'='*80}")
+        
+        print("Loading experimental data...")
+        df = load_all_data(data_dir_str)
+        
+        if df.empty:
+            print(f"No data found in {data_dir_str}!")
+            continue
+        
+        print(f"Loaded {len(df)} data points")
+        print(f"Q values: {sorted(df['q'].unique())}")
+        print(f"Algorithms: {df['algorithm'].unique()}")
+        
+        # Organize data into results dictionary matching the reference format
+        results = {}
+        algorithms = ['Naive', 'ADV', 'ADV+', 'ADV++']
+        
+        for q in sorted(df['q'].unique()):
+            results[q] = {}
+            q_data = df[df['q'] == q]
+            for algo in algorithms:
+                algo_data = q_data[q_data['algorithm'] == algo]
+                if len(algo_data) > 0:
+                    results[q][algo] = algo_data['relative_error'].iloc[0]
+                else:
+                    results[q][algo] = float('inf')
+        
+        print("\nCreating professional bar plot...")
+        fig = create_jester2_plot(results, algorithms)
+        
+        # Save the plot
+        eps_str = str(int(epsilon)) if epsilon == int(epsilon) else str(epsilon).replace('.', '')
+        output_filename = f'algorithm_comparison_jester2-swapped_eps{eps_str}_FIXED_p4.pdf'
+        fig.savefig(output_filename, dpi=300, bbox_inches='tight')
+        print(f"Plot saved as: {output_filename}")
+        plt.close()
+        
+        # Print summary
+        print("\n" + "="*80)
+        print(f"ALGORITHM PERFORMANCE SUMMARY (ε={epsilon})")
+        print("="*80)
+        
+        for q in sorted(results.keys()):
+            print(f"\nQ = {q}:")
+            for alg in algorithms:
+                val = results[q].get(alg, float('inf'))
+                if val != float('inf'):
+                    print(f"  {alg:6s}: {val:.6f} ({val*100:.2f}%)")
+                else:
+                    print(f"  {alg:6s}: No data")
     
     print("\nProfessional bar plot complete!")
 

@@ -129,13 +129,13 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
                    hatch=style['hatch'])
     
     # Customize plot
-    ax.set_xlabel('q', fontsize=16)
-    ax.set_ylabel('Mean Relative Error', fontsize=16)
+    ax.set_xlabel('q', fontsize=20)
+    ax.set_ylabel('Mean Relative Error', fontsize=20)
     ax.set_yscale('log')
     
     # Set x-axis ticks - center them under the bars
     ax.set_xticks(x + (n-1) * width / 2)
-    ax.set_xticklabels([str(q) for q in q_values], fontsize=14)
+    ax.set_xticklabels([str(q) for q in q_values], fontsize=20)
     
     # Set y-axis limits and ticks - always use log scale
     all_values = []
@@ -199,7 +199,7 @@ def create_p3_plot(dataset, epsilon, results, algorithms):
         indices = [i for i in range(min_tick, max_tick + 1, step)]
         pos, labels = get_pos_and_labels(indices)
         ax.set_yticks(pos)
-        ax.set_yticklabels(labels, fontsize=14)
+        ax.set_yticklabels(labels, fontsize=20)
     
     # Legend
     ax.legend(fontsize=14, ncol=2, loc="upper left", columnspacing=0.5, frameon=False)
@@ -218,43 +218,48 @@ def main():
     # List of datasets to plot (modify this list as needed)
     datasets_to_plot = ["lrcwiki", "edit-stwiktionary", "nips", "csbwiki", "librec-filmtrust-ratings", "jester2-swapped"]
     
+    # Epsilon values to plot
+    epsilon_values = [1.0, 2.0]
+    
     print(f"Plotting datasets: {datasets_to_plot}")
     
     for dataset in datasets_to_plot:
-        print(f"\nProcessing {dataset}...")
-        
-        try:
-            # Get data from database
-            results, algorithms = get_data_from_db(db_path, dataset, epsilon=1.0)
+        for epsilon in epsilon_values:
+            print(f"\nProcessing {dataset}, ε={epsilon}...")
             
-            if not results:
-                print(f"No results found for {dataset}")
+            try:
+                # Get data from database
+                results, algorithms = get_data_from_db(db_path, dataset, epsilon=epsilon)
+                
+                if not results:
+                    print(f"No results found for {dataset}, ε={epsilon}")
+                    continue
+                
+                print(f"Found results for {dataset} dataset, ε={epsilon}")
+                print(f"Q values: {sorted(results.keys())}")
+                print(f"Algorithms: {algorithms}")
+                
+                # Print summary of results
+                for q in sorted(results.keys()):
+                    print(f"  Q={q}:")
+                    for alg in algorithms:
+                        if alg in results[q]:
+                            print(f"    {alg}: {results[q][alg]:.3f}")
+                
+                # Create and save main plot
+                fig = create_p3_plot(dataset, epsilon, results, algorithms)
+                eps_str = str(int(epsilon)) if epsilon == int(epsilon) else str(epsilon).replace('.', '')
+                output_filename = f'algorithm_comparison_{dataset}_eps{eps_str}_FIXED_p3.pdf'
+                fig.savefig(output_filename, dpi=300, bbox_inches='tight')
+                print(f"Plot saved as: {output_filename}")
+                plt.close()
+                
+                print(f"Completed plots for {dataset}, ε={epsilon}")
+                print("---")
+                
+            except Exception as e:
+                print(f"Error processing {dataset}, ε={epsilon}: {e}")
                 continue
-            
-            print(f"Found results for {dataset} dataset, ε=1.0")
-            print(f"Q values: {sorted(results.keys())}")
-            print(f"Algorithms: {algorithms}")
-            
-            # Print summary of results
-            for q in sorted(results.keys()):
-                print(f"  Q={q}:")
-                for alg in algorithms:
-                    if alg in results[q]:
-                        print(f"    {alg}: {results[q][alg]:.3f}")
-            
-            # Create and save main plot
-            fig = create_p3_plot(dataset, 1.0, results, algorithms)
-            output_filename = f'algorithm_comparison_{dataset}_eps1_FIXED_p3.pdf'
-            fig.savefig(output_filename, dpi=300, bbox_inches='tight')
-            print(f"Plot saved as: {output_filename}")
-            plt.close()
-            
-            print(f"Completed plots for {dataset}")
-            print("---")
-            
-        except Exception as e:
-            print(f"Error processing {dataset}: {e}")
-            continue
 
 if __name__ == "__main__":
     main()
