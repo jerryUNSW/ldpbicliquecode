@@ -1,37 +1,35 @@
-# C++ build files
-/build/
-bin/
-*.o
-*.a
-*.so
-*.d
-*.out
-*.exe
+# Environment files
+.env
+project.env
+*.env
 
-# Debug files
-*.gdb
-*.db
+# Python virtual environment
+venv/
+env/
+ENV/
 
-# CMake
-CMakeCache.txt
-CMakeFiles/
-CMakeLists.txt.user
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 
-# IDEs and editors
+# IDE files
 .vscode/
 .idea/
-*.sublime-workspace
-*.sublime-project
+*.swp
+*.swo
 
-# Operating system files
+# OS files
 .DS_Store
 Thumbs.db
 
-# Logs and temporary files
-*.log
+# Temporary files
 *.tmp
 *.swp
 *.bak
+*.temp
 
 # bash files 
 *.sh
