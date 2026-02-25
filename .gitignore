@@ -1,57 +1,14 @@
-# Environment files
-.env
-project.env
-*.env
+# Track only C++ files (.cpp, .h, .hpp, .ipp) and makefile
+# Ignore everything else
+*
 
-# Python virtual environment
-venv/
-env/
-ENV/
+# Allow C++ source files
+!*.cpp
+!*.h
+!*.hpp
+!*.ipp
+!makefile
+!.gitignore
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.swp
-*.bak
-*.temp
-
-# bash files 
-*.sh
-
-# text files 
-#*.txt
-biclique
-biclique-results/
-plot_biclique_errors.py
-plots/
-
-# Research directories
-overleaf-paper/
-SIGMOD-Revision/
-results_vary_eps_q_p2/
-larger_p_q_experiment/
-
-# Legacy code archive
-old-functions.cpp
-
-# Old revision letter
-old-revision-letter/
-
-biclique-paper/
-pacmmod-triangle-paper/
+# Allow directories to be traversed
+!*/

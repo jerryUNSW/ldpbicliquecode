@@ -1,6 +1,0 @@
-# Bipartite graph: real_actor network
-# n1 (actors): 300
-# n2 (movies): 7946
-# edges: 263575
-# density: 0.110569
-# format: u v (u in partition 1, v in partition 2)
