@@ -1,0 +1,614 @@
+==========================================
+DATASET: nips  ALG=0  Q=4
+==========================================
+P___ = 3
+K___ = 4
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 4, biclique count = 1.729841e+14
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 3622555727
+noisy edges = 5342076
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5342076
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 142 (upper), 1247 (lower)
+Sample 1 - Sampled graph edges: 50831
+Sample 1 - Vertex sampling ratio achieved: 9.460360e-02 (upper), 1.007595e-01 (lower)
+costEstimate 3 ms
+load graph
+ans 18286014522.00
+Sample 1 - Sparse graph biclique count: 1.828601e+10
+Sample 1 - Scaling factor: 1.000000e-07
+Sample 1 - Unbiased estimate: 1.828601e+17
+costEstimate 3 ms
+load graph
+ans 18843476069.00
+costEstimate 2 ms
+load graph
+ans 34739420595.00
+costEstimate 2 ms
+load graph
+ans 25005708320.00
+costEstimate 2 ms
+load graph
+ans 32839441006.00
+costEstimate 2 ms
+load graph
+ans 33596926805.00
+costEstimate 2 ms
+load graph
+ans 13176154231.00
+costEstimate 2 ms
+load graph
+ans 34565383738.00
+costEstimate 2 ms
+load graph
+ans 27365090034.00
+costEstimate 2 ms
+load graph
+ans 31144731455.00
+Average of 10 samples: 2.695623e+17
+estimate = 2.695623e+17
+relative error = 1.557307e+03
+
+time:7.299246
+# Mean = 269562346774999904.000000
+real count = 1.729841e+14
+adv rel err = 1.557307e+03
+
+==========================================
+DATASET: nips  ALG=0  Q=5
+==========================================
+P___ = 3
+K___ = 5
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 5, biclique count = 2.026990e+15
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 2285178550
+noisy edges = 5342130
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5342130
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 149 (upper), 1266 (lower)
+Sample 1 - Sampled graph edges: 54321
+Sample 1 - Vertex sampling ratio achieved: 9.926716e-02 (upper), 1.022948e-01 (lower)
+costEstimate 4 ms
+load graph
+ans 148749489962.00
+Sample 1 - Sparse graph biclique count: 1.487495e+11
+Sample 1 - Scaling factor: 1.000000e-08
+Sample 1 - Unbiased estimate: 1.487495e+19
+costEstimate 3 ms
+load graph
+ans 237451044642.00
+costEstimate 2 ms
+load graph
+ans 111654873573.00
+costEstimate 1 ms
+load graph
+ans 118355968340.00
+costEstimate 2 ms
+load graph
+ans 129411345280.00
+costEstimate 2 ms
+load graph
+ans 255352871378.00
+costEstimate 2 ms
+load graph
+ans 153580465071.00
+costEstimate 2 ms
+load graph
+ans 128708718213.00
+costEstimate 2 ms
+load graph
+ans 131335545232.00
+costEstimate 1 ms
+load graph
+ans 86427168815.00
+Average of 10 samples: 1.501027e+19
+estimate = 1.501027e+19
+relative error = 7.404205e+03
+
+time:7.238434
+# Mean = 15010274905059991552.000000
+real count = 2.026990e+15
+adv rel err = 7.404205e+03
+
+==========================================
+DATASET: nips  ALG=0  Q=6
+==========================================
+P___ = 3
+K___ = 6
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 6, biclique count = 2.054109e+16
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 183584257
+noisy edges = 5339114
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5339114
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 148 (upper), 1248 (lower)
+Sample 1 - Sampled graph edges: 52916
+Sample 1 - Vertex sampling ratio achieved: 9.860093e-02 (upper), 1.008403e-01 (lower)
+costEstimate 4 ms
+load graph
+ans 668363118615.00
+Sample 1 - Sparse graph biclique count: 6.683631e+11
+Sample 1 - Scaling factor: 1.000000e-09
+Sample 1 - Unbiased estimate: 6.683631e+20
+costEstimate 3 ms
+load graph
+ans 536957526405.00
+costEstimate 2 ms
+load graph
+ans 472802879047.00
+costEstimate 2 ms
+load graph
+ans 645107150224.00
+costEstimate 2 ms
+load graph
+ans 729458391366.00
+costEstimate 2 ms
+load graph
+ans 1014973982414.00
+costEstimate 2 ms
+load graph
+ans 462274187824.00
+costEstimate 2 ms
+load graph
+ans 647432806104.00
+costEstimate 2 ms
+load graph
+ans 640327058559.00
+costEstimate 2 ms
+load graph
+ans 1151497806759.00
+Average of 10 samples: 6.969195e+20
+estimate = 6.969195e+20
+relative error = 3.392706e+04
+
+time:6.898839
+# Mean = 696919490731699732480.000000
+real count = 2.054109e+16
+adv rel err = 3.392706e+04
+
+==========================================
+DATASET: nips  ALG=0  Q=7
+==========================================
+P___ = 3
+K___ = 7
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 7, biclique count = 1.848309e+17
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 1825785867
+noisy edges = 5341635
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5341635
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 145 (upper), 1248 (lower)
+Sample 1 - Sampled graph edges: 52321
+Sample 1 - Vertex sampling ratio achieved: 9.660227e-02 (upper), 1.008403e-01 (lower)
+costEstimate 5 ms
+load graph
+ans 3666558489573.00
+Sample 1 - Sparse graph biclique count: 3.666558e+12
+Sample 1 - Scaling factor: 1.000000e-10
+Sample 1 - Unbiased estimate: 3.666558e+22
+costEstimate 4 ms
+load graph
+ans 4576371948792.00
+costEstimate 2 ms
+load graph
+ans 5069043230545.00
+costEstimate 2 ms
+load graph
+ans 4519730548469.00
+costEstimate 2 ms
+load graph
+ans 2282928766722.00
+costEstimate 2 ms
+load graph
+ans 2365463185241.00
+costEstimate 2 ms
+load graph
+ans 6024820983351.00
+costEstimate 2 ms
+load graph
+ans 2108970496116.00
+costEstimate 2 ms
+load graph
+ans 2689235379265.00
+costEstimate 2 ms
+load graph
+ans 3364566764859.00
+Average of 10 samples: 3.666769e+22
+estimate = 3.666769e+22
+relative error = 1.983840e+05
+
+time:7.024871
+# Mean = 36667689792932981768192.000000
+real count = 1.848309e+17
+adv rel err = 1.983840e+05
+
+==========================================
+DATASET: nips  ALG=0  Q=8
+==========================================
+P___ = 3
+K___ = 8
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 8, biclique count = 1.505491e+18
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 749961565
+noisy edges = 5341665
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5341665
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 142 (upper), 1220 (lower)
+Sample 1 - Sampled graph edges: 49845
+Sample 1 - Vertex sampling ratio achieved: 9.460360e-02 (upper), 9.857789e-02 (lower)
+costEstimate 4 ms
+load graph
+ans 11099926597158.00
+Sample 1 - Sparse graph biclique count: 1.109993e+13
+Sample 1 - Scaling factor: 1.000000e-11
+Sample 1 - Unbiased estimate: 1.109993e+24
+costEstimate 4 ms
+load graph
+ans 6253466463314.00
+costEstimate 2 ms
+load graph
+ans 9598887937739.00
+costEstimate 2 ms
+load graph
+ans 13030708673978.00
+costEstimate 2 ms
+load graph
+ans 12580108848904.00
+costEstimate 2 ms
+load graph
+ans 9738910125949.00
+costEstimate 2 ms
+load graph
+ans 11134055863438.00
+costEstimate 2 ms
+load graph
+ans 7348204902176.00
+costEstimate 2 ms
+load graph
+ans 7289240169406.00
+costEstimate 2 ms
+load graph
+ans 14400326444406.00
+Average of 10 samples: 1.024738e+24
+estimate = 1.024738e+24
+relative error = 6.806663e+05
+
+time:6.239304
+# Mean = 1024738360264679416135680.000000
+real count = 1.505491e+18
+adv rel err = 6.806663e+05
+
+==========================================
+DATASET: nips  ALG=0  Q=9
+==========================================
+P___ = 3
+K___ = 9
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 9, biclique count = 1.126738e+19
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 735606433
+noisy edges = 5340586
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5340586
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 149 (upper), 1202 (lower)
+Sample 1 - Sampled graph edges: 50930
+Sample 1 - Vertex sampling ratio achieved: 9.926716e-02 (upper), 9.712346e-02 (lower)
+costEstimate 4 ms
+load graph
+ans 24607586370385.00
+Sample 1 - Sparse graph biclique count: 2.460759e+13
+Sample 1 - Scaling factor: 1.000000e-12
+Sample 1 - Unbiased estimate: 2.460759e+25
+costEstimate 4 ms
+load graph
+ans 45120683686208.00
+costEstimate 2 ms
+load graph
+ans 53024884762492.00
+costEstimate 2 ms
+load graph
+ans 33719152654324.00
+costEstimate 2 ms
+load graph
+ans 18543577036868.00
+costEstimate 2 ms
+load graph
+ans 75384390418290.00
+costEstimate 2 ms
+load graph
+ans 38354498508753.00
+costEstimate 2 ms
+load graph
+ans 71873596552333.00
+costEstimate 2 ms
+load graph
+ans 43097945919054.00
+costEstimate 2 ms
+load graph
+ans 54605248509891.00
+Average of 10 samples: 4.583316e+25
+estimate = 4.583316e+25
+relative error = 4.067774e+06
+
+time:6.451507
+# Mean = 45833156441859772752330752.000000
+real count = 1.126738e+19
+adv rel err = 4.067774e+06
+
+==========================================
+DATASET: nips  ALG=0  Q=10
+==========================================
+P___ = 3
+K___ = 10
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 10, biclique count = 7.844682e+19
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using VERTEX SAMPLING approach: 1.000000e+01% vertex sampling with 20 samples per iteration
+random seed = 1564647845
+noisy edges = 5338209
+expected E = 5.340842e+06
+Original noisy graph: n1=1501, n2=12376, edges=5338209
+Applying vertex sampling with ratio: 1.000000e-01 (10 samples)
+Sample 1 - Sampled vertices: 160 (upper), 1239 (lower)
+Sample 1 - Sampled graph edges: 56853
+Sample 1 - Vertex sampling ratio achieved: 1.065956e-01 (upper), 1.001131e-01 (lower)
+costEstimate 5 ms
+load graph
+ans 141116429669529.00
+Sample 1 - Sparse graph biclique count: 1.411164e+14
+Sample 1 - Scaling factor: 1.000000e-13
+Sample 1 - Unbiased estimate: 1.411164e+27
+costEstimate 5 ms
+load graph
+ans 153737534701826.00
+costEstimate 2 ms
+load graph
+ans 226014032222939.00
+costEstimate 2 ms
+load graph
+ans 149122167676008.00
+costEstimate 2 ms
+load graph
+ans 89104020701992.00
+costEstimate 2 ms
+load graph
+ans 85244706553012.00
+costEstimate 2 ms
+load graph
+ans 66825324342207.00
+costEstimate 2 ms
+load graph
+ans 61029659158739.00
+costEstimate 2 ms
+load graph
+ans 74084620201769.00
+costEstimate 2 ms
+load graph
+ans 230433222163926.00
+Average of 10 samples: 1.276712e+27
+estimate = 1.276712e+27
+relative error = 1.627487e+07
+
+time:6.637608
+# Mean = 1276711717391946038342844416.000000
+real count = 7.844682e+19
+adv rel err = 1.627487e+07
+
+==========================================
+DATASET: nips  ALG=2  Q=4
+==========================================
+P___ = 3
+K___ = 4
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 0.1
+n1: 1501, n2: 12376
+|E| = 746316
+computing degrees
+computing priority
+fill_rate = 0.0401755
+Eps = 1
+Dataset: nips, p = 3, q = 4, biclique count = 1.729841e+14
+
+ADV
+EPS = 1.000000e+00
+random seed = 1904160166
+noisy edges = 746316
+expected E = 7.463160e+05
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 1.648870e+01
+estimate = 179065416134542.2047271729
+real = 172984118456550.0000000000
+relative error = 0.0351552370
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1575972534
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 15.4050512080
+estimate = 175794902551120.6628265381
+real = 172984118456550.0000000000
+relative error = 0.0162487986
+
+
+ADV
+EPS = 1.0000000000
+random seed = 957074540
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 15.3967006310
+estimate = 174861097354065.2224731445
+real = 172984118456550.0000000000
+relative error = 0.0108505851
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1466222635
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 15.3995775209
+estimate = 174701655028824.0975952148
+real = 172984118456550.0000000000
+relative error = 0.0099288685
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2642435303
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 15.3457658249
+estimate = 174585837021258.0445709229
+real = 172984118456550.0000000000
+relative error = 0.0092593388
+
+
+ADV
+EPS = 1.0000000000
+random seed = 4177901266
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 15.1859745859
+estimate = 178692248370314.2613067627
+real = 172984118456550.0000000000
+relative error = 0.0329979998
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2399990900
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets
+time  = 15.2576867670
+estimate = 174474714338161.6020355225
+real = 172984118456550.0000000000
+relative error = 0.0086169522
+
+
+ADV
+EPS = 1.0000000000
+random seed = 849101049
+noisy edges = 746316
+expected E = 746316.0000000000
+p = 3
+q = 4
+total triplets: 562499750
+Target sample size = 1000000
+Successfully sampled 1000000 unique triplets

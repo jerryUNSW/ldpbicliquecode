@@ -39,6 +39,17 @@ extern bool multi_estimator_switch ;
 
 bool use_probability_filtering = false;
 
+// Post-processing mode for variance reduction:
+// 0 = none (baseline)
+// 1 = noisy degree pre-filter (skip pairs where min(deg_est) < K)
+// 2 = winsorize (clip local_res at percentile bounds)
+// 3 = degree pre-filter + winsorize (combined)
+// 4 = truncation (clip local_res to [-clip_bound, clip_bound])
+// 5 = degree pre-filter + truncation
+int post_processing_mode = 0;
+long double winsorize_percentile = 95.0;  // for modes 2,3: clip at this percentile
+long double truncation_bound = 0.0;       // for modes 4,5: clip |local_res| at this value (0 = auto)
+
 // Noisy edge sampling ratio for naive algorithm
 double noisy_edge_sampling_ratio = 0.1;  // Default: 10% edge sampling for speed
 
@@ -113,6 +124,22 @@ int main(int argc, char *argv[]) {
         T = 100000LL; // Default: 100,000 p-tuples
     }
 
+    // 13th parameter: post_processing_mode (0=none, 1=deg filter, 2=winsorize, 3=deg+winsorize, 4=truncate, 5=deg+truncate)
+    if (argc >= 13) {
+        post_processing_mode = atoi(argv[12]);
+    } else {
+        post_processing_mode = 0;
+    }
+
+    // 14th parameter: winsorize_percentile or truncation_bound
+    if (argc >= 14) {
+        if (post_processing_mode == 2 || post_processing_mode == 3) {
+            winsorize_percentile = stold(argv[13]);
+        } else if (post_processing_mode == 4 || post_processing_mode == 5) {
+            truncation_bound = stold(argv[13]);
+        }
+    }
+
 
     cout<<"P___ = "<<P___ <<endl;
     cout<<"K___ = "<<K___ <<endl;
@@ -120,6 +147,14 @@ int main(int argc, char *argv[]) {
     cout<<"Probability filtering: "<<(use_probability_filtering ? "ENABLED" : "DISABLED")<<endl;
     cout<<"Noisy edge sampling ratio: "<<noisy_edge_sampling_ratio<<endl;
     cout<<"T (p-tuples to sample): "<<T<<endl;
+    cout<<"Post-processing mode: "<<post_processing_mode;
+    if (post_processing_mode == 0) cout<<" (none)";
+    else if (post_processing_mode == 1) cout<<" (degree pre-filter)";
+    else if (post_processing_mode == 2) cout<<" (winsorize "<<winsorize_percentile<<"th pct)";
+    else if (post_processing_mode == 3) cout<<" (degree filter + winsorize "<<winsorize_percentile<<"th pct)";
+    else if (post_processing_mode == 4) cout<<" (truncation, bound="<<truncation_bound<<")";
+    else if (post_processing_mode == 5) cout<<" (degree filter + truncation, bound="<<truncation_bound<<")";
+    cout<<endl;
 
     // initialize time
     RR_time = 0, server_side_time = 0, naive_server_side = 0;
@@ -322,6 +357,52 @@ int main(int argc, char *argv[]) {
             // cout << "estimate = " << estis[iteration] << endl;
             std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
             cout<<"real = "<<real <<endl;
+            long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
+            cout << "relative error = " << relative_error << endl;
+            rel_err.push_back(relative_error);
+            cout << endl;
+        }
+
+        // algorithm_switch == 6: PBC (Li et al., ICC 2025)
+        if (algorithm_switch == 6) {
+            cout << "PBC butterfly counting (Li et al. ICC 2025)" << endl;
+            cout << "EPS = " << Eps << endl;
+            unsigned int seed = rng();
+            cout << "random seed = " << seed << endl;
+
+            estis[iteration] = pbc_butterfly_count(g, seed);
+
+            std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
+            cout << "real = " << real << endl;
+            long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
+            cout << "relative error = " << relative_error << endl;
+            rel_err.push_back(relative_error);
+            cout << endl;
+        }
+
+        // algorithm_switch == 7: CN normality & higher-q test
+        if (algorithm_switch == 7) {
+            cout << "CN normality & higher-q moment correction test" << endl;
+            cout << "EPS = " << Eps << endl;
+            p = 1.0 / (exp(Eps) + 1.0);
+            string ds_name = dataset;
+            size_t last_slash = ds_name.rfind('/');
+            if (last_slash != string::npos) ds_name = ds_name.substr(last_slash + 1);
+            string output_prefix = "cn_btf_results/cn_normality_" + ds_name + "_eps" + to_string(Eps).substr(0, 3);
+            cn_normality_and_higher_q_test(g, num_rounds, output_prefix);
+            return 0;  // exit after test, no iteration loop needed
+        }
+
+        // algorithm_switch == 8: CN (2,q)-biclique counting for general q
+        if (algorithm_switch == 8) {
+            cout << "CN (2," << K___ << ")-biclique counting (general q)" << endl;
+            cout << "EPS = " << Eps << endl;
+            p = 1.0 / (exp(Eps) + 1.0);
+            unsigned int seed = rng();
+            cout << "random seed = " << seed << endl;
+            estis[iteration] = common_neighbor_general_2q_count(g, seed, K___);
+            std::cout << "estimate = " << std::fixed << std::setprecision(10) << estis[iteration] << std::endl;
+            cout << "real = " << real << endl;
             long double relative_error = abs(estis[iteration] - real) * 1.0 / real;
             cout << "relative error = " << relative_error << endl;
             rel_err.push_back(relative_error);

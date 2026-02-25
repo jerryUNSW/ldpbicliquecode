@@ -159,3 +159,46 @@ CREATE TABLE pqbiclique_counts (
 ```
 
 Large values are automatically stored as `REAL` (scientific notation) by SQLite when they exceed integer limits.
+
+## Variance Reduction Experiments: Why Filtering and Truncation Don't Work
+
+We investigated several post-processing strategies to reduce variance in the ADV++ (multi-round) biclique estimator. All were tested on `unicode` (255×615, 1255 edges) and `co` (74×257, 328 edges) with ε=2.0, P=2, K=2.
+
+### Approaches Tested
+
+| Mode | Description | Result |
+|------|-------------|--------|
+| Baseline | ADV++ with no modification | rel err ~1.50 |
+| Noisy degree pre-filter | Skip pairs where `min(deg_est(u), deg_est(w)) < K` | rel err ~4.00 (worse) |
+| Winsorize 95th pct | Clip `local_res` at 5th/95th percentile | rel err ~3.79 (worse) |
+| Deg filter + Winsorize | Combined | rel err ~5.91 (worse) |
+| Truncation (auto) | Clip `|local_res|` at 3× median | rel err ~8.24 (worse) |
+| Deg filter + Truncation | Combined | rel err ~6.34 (worse) |
+
+### Why They All Fail
+
+The core estimator `compute_local_res(K, f_u_w, σ²)` is designed to be **unbiased**. For K=2:
+
+```
+local_res = f²/2 - f/2 - σ²/2
+```
+
+The `-σ²/2` term corrects for noise. When summed over all pairs, positive and negative `local_res` values cancel out to produce an unbiased total. This cancellation is essential.
+
+**Filtering** removes pairs from the sum. Pairs with `cn(u,w) < K` contribute `E[local_res] ≈ 0`, so removing them doesn't help the expectation — but the noisy degree filter (`eps0 = 0.05ε`) is too inaccurate to distinguish signal from noise pairs. At ε=2.0, `noise_std = 1/0.1 = 10`, making degree estimates useless for vertices with degree < 20. The filter randomly drops signal pairs, introducing negative bias.
+
+**Truncation/Winsorization** clips extreme `local_res` values. But the distribution is asymmetric: the positive tail carries real signal (pairs with many common neighbors produce large positive `local_res`), while negative values are needed for bias correction. Symmetric clipping destroys more signal than noise, causing massive negative bias.
+
+**Post-filtering on `f_u_w`** (e.g., skip if `f_u_w < K`) introduces selection bias because the filtering decision depends on the same noisy quantity used in the estimator.
+
+### Upper Bound (Public Degree Filter)
+
+Using true (non-private) degrees as a filter gives a 25× RMSE improvement on `co` (RMSE: 7359 → 292). This shows the potential is huge, but we cannot access true degrees in the LDP setting, and noisy degrees at practical ε values are too noisy to replicate this.
+
+### Conclusion
+
+Post-processing approaches that modify or filter the output of `compute_local_res` break the estimator's unbiasedness. Variance reduction must happen **upstream** — either by reducing the noise in `f_u_w` itself, or by designing a fundamentally different estimator with lower variance.
+
+### Code Reference
+
+The post-processing modes are implemented in `wedge_based_two_round_2_K_biclique()` in `biclique.cpp` (controlled by `post_processing_mode` global, set via 13th command-line argument). They remain in the code for reference but should not be used in experiments.

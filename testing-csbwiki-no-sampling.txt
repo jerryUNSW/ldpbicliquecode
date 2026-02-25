@@ -1,0 +1,125 @@
+=== Algorithm Comparison: (3,Q)-Biclique Counting ===
+Dataset: ../bidata/csbwiki
+Epsilon: 1
+Rounds: 1
+Q values: [4, 5, 6, 7, 8, 9, 10] (filtered by non-zero ground truth)
+Algorithms: 2=ADV, 3=ADV+, 4=ADV++ (Naive skipped)
+=====================================================
+n1: 1332, n2: 8283
+|E| = 62081
+computing degrees
+computing priority
+Graph loaded successfully:
+  Vertices: 9615 (V1: 1332, V2: 8283)
+  Edges: 62081
+
+Computing ground truth for (3,Q)-bicliques...
+Checking ground truth for (3,Q)-bicliques...
+Dataset: csbwiki, p = 3, q = 4, biclique count = 3.520414e+13
+  (3,4)-bicliques: 3.520414e+13 [VALID]
+Dataset: csbwiki, p = 3, q = 5, biclique count = 7.532651e+15
+  (3,5)-bicliques: 7.532651e+15 [VALID]
+Dataset: csbwiki, p = 3, q = 6, biclique count = 1.487379e+18
+  (3,6)-bicliques: 1.487379e+18 [VALID]
+Dataset: csbwiki, p = 3, q = 7, biclique count = 2.677936e+20
+  (3,7)-bicliques: 2.677936e+20 [VALID]
+Dataset: csbwiki, p = 3, q = 8, biclique count = 4.398261e+22
+  (3,8)-bicliques: 4.398261e+22 [VALID]
+Dataset: csbwiki, p = 3, q = 9, biclique count = 6.621362e+24
+  (3,9)-bicliques: 6.621362e+24 [VALID]
+Dataset: csbwiki, p = 3, q = 10, biclique count = 9.191803e+26
+  (3,10)-bicliques: 9.191803e+26 [VALID]
+Valid Q values to test: 4 5 6 7 8 9 10 
+Dataset: csbwiki, p = 3, q = 4, biclique count = 3.520414e+13
+Dataset: csbwiki, p = 3, q = 5, biclique count = 7.532651e+15
+Dataset: csbwiki, p = 3, q = 6, biclique count = 1.487379e+18
+Dataset: csbwiki, p = 3, q = 7, biclique count = 2.677936e+20
+Dataset: csbwiki, p = 3, q = 8, biclique count = 4.398261e+22
+Dataset: csbwiki, p = 3, q = 9, biclique count = 6.621362e+24
+Dataset: csbwiki, p = 3, q = 10, biclique count = 9.191803e+26
+
+
+=== Testing ADV (Algorithm 2) ===
+Running ADV algorithm...
+noisy edges = 3928020
+expected E = 3.927543e+06
+p = 3
+q = [4,5,6,7,8,9,10]
+total triplets: 392991060
+Processing ALL triplets (no sampling)
+time  = 8.937405e+03
+No-sampling batch results for Q=[4,5,6,7,8,9,10]: Q4=6.788692e+13 Q5=7.661287e+15 Q6=1.518377e+18 Q7=2.737018e+20 Q8=4.395603e+22 Q9=6.384268e+24 Q10=8.436928e+26 
+
+=== Testing ADV+ (Algorithm 3) ===
+Running ADV+ algorithm...
+noisy edges = 3926457
+expected E = 3.927543e+06
+p = 3
+q = [4,5,6,7,8,9,10]
+total triplets: 392991060
+Processing ALL triplets (no sampling)
+time  = 1.253906e+04
+No-sampling batch results for Q=[4,5,6,7,8,9,10]: Q4=6.491104e+13 Q5=6.980601e+15 Q6=1.346859e+18 Q7=2.362330e+20 Q8=3.684946e+22 Q9=5.203504e+24 Q10=6.701875e+26 
+
+=== Testing ADV++ (Algorithm 4) ===
+Running ADV++ algorithm...
+noisy edges = 3927384
+expected E = 3.927543e+06
+constructing g3
+noisy edges = 3927672
+expected E = 3.927543e+06
+p = 3
+q = [4,5,6,7,8,9,10]
+total triplets: 392991060
+Processing ALL triplets (no sampling)
+time  = 3.061065e+04
+No-sampling batch results for Q=[4,5,6,7,8,9,10]: Q4=3.764505e+13 Q5=6.296393e+15 Q6=1.177493e+18 Q7=2.007289e+20 Q8=3.126076e+22 Q9=4.473512e+24 Q10=5.917465e+26 
+
+=== Algorithm Comparison Results ===
+Total execution time: 52087150 ms
+Average time per algorithm: 17362383 ms
+
+
+=== ADV Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	3.520414e+13	67886921608209.71	9.284e-01	0.000e+00
+5	7.533e+15	7661287217446878.08	1.708e-02	0.000e+00
+6	1.487e+18	1518376634421483560.75	2.084e-02	0.000e+00
+7	2.678e+20	273701808950317144416.00	2.206e-02	0.000e+00
+8	4.398e+22	43956034897564978561024.00	6.043e-04	0.000e+00
+9	6.621e+24	6384267725563588260134912.00	3.581e-02	0.000e+00
+10	9.192e+26	843692791910394149029806080.00	8.212e-02	0.000e+00
+
+=== ADV+ Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	3.520e+13	64911038968942.54	8.438e-01	0.000e+00
+5	7.533e+15	6980600972915810.44	7.329e-02	0.000e+00
+6	1.487e+18	1346858602174090882.12	9.448e-02	0.000e+00
+7	2.678e+20	236233031360106391424.00	1.179e-01	0.000e+00
+8	4.398e+22	36849456330992717637632.00	1.622e-01	0.000e+00
+9	6.621e+24	5203504072856175055994880.00	2.141e-01	0.000e+00
+10	9.192e+26	670187531983082275878207488.00	2.709e-01	0.000e+00
+
+=== ADV++ Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	3.520e+13	37645047315372.17	6.934e-02	0.000e+00
+5	7.533e+15	6296392987183033.01	1.641e-01	0.000e+00
+6	1.487e+18	1177492650893980892.12	2.083e-01	0.000e+00
+7	2.678e+20	200728862784301813200.00	2.504e-01	0.000e+00
+8	4.398e+22	31260763621115556026368.00	2.892e-01	0.000e+00
+9	6.621e+24	4473512361985838487961600.00	3.244e-01	0.000e+00
+10	9.192e+26	591746509656584940156878848.00	3.562e-01	0.000e+00
+
+=== Algorithm Comparison Summary ===
+Q	ADV		ADV+		ADV++
+-	---		----		-----
+4	9.28e-01	8.44e-01	6.93e-02
+5	1.71e-02	7.33e-02	1.64e-01
+6	2.08e-02	9.45e-02	2.08e-01
+7	2.21e-02	1.18e-01	2.50e-01
+8	6.04e-04	1.62e-01	2.89e-01
+9	3.58e-02	2.14e-01	3.24e-01
+10	8.21e-02	2.71e-01	3.56e-01

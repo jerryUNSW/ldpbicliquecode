@@ -1,0 +1,52 @@
+nohup: ignoring input
+=== MOOC Experiment Suite ===
+Dataset: /data1/yizhangh/bidata/mooc
+Rounds: 50
+Epsilons: 0.5 1.0 1.5 2.0 2.5
+Algorithms: OneR ADV ADVpp CN PBC
+Start time: Wed Feb 25 04:04:14 PM UTC 2026
+
+SKIP OneR eps=0.5 (already done: 51 lines)
+SKIP ADV eps=0.5 (already done: 51 lines)
+SKIP ADVpp eps=0.5 (already done: 51 lines)
+SKIP CN eps=0.5 (already done: 51 lines)
+SKIP PBC eps=0.5 (already done: 151 lines)
+SKIP OneR eps=1.0 (already done: 51 lines)
+SKIP ADV eps=1.0 (already done: 51 lines)
+SKIP ADVpp eps=1.0 (already done: 51 lines)
+SKIP CN eps=1.0 (already done: 51 lines)
+SKIP PBC eps=1.0 (already done: 151 lines)
+[16:04:14] Running OneR eps=1.5 (switch=1)...
+  -> Done: 51 lines
+[16:04:41] Running ADV eps=1.5 (switch=3)...
+  -> Done: 51 lines
+[16:05:04] Running ADVpp eps=1.5 (switch=4)...
+  -> Done: 51 lines
+[16:05:29] Running CN eps=1.5 (switch=5)...
+  -> Done: 51 lines
+[16:05:49] Running PBC eps=1.5 (switch=6)...
+  -> Done: 151 lines
+[16:06:12] Running OneR eps=2.0 (switch=1)...
+  -> Done: 51 lines
+[16:06:38] Running ADV eps=2.0 (switch=3)...
+  -> Done: 51 lines
+[16:07:01] Running ADVpp eps=2.0 (switch=4)...
+  -> Done: 51 lines
+[16:07:28] Running CN eps=2.0 (switch=5)...
+  -> Done: 51 lines
+[16:07:48] Running PBC eps=2.0 (switch=6)...
+  -> Done: 151 lines
+[16:08:13] Running OneR eps=2.5 (switch=1)...
+  -> Done: 51 lines
+[16:08:39] Running ADV eps=2.5 (switch=3)...
+  -> Done: 51 lines
+[16:09:00] Running ADVpp eps=2.5 (switch=4)...
+  -> Done: 51 lines
+[16:09:25] Running CN eps=2.5 (switch=5)...
+  -> Done: 51 lines
+[16:09:46] Running PBC eps=2.5 (switch=6)...
+  -> Done: 151 lines
+
+=== All MOOC experiments finished ===
+End time: Wed Feb 25 04:10:10 PM UTC 2026
+Results in: cn_btf_results/comparison/mooc_*.txt

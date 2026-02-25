@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<!-- <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" 
+  "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd"> -->
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->  
+<!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->  
+<!--[if !IE]><!--> 
+<html lang="en" dir="ltr" xmlns:article="http://ogp.me/ns/article#" xmlns:book="http://ogp.me/ns/book#" xmlns:product="http://ogp.me/ns/product#" xmlns:profile="http://ogp.me/ns/profile#" xmlns:video="http://ogp.me/ns/video#" prefix="content: http://purl.org/rss/1.0/modules/content/  dc: http://purl.org/dc/terms/  foaf: http://xmlns.com/foaf/0.1/  og: http://ogp.me/ns#  rdfs: http://www.w3.org/2000/01/rdf-schema#  schema: http://schema.org/  sioc: http://rdfs.org/sioc/ns#  sioct: http://rdfs.org/sioc/types#  skos: http://www.w3.org/2004/02/skos/core#  xsd: http://www.w3.org/2001/XMLSchema# ">
+<!-- <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" version="XHTML+RDFa 1.0" dir="ltr"
+  xmlns:og="http://ogp.me/ns#" 
+  xmlns:fb="http://www.facebook.com/2008/fbml"> -->
+<!--<![endif]-->  
+<head> 
+<script async>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-55075545-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+<!-- <head profile="http://www.w3.org/1999/xhtml/vocab">  -->
+<meta charset="utf-8" />
+<!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<meta property="og:site_name" content="Network Data Repository" />
+<meta property="og:image" content="favicon.png" />
+<link async rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon" />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@networkrepo" />
+<meta name="twitter:creator" content="@networkrepo" />
+
+
+<meta name="MobileOptimized" content="width" />
+<meta name="HandheldFriendly" content="true" />
+<meta property="og:type" content="Dataset" />
+<meta property="og:url" content="https://networkrepository.com/network-data.php" />
+<link rel="canonical" href="https://networkrepository.com/network-data.php" />
+<link rel="shortlink" href="https://networkrepository.com/network-data.php" />
+
+<title>Download Network Data | Network Data Repository</title>
+<meta name="description" content="Download network data from over 30 domains including social network data, information network data, biological network data, temporal network data, Facebook network data, brain network data, infrastructure network data, technological network data, physical system network data, among many others" />
+<meta name="keywords" content="network data, network data set, network repository, network data repository, graph repository, machine learning, data visualization, social network, social networks, Facebook graphs, biological networks, brain networks, facebook network data, google graphs, retweet network, web graphs, complex networks, complex network data, dynamic graph datasets, dynamic graph data, network graph data, network datasets, big network data, graph datasets, download dynamic networks, download dynamic network data, temporal networks, temporal network data, big graphs, visual analytics, network visualization, interactive data exploration, real-time analysis, visual mining, data repository, graph mining, scientific data, download network data, download networks, download graphs, download graph data, data archive, benchmark data, information networks, email networks, temporal graph data, network science data" />
+
+
+<meta property="og:title" content="Download Network Data | Network Data Repository" />
+<meta property="og:description" content="Download network data from over 30 domains including social network data, information network data, biological network data, temporal network data, Facebook network data, brain network data, infrastructure network data, technological network data, physical system network data, among many others" />
+<meta property="og:keywords" content="network data, network data set, network repository, network data repository, graph repository, machine learning, data visualization, social network, social networks, Facebook graphs, biological networks, brain networks, facebook network data, google graphs, retweet network, web graphs, complex networks, complex network data, dynamic graph datasets, dynamic graph data, network graph data, network datasets, big network data, graph datasets, download dynamic networks, download dynamic network data, temporal networks, temporal network data, big graphs, visual analytics, network visualization, interactive data exploration, real-time analysis, visual mining, data repository, graph mining, scientific data, download network data, download networks, download graphs, download graph data, data archive, benchmark data, information networks, email networks, temporal graph data, network science data" />
+
+
+<meta property="og:type" content="website" />
+
+
+<!-- Index/main page only -->
+<meta name="robots" content="index, follow" />
+<meta name="revisit" content="1 days" />
+
+<meta name="author" content="Ryan A. Rossi, Nesreen K. Ahmed, and others">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<link media="none" onload="if(media!='all')media='all'" async rel="shortcut icon" href="favicon.png">
+
+<meta name="robots" CONTENT="all">
+<meta name="robots" content="index, follow" />
+<meta name="revisit" content="1 days" />
+
+<script type="text/javascript" src="assets/plugins/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="assets/plugins/jquery-migrate-1.2.1.min.js"></script>
+<script type="text/javascript" src="jquery/jquery1.7.min.js"></script>
+
+
+<link href="assets/css/bootstrap.css" rel="stylesheet" media="screen" />  
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/css/pages/page_log_reg_v1.css" />  
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/css/pages/page_contact.css" />
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/plugins/flexslider/flexslider.css" />     
+<link rel="stylesheet" href="assets/plugins/parallax-slider/css/parallax-slider.css" />
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/css/responsive.css" />   
+<link rel="stylesheet" href="assets/css/style.css" />
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="tablesorter.css" />
+
+<!-- CSS Implementing Plugins -->
+<!-- <link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/plugins/line-icons/line-icons.css" /> -->
+<!-- <link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/plugins/font-awesome/css/font-awesome.min.css" /> -->
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="nr_stats.css" />
+<link media="none" onload="if(media!='all')media='all'" async href="assets/css/font-awesome.css" rel="stylesheet" />
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/plugins/line-icons/line-icons.css" />
+<link media="none" onload="if(media!='all')media='all'" async rel="stylesheet" href="assets/plugins/font-awesome/css/font-awesome.min.css" />
+
+<script type="text/javascript" src="tablesorter.js" defer></script>
+<script type="text/javascript" src="metadata.js" defer></script>
+
+<link media="none" onload="if(media!='all')media='all'" async href="https://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet"/>
+
+<link rel="stylesheet" href="assets/css/pages-new/feature_timeline1.css">
+<link rel="stylesheet" href="assets/plugins/image-hover/css/img-hover.css">
+
+<style>
+.parallax-bg {
+    /*background: url(assets/img/blur/img1.jpg) 50% 0 repeat fixed; */
+    
+    background: url(http://graphml.com/assets/img/bg/bg10.png) 50% 0 repeat fixed;  
+    /*background: url(http://graphml.com/assets/img/bg/bg10.png) 50% 0 repeat fixed;             */
+}
+
+/*Parallax Counter Block*/
+.parallax-counter {
+    padding: 60px 0;
+    background: url(assets/img/bg/9.jpg) 50% 0 no-repeat fixed; 
+    /*http://graphml.com/assets/img/bg/bg10.png*/
+}
+
+.parallax-counter h4 {
+    color: #fff;
+    font-size: 18px;
+}
+
+.parallax-counter .counters {
+    color: #fff;
+    padding: 20px 0;
+    font-weight: 200;
+    background: rgba(0,0,0,0.8);
+}
+
+/*Parallax Team*/
+.parallax-team {
+    /*background: url(assets/img/team/faces.jpg) 50% 0 repeat fixed;  */
+    /*background: url(assets/img/team/faces.jpg) 50% 0 repeat fixed; */
+    background: url(http://graphml.com/assets/img/bg/bg9.png) 20% 0 repeat fixed; 
+}
+
+.parallax-team,
+.parallax-team .title-box-v2 {
+    position: relative;
+}
+
+.parallax-team:before {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; 
+    content: " ";
+    position: absolute;
+    background: rgba(255,255,255,0.8);
+}
+/*ff531a*/
+</style>
+
+
+
+<!-- <script type="text/javascript" src="assets/plugins/jquery.parallax.js"></script> -->
+<script type="text/javascript" src="assets/plugins/image-hover/js/modernizr.js"></script>
+<script type="text/javascript" src="assets/plugins/image-hover/js/touch.js"></script>
+
+</head>	
+<body>
+<i class="style-switcher-btn  fa  icon-cogs hidden-xs tooltips" data-toggle="tooltip" data-placement="bottom-left"   title="Login"></i>
+
+<div class="style-switcher">
+    <div class="theme-close"><i class="icon-remove"></i></div>
+
+
+ <form method="post" action="glogin_check.php" name="loginform">
+    <h4>Login to your profile!</h4>
+    <hr>
+    <div class="input-group margin-bottom-20">
+        <span class="input-group-addon"><i class="icon-user"></i></span>
+        <input type="text" placeholder="Email" class="form-control" name="user" id="user" maxlength="40">
+    </div>                    
+    <div class="input-group margin-bottom-20">
+        <span class="input-group-addon"><i class="icon-lock"></i></span>
+        <input type="password" placeholder="Password" class="form-control" name="pass" 
+        id="pass" autocomplete="off" maxlength="40" required>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <label class="checkbox"><input type="checkbox">Stay signed in</label>                        
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-primary pull-right" type="submit" name="submit" role="button"><i class="icon-user icon-large"></i>  Login</a>                    
+        </div>
+    </div>
+
+    <hr>
+
+    <p><a href="gregister.php">No account? sign up!</a></p>
+</form> 
+</div> 
+
+
+
+
+
+
+
+
+
+
+
+<div class="header">
+   <!-- <nav role="navigation"> -->
+   <div class="navbar-inverse navbar-fixed-top"  
+      role="navigation"
+      style="height:auto !important; 
+      font-family: 'ProximaNova', 'Open Sans', sans-serif !important; 
+      font-weight:400 !important;
+      background-color: #27292c;
+      color: #FFF;
+      -webkit-font-smoothing: antialiased !important; text-rendering: optimizeLegibility !important;">
+      <!-- <div id="nr-topmenu" class="container-wide" style="height:auto !important;"> -->
+      <div id="nr-topmenu" class="container-wide" style="">
+      <!-- <div id="nr-topmenu" class="" style=""> -->
+         <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.php"></a>
+         </div>
+         <!-- Collect the nav links, forms, and other content for toggling -->
+         <div class="collapse navbar-collapse navbar-responsive-collapse">
+            <ul id="tooltip75" class="nav navbar-nav navbar-left">
+               <li class="dropdown notrans tooltips" data-toggle="tooltip" data-placement="bottom" title="Home">            
+                  <a href="index.php">
+                  <i class="fa fa-home fa-lg icon-menu icon-large"></i>
+                  </a>
+               </li>
+
+
+                              <li id="tooltip200" class="dropdown">
+                  <!-- <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="" data-delay="0" data-close-others="false"> -->
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="0" data-close-others="false">
+                     <i class="icon-graph fa-lg icon-menu icon-large" style="font-size:1.5em; top: -6px; vertical-align: -33%;"></i>
+                  </a>
+                  <div class="dropdown-menu multi-column">
+                     <div class="row">
+                        <div class="col-sm-12 col-md-4" role="complementary">
+                           <ul class="dropdown-menu tooltips" data-toggle="tooltip" data-placement="bottom" 
+                              title="Trending data collections" style="padding-left: 0px; background: #FFF;">
+                              <!-- <ul class="dropdown-menu tooltips panel panel-profile"> -->
+                              <div class="panel-heading overflow-h" style="font-variant: small-caps; font-size:1.2em; background-color: #FFF !important; border-bottom: 2px solid #F7F7F7; margin-left:0px; padding-left:5px; color:#999;">
+                                 <h2 class="panel-title heading-sm pull-left">
+                                    <!-- <i class="fa fa-signal"></i> -->
+                                    <B>Trending Categories</B>
+                                 </h2>
+                                 <a href="#"><i class="fa fa-cog pull-right"></i></a>
+                              </div>
+                              <div id="scrollbar" class="panel-body contentHolder profile">
+                                 

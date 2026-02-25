@@ -13,5 +13,8 @@ biclique: $(OBJ)
 testp3: test_p3_batch_with_ground_truth.cpp biclique.cpp bigraph.cpp utility.cpp
 	$(CC) -std=c++17 -O3 -fopenmp -I. -o test_p3_batch_with_ground_truth test_p3_batch_with_ground_truth.cpp biclique.cpp bigraph.cpp utility.cpp -lsqlite3
 
+variance_analysis: variance_analysis.cpp bigraph.cpp utility.cpp
+	$(CC) -std=c++17 -O3 -fopenmp -I. -o variance_analysis variance_analysis.cpp bigraph.cpp utility.cpp -lsqlite3
+
 clean:
-	-rm -f biclique test_p3_batch_with_ground_truth *.o
+	-rm -f biclique test_p3_batch_with_ground_truth variance_analysis *.o

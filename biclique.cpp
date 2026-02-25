@@ -673,21 +673,41 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
         }
         
     } else {
-        // Original logic without filtering
+        // Original logic without filtering — now with post-processing support
+        
+        // Determine if we need to collect local_res values (for winsorization/truncation)
+        bool need_collect = (post_processing_mode >= 2);
+        // Determine if we apply degree pre-filter
+        bool deg_prefilter = (post_processing_mode == 1 || post_processing_mode == 3 || post_processing_mode == 5);
+        
+        vector<long double> all_local_res;  // for winsorization/truncation
+        int pairs_filtered = 0;
+        int pairs_total = 0;
+
 	#pragma omp parallel
 	{
+        vector<long double> thread_local_res;  // thread-local collection
 	#pragma omp for schedule(static)
 		for(int u =start__ ; u <end__ ; u++) {
 			for(int w =start__ ; w <end__ ; w++) {
                 if(u<=w) continue;
+                
+                #pragma omp atomic
+                pairs_total++;
+
+                // Degree pre-filter: skip if min(deg_est(u), deg_est(w)) < K
+                if (deg_prefilter) {
+                    if (deg_estis[u] < K || deg_estis[w] < K) {
+                        #pragma omp atomic
+                        pairs_filtered++;
+                        continue;
+                    }
+                }
 
                 long double f_u_w, f_w_u;
                 if(two_noisy_graph_switch){
-                    // when this switch is on, by default we expect multiple estimators.
                     f_u_w = locally_compute_f_given_q_and_x_two_graphs(u, w, g, g2, g3);
                     f_w_u = locally_compute_f_given_q_and_x_two_graphs(w, u, g, g2, g3);
-
-                    // basically getting the same thing using two noisy graphs.
                 }else{
                     f_u_w = locally_compute_f_given_q_and_x(u, w, g, g2);
                     if(multi_estimator_switch){
@@ -699,25 +719,18 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
                 
                 long double local_res = 0;
 
-                // define some variables
                 long double esti_var_f, variance_f_u, variance_f_w, main_fu, main_fw;
 
                 if(!multi_estimator_switch){
-                    // single source estimator: 
                     esti_var_f = 2 * pow(gamma__,2)  / pow(Eps2,2) + p * (1 - p) * deg_estis[u] / pow(1-2*p,2); 
                 }else{
-                    // multi source estimator:  
                     f_u_w = (f_u_w + f_w_u)/2;
-                    // esitmate the variance of f_u_w
                     esti_var_f = 0;
-                    // these are variance from laplace, not affected by two_noisy_graph_switch
                     variance_f_u = 2 * pow(gamma__,2)  / pow(Eps2,2);
                     variance_f_w = 2 * pow(gamma__,2)  / pow(Eps2,2);
-                    // main_fu and main_fw are the variance from local counts
                     main_fu =  p * (1 - p) * deg_estis[u] / pow(1-2*p,2);
                     main_fw =  p * (1 - p) * deg_estis[w] / pow(1-2*p,2);
                     if(two_noisy_graph_switch){
-                        // maybe we should increase epsilon 2 to reduce the impact of laplace.
                         main_fu/=2;
                         main_fw/=2;
                     }
@@ -726,17 +739,76 @@ long double wedge_based_two_round_2_K_biclique(BiGraph& g, unsigned long seed) {
                     esti_var_f = (variance_f_u + variance_f_w) / 4;
                 }
 
-
-                // (2, K)-biclique need these moments of the unbiased estimate of f^2:
-                // when f' and var(f') are known, we can estimate (P,K)-biclique for any Q.
                 local_res = compute_local_res(K, f_u_w, esti_var_f);
 
-				#pragma omp critical
-				res___ += local_res; 
+                if (need_collect) {
+                    thread_local_res.push_back(local_res);
+                } else {
+                    // Mode 0 or 1: directly accumulate
+                    #pragma omp critical
+                    res___ += local_res; 
+                }
 			}
-
 		}
-		}
+        
+        // Merge thread-local vectors into global vector
+        if (need_collect) {
+            #pragma omp critical
+            all_local_res.insert(all_local_res.end(), thread_local_res.begin(), thread_local_res.end());
+        }
+	}
+        
+        // Post-processing on collected local_res values
+        if (need_collect && !all_local_res.empty()) {
+            if (post_processing_mode == 2 || post_processing_mode == 3) {
+                // Winsorization: clip at percentile bounds
+                vector<long double> sorted_res = all_local_res;
+                sort(sorted_res.begin(), sorted_res.end());
+                int n = sorted_res.size();
+                long double lo_pct = (100.0 - winsorize_percentile) / 100.0;
+                long double hi_pct = winsorize_percentile / 100.0;
+                int lo_idx = (int)(lo_pct * n);
+                int hi_idx = (int)(hi_pct * n);
+                if (hi_idx >= n) hi_idx = n - 1;
+                long double lo_val = sorted_res[lo_idx];
+                long double hi_val = sorted_res[hi_idx];
+                
+                cout << "Winsorization: clipping to [" << lo_val << ", " << hi_val << "] "
+                     << "(percentile " << (100.0 - winsorize_percentile) << "-" << winsorize_percentile << ")" << endl;
+                
+                for (auto& v : all_local_res) {
+                    if (v < lo_val) v = lo_val;
+                    if (v > hi_val) v = hi_val;
+                    res___ += v;
+                }
+            } else if (post_processing_mode == 4 || post_processing_mode == 5) {
+                // Truncation: clip |local_res| at bound
+                long double bound = truncation_bound;
+                if (bound <= 0) {
+                    // Auto: use median absolute deviation * 3
+                    vector<long double> abs_res;
+                    for (auto v : all_local_res) abs_res.push_back(fabsl(v));
+                    sort(abs_res.begin(), abs_res.end());
+                    long double median_abs = abs_res[abs_res.size() / 2];
+                    bound = 3.0 * median_abs;
+                    cout << "Truncation: auto bound = " << bound << " (3 * median |local_res| = " << median_abs << ")" << endl;
+                } else {
+                    cout << "Truncation: bound = " << bound << endl;
+                }
+                
+                for (auto& v : all_local_res) {
+                    if (v > bound) v = bound;
+                    if (v < -bound) v = -bound;
+                    res___ += v;
+                }
+            }
+        }
+        
+        if (deg_prefilter) {
+            cout << "Degree pre-filter: kept " << (pairs_total - pairs_filtered) 
+                 << " / " << pairs_total << " pairs (" 
+                 << (100.0 * (pairs_total - pairs_filtered) / pairs_total) << "%)" << endl;
+        }
 	}
     return res___;
 }
@@ -3943,4 +4015,454 @@ std::vector<long double> naive_biclique_with_vertex_sampling_batch(BiGraph& g, u
     cout << endl;
     
     return results;
+}
+
+
+/**
+ * Common-neighbor based butterfly (2,2)-biclique counting under Edge LDP.
+ *
+ * New paradigm: instead of modeling motif transformation probabilities,
+ * we estimate S(u,v) = common neighbors of u,v from G', then derive
+ * an unbiased estimator for C(S(u,v), 2) = S(S-1)/2 by correcting
+ * with an unbiased variance estimate.
+ *
+ * For each pair (u,v) in U x U:
+ *   S'(u,v) = sum_w phi(u,w,v)  where phi = (A'(u,w)-p)(A'(v,w)-p) / delta^2
+ *   Var_hat(S') = n00_hat*C1 + (n10_hat+n01_hat)*C2 + n11_hat*C3
+ *   C(S,2)_hat = S'(S'-1)/2 - Var_hat(S')/2
+ *   #btf = sum_{u<v in U} C(S,2)_hat
+ */
+long double common_neighbor_butterfly_count(BiGraph& g, unsigned long seed) {
+    // Build noisy graph
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);
+
+    int n1 = g.num_v1;   // |U|
+    int n2 = g.num_v2;   // |L|
+
+    double delta = 1.0 - 2.0 * p;  // p is the global flip probability, already set
+    double sigma2 = p * (1.0 - p);
+    double d2 = delta * delta;
+    double d4 = d2 * d2;
+
+    // Constants for variance formula
+    double C1 = (sigma2 * sigma2) / d4;                      // case (0,0)
+    double C2 = sigma2 * (sigma2 + d2) / d4;                 // case (1,0) or (0,1)
+    double C3 = (sigma2 + d2) * (sigma2 + d2) / d4 - 1.0;   // case (1,1)
+
+    cout << "Common-neighbor butterfly counting" << endl;
+    cout << "  |U|=" << n1 << ", |L|=" << n2 << endl;
+    cout << "  epsilon=" << Eps << ", p=" << p << ", delta=" << delta << endl;
+    cout << "  C1=" << C1 << ", C2=" << C2 << ", C3=" << C3 << endl;
+
+    // Convert adjacency lists to unordered_set for O(1) lookup
+    vector<unordered_set<int>> adj(g2.neighbor.size());
+    for (size_t i = 0; i < g2.neighbor.size(); i++) {
+        adj[i] = unordered_set<int>(g2.neighbor[i].begin(), g2.neighbor[i].end());
+    }
+
+    long double total_btf = 0.0;
+
+    #pragma omp parallel reduction(+:total_btf)
+    {
+        #pragma omp for schedule(dynamic)
+        for (int u = 0; u < n1; u++) {
+            for (int v = u + 1; v < n1; v++) {
+                // Iterate over all w in L to compute estimators
+                double S_hat = 0.0;
+                double n11_hat = 0.0, n10_hat = 0.0, n01_hat = 0.0, n00_hat = 0.0;
+
+                for (int w_idx = 0; w_idx < n2; w_idx++) {
+                    int w = n1 + w_idx;  // lower vertex id in BiGraph
+
+                    double A_u_w = adj[u].count(w) ? 1.0 : 0.0;
+                    double A_v_w = adj[v].count(w) ? 1.0 : 0.0;
+
+                    // Debiased indicators
+                    double a_hat = (A_u_w - p) / delta;
+                    double b_hat = (A_v_w - p) / delta;
+
+                    // S'(u,v) = sum_w a_hat * b_hat
+                    S_hat += a_hat * b_hat;
+
+                    // Estimated n-counts
+                    n11_hat += a_hat * b_hat;
+                    n10_hat += a_hat * (1.0 - b_hat);
+                    n01_hat += (1.0 - a_hat) * b_hat;
+                    n00_hat += (1.0 - a_hat) * (1.0 - b_hat);
+                }
+
+                // Unbiased variance estimate
+                double var_hat = n00_hat * C1 + (n10_hat + n01_hat) * C2 + n11_hat * C3;
+
+                // Unbiased butterfly estimator for this pair
+                double btf_hat = S_hat * (S_hat - 1.0) / 2.0 - var_hat / 2.0;
+
+                total_btf += btf_hat;
+            }
+        }
+    }
+
+    cout << "  Common-neighbor butterfly estimate = " << total_btf << endl;
+    return total_btf;
+}
+
+
+/**
+ * CN-based (2,q)-biclique counting for general q >= 2.
+ *
+ * For each pair (u,v) in U x U:
+ *   S'(u,v) = sum_w phi(u,w,v)   (unbiased estimator of common neighbors)
+ *   Var_hat(S') from n-count estimators
+ *   C(S,q)_hat = compute_local_res(q, S', Var_hat)  (moment-corrected)
+ *   #(2,q)-biclique = sum_{u<v} C(S,q)_hat
+ *
+ * Algorithm switch 8.
+ */
+long double common_neighbor_general_2q_count(BiGraph& g, unsigned long seed, int q) {
+    BiGraph g2(g);
+    construct_noisy_graph(g, g2, seed);
+
+    int n1 = g.num_v1;
+    int n2 = g.num_v2;
+
+    double delta = 1.0 - 2.0 * p;
+    double sigma2 = p * (1.0 - p);
+    double d2 = delta * delta;
+    double d4 = d2 * d2;
+    double C1 = (sigma2 * sigma2) / d4;
+    double C2_coeff = sigma2 * (sigma2 + d2) / d4;
+    double C3_coeff = (sigma2 + d2) * (sigma2 + d2) / d4 - 1.0;
+
+    cout << "CN (2," << q << ")-biclique counting" << endl;
+    cout << "  |U|=" << n1 << ", |L|=" << n2 << endl;
+    cout << "  epsilon=" << Eps << ", p=" << p << ", delta=" << delta << endl;
+
+    vector<unordered_set<int>> adj(g2.neighbor.size());
+    for (size_t i = 0; i < g2.neighbor.size(); i++) {
+        adj[i] = unordered_set<int>(g2.neighbor[i].begin(), g2.neighbor[i].end());
+    }
+
+    long double total = 0.0;
+
+    #pragma omp parallel reduction(+:total)
+    {
+        #pragma omp for schedule(dynamic)
+        for (int u = 0; u < n1; u++) {
+            for (int v = u + 1; v < n1; v++) {
+                double S_hat = 0.0;
+                double n11_hat = 0.0, n10_hat = 0.0, n01_hat = 0.0, n00_hat = 0.0;
+
+                for (int w_idx = 0; w_idx < n2; w_idx++) {
+                    int w = n1 + w_idx;
+                    double A_u_w = adj[u].count(w) ? 1.0 : 0.0;
+                    double A_v_w = adj[v].count(w) ? 1.0 : 0.0;
+                    double a_hat = (A_u_w - p) / delta;
+                    double b_hat = (A_v_w - p) / delta;
+
+                    S_hat += a_hat * b_hat;
+                    n11_hat += a_hat * b_hat;
+                    n10_hat += a_hat * (1.0 - b_hat);
+                    n01_hat += (1.0 - a_hat) * b_hat;
+                    n00_hat += (1.0 - a_hat) * (1.0 - b_hat);
+                }
+
+                double var_hat = n00_hat * C1 + (n10_hat + n01_hat) * C2_coeff + n11_hat * C3_coeff;
+
+                long double cq_hat = compute_local_res(q, (long double)S_hat, (long double)var_hat);
+                total += cq_hat;
+            }
+        }
+    }
+
+    cout << "  CN (2," << q << ")-biclique estimate = " << total << endl;
+    return total;
+}
+
+
+/**
+ * CN-based (2,q)-biclique counting for general q >= 2.
+ *
+ * Collects S'(u,v) samples across many RR trials for selected pairs,
+ * outputs per-pair S' distributions to a file for normality testing,
+ * and verifies unbiasedness of moment-corrected estimators for q=2,3,4.
+ *
+ * Algorithm switch 7.
+ */
+void cn_normality_and_higher_q_test(BiGraph& g, int num_trials, const string& output_prefix) {
+    int n1 = g.num_v1;
+    int n2 = g.num_v2;
+
+    double delta = 1.0 - 2.0 * p;
+    double sigma2 = p * (1.0 - p);
+    double d2 = delta * delta;
+    double d4 = d2 * d2;
+    double C1 = (sigma2 * sigma2) / d4;
+    double C2 = sigma2 * (sigma2 + d2) / d4;
+    double C3 = (sigma2 + d2) * (sigma2 + d2) / d4 - 1.0;
+
+    cout << "CN normality & higher-q test" << endl;
+    cout << "  |U|=" << n1 << ", |L|=" << n2 << ", eps=" << Eps << ", p=" << p << endl;
+    cout << "  num_trials=" << num_trials << endl;
+
+    // Select up to 20 pairs with diverse true common neighbor counts
+    // First compute true common neighbors for all pairs
+    struct PairInfo {
+        int u, v, true_S;
+    };
+    vector<PairInfo> all_pairs;
+    for (int u = 0; u < n1; u++) {
+        unordered_set<int> nu(g.neighbor[u].begin(), g.neighbor[u].end());
+        for (int v = u + 1; v < n1; v++) {
+            int cn = 0;
+            for (int nb : g.neighbor[v]) {
+                if (nu.count(nb)) cn++;
+            }
+            if (cn > 0) all_pairs.push_back({u, v, cn});
+        }
+    }
+    // Sort by true_S and pick diverse set
+    sort(all_pairs.begin(), all_pairs.end(), [](const PairInfo& a, const PairInfo& b) {
+        return a.true_S < b.true_S;
+    });
+
+    vector<PairInfo> selected;
+    if (all_pairs.size() <= 20) {
+        selected = all_pairs;
+    } else {
+        // Pick evenly spaced
+        for (int i = 0; i < 20; i++) {
+            int idx = (int)((long long)i * (all_pairs.size() - 1) / 19);
+            selected.push_back(all_pairs[idx]);
+        }
+    }
+
+    cout << "  Selected " << selected.size() << " pairs (out of " << all_pairs.size() << " with cn>0)" << endl;
+
+    // For each selected pair, run num_trials RR trials and collect S' samples
+    // Also collect variance estimates for moment correction
+    string samples_file = output_prefix + "_sprime_samples.csv";
+    ofstream fout(samples_file);
+    fout << "u,v,true_S,trial,S_prime,var_hat" << endl;
+
+    // Summary file for moment-corrected estimates
+    string summary_file = output_prefix + "_moment_summary.csv";
+    ofstream fsum(summary_file);
+    fsum << "u,v,true_S,true_C2,true_C3,true_C4,"
+         << "mean_S_prime,emp_var_S_prime,mean_var_hat,"
+         << "mean_C2_hat,mean_C3_hat,mean_C4_hat" << endl;
+
+    mt19937 rng(42);
+
+    for (auto& pi : selected) {
+        int u = pi.u, v = pi.v;
+        int true_S = pi.true_S;
+        double true_C2 = true_S * (true_S - 1.0) / 2.0;
+        double true_C3 = true_S * (true_S - 1.0) * (true_S - 2.0) / 6.0;
+        double true_C4 = true_S * (true_S - 1.0) * (true_S - 2.0) * (true_S - 3.0) / 24.0;
+
+        cout << "  Pair (u=" << u << ", v=" << v << "): true_S=" << true_S
+             << ", C(S,2)=" << true_C2 << ", C(S,3)=" << true_C3 << ", C(S,4)=" << true_C4 << endl;
+
+        double sum_S = 0, sum_S2 = 0;
+        double sum_var_hat = 0;
+        double sum_C2_hat = 0, sum_C3_hat = 0, sum_C4_hat = 0;
+
+        for (int t = 0; t < num_trials; t++) {
+            unsigned int seed = rng();
+            BiGraph g2(g);
+            construct_noisy_graph(g, g2, seed);
+
+            // Convert to adjacency sets for this pair
+            unordered_set<int> adj_u(g2.neighbor[u].begin(), g2.neighbor[u].end());
+            unordered_set<int> adj_v(g2.neighbor[v].begin(), g2.neighbor[v].end());
+
+            double S_hat = 0.0;
+            double n11_hat = 0.0, n10_hat = 0.0, n01_hat = 0.0, n00_hat = 0.0;
+
+            for (int w_idx = 0; w_idx < n2; w_idx++) {
+                int w = n1 + w_idx;
+                double A_u_w = adj_u.count(w) ? 1.0 : 0.0;
+                double A_v_w = adj_v.count(w) ? 1.0 : 0.0;
+                double a_hat = (A_u_w - p) / delta;
+                double b_hat = (A_v_w - p) / delta;
+
+                S_hat += a_hat * b_hat;
+                n11_hat += a_hat * b_hat;
+                n10_hat += a_hat * (1.0 - b_hat);
+                n01_hat += (1.0 - a_hat) * b_hat;
+                n00_hat += (1.0 - a_hat) * (1.0 - b_hat);
+            }
+
+            double var_hat = n00_hat * C1 + (n10_hat + n01_hat) * C2 + n11_hat * C3;
+
+            // Moment-corrected estimators using compute_local_res (same as ADV++)
+            double C2_hat = (double)compute_local_res(2, (long double)S_hat, (long double)var_hat);
+            double C3_hat = (double)compute_local_res(3, (long double)S_hat, (long double)var_hat);
+            double C4_hat = (double)compute_local_res(4, (long double)S_hat, (long double)var_hat);
+
+            fout << u << "," << v << "," << true_S << "," << t << ","
+                 << fixed << setprecision(6) << S_hat << "," << var_hat << endl;
+
+            sum_S += S_hat;
+            sum_S2 += S_hat * S_hat;
+            sum_var_hat += var_hat;
+            sum_C2_hat += C2_hat;
+            sum_C3_hat += C3_hat;
+            sum_C4_hat += C4_hat;
+        }
+
+        double mean_S = sum_S / num_trials;
+        double emp_var = sum_S2 / num_trials - mean_S * mean_S;
+        double mean_var_hat = sum_var_hat / num_trials;
+        double mean_C2 = sum_C2_hat / num_trials;
+        double mean_C3 = sum_C3_hat / num_trials;
+        double mean_C4 = sum_C4_hat / num_trials;
+
+        cout << "    E[S']=" << mean_S << " (true=" << true_S << ")" << endl;
+        cout << "    EmpVar=" << emp_var << " E[Var_hat]=" << mean_var_hat << endl;
+        cout << "    E[C2_hat]=" << mean_C2 << " (true=" << true_C2 << ")" << endl;
+        cout << "    E[C3_hat]=" << mean_C3 << " (true=" << true_C3 << ")" << endl;
+        cout << "    E[C4_hat]=" << mean_C4 << " (true=" << true_C4 << ")" << endl;
+
+        fsum << u << "," << v << "," << true_S << ","
+             << fixed << setprecision(6)
+             << true_C2 << "," << true_C3 << "," << true_C4 << ","
+             << mean_S << "," << emp_var << "," << mean_var_hat << ","
+             << mean_C2 << "," << mean_C3 << "," << mean_C4 << endl;
+    }
+
+    fout.close();
+    fsum.close();
+    cout << "  Samples written to: " << samples_file << endl;
+    cout << "  Summary written to: " << summary_file << endl;
+}
+
+
+/**
+ * PBC: 2-Path-Based Butterfly Counting (Li et al., ICC 2025)
+ * Faithful implementation following the paper's exact formulas.
+ *
+ * Privacy: split eps into eps0 (Laplace for degrees) and eps1 (RR for neighbor lists).
+ *   d_tilde_i = d_i + Lap(1/eps0)
+ *   A_tilde = RR_{eps1}(A), flip prob = 1/(e^{eps1}+1)
+ *   P = e^{eps1} / (e^{eps1} + 1)
+ *
+ * Eq(1): d_hat_ij = [d_tilde_ij - (d_tilde_i + d_tilde_j)*(2P-1)*(1-P) - n*(1-P)^2] / (2P-1)^2
+ * Eq(3): D(d_tilde_ij) ~ (d_tilde_i + d_tilde_j)*P*(2P-1)*(1-P) + n*P*(1-P)^2*(2-P)
+ * Eq(4): B_hat_ij = d_hat_ij*(d_hat_ij-1)/2 - D(d_tilde_ij)/[2*(2P-1)^4] - (1-P)^2*2/[eps0^2*(2P-1)^2]
+ * B_hat = sum_{i<j} B_hat_ij
+ */
+long double pbc_butterfly_count(BiGraph& g, unsigned long seed) {
+    cout << "PBC butterfly counting (Li et al. ICC 2025)" << endl;
+
+    int m = g.num_v1;   // |U|
+    int n = g.num_v2;   // |L|
+
+    // --- Privacy budget allocation ---
+    // Minimize D(d_hat_ij) = F(dpr, n, eps0, eps1) where eps0 + eps1 = Eps.
+    // We search over eps0 in (0, Eps) to find the minimum.
+    double dpr = (double)g.num_edges / m;  // average upper degree as prior knowledge
+    double best_eps0 = 0.01;
+    double best_var = 1e300;
+    for (double e0 = 0.01; e0 < (double)Eps - 0.01; e0 += 0.01) {
+        double e1 = (double)Eps - e0;
+        double PP = exp(e1) / (exp(e1) + 1.0);
+        double twoP1 = 2.0 * PP - 1.0;
+        double oneMP = 1.0 - PP;
+        double var_dij = 2.0 * dpr * PP * oneMP / (twoP1 * twoP1 * twoP1)
+                       + (double)n * PP * oneMP * oneMP * (2.0 - PP) / (twoP1 * twoP1 * twoP1 * twoP1)
+                       + oneMP * oneMP / (twoP1 * twoP1) * 4.0 / (e0 * e0);
+        if (var_dij < best_var) {
+            best_var = var_dij;
+            best_eps0 = e0;
+        }
+    }
+    double eps0 = best_eps0;
+    double eps1 = (double)Eps - eps0;
+
+    cout << "  Budget allocation: eps0=" << eps0 << ", eps1=" << eps1 << endl;
+
+    double P = exp(eps1) / (exp(eps1) + 1.0);  // paper's P
+    double twoP1 = 2.0 * P - 1.0;              // (2P-1)
+    double oneMP = 1.0 - P;                     // (1-P)
+
+    cout << "  |U|=" << m << ", |L|=" << n << ", dpr=" << dpr << endl;
+    cout << "  epsilon=" << Eps << ", P=" << P << ", (2P-1)=" << twoP1 << endl;
+
+    // --- Step 1: Collect noisy degrees via Laplace mechanism ---
+    // d_tilde_i = d_i + Lap(1/eps0)
+
+    vector<double> d_tilde(m);
+    for (int i = 0; i < m; i++) {
+        double lap_noise = stats::rlaplace(0.0, 1.0 / eps0, engine);
+        d_tilde[i] = (double)g.degree[i] + lap_noise;
+    }
+
+    // --- Step 2: Collect noisy neighbor lists via RR with eps1 ---
+    // Flip probability = 1/(e^{eps1}+1) = 1-P
+    double flip_prob = 1.0 / (exp(eps1) + 1.0);  // = 1 - P
+
+    // Build noisy adjacency matrix A_tilde (m x n) using RR with eps1
+    vector<vector<bool>> A_tilde(m, vector<bool>(n, false));
+    init_genrand(seed + 12345);  // different seed from degree noise
+    for (int i = 0; i < m; i++) {
+        // Build a set of true neighbors for fast lookup
+        unordered_set<int> true_nb(g.neighbor[i].begin(), g.neighbor[i].end());
+        for (int j = 0; j < n; j++) {
+            int vj = m + j;  // lower vertex id
+            bool has_edge = true_nb.count(vj) > 0;
+            double r = genrand_real2();
+            if (has_edge) {
+                A_tilde[i][j] = (r >= flip_prob);  // keep with prob P
+            } else {
+                A_tilde[i][j] = (r < flip_prob);   // flip to 1 with prob 1-P
+            }
+        }
+    }
+
+    // --- Step 3: Compute M = A_tilde * A_tilde^T (m x m matrix) ---
+    // M[i][j] = d_tilde_ij = number of common neighbors in noisy graph
+    // We only need upper triangle (i < j).
+    // Also compute d_tilde_ij_noisy = sum_k A_tilde[i][k] * A_tilde[j][k]
+
+    long double total_btf = 0.0;
+
+    double twoP1_sq = twoP1 * twoP1;
+    double twoP1_4 = twoP1_sq * twoP1_sq;
+
+    cout << "  Computing M = A_tilde * A_tilde^T and butterfly estimates..." << endl;
+
+    #pragma omp parallel for reduction(+:total_btf) schedule(dynamic)
+    for (int i = 0; i < m; i++) {
+        for (int j = i + 1; j < m; j++) {
+            // d_tilde_ij = sum_k A_tilde[i][k] * A_tilde[j][k]
+            int d_tilde_ij = 0;
+            for (int k = 0; k < n; k++) {
+                if (A_tilde[i][k] && A_tilde[j][k]) d_tilde_ij++;
+            }
+
+            // Eq(1): d_hat_ij = [d_tilde_ij - (d_tilde_i + d_tilde_j)*(2P-1)*(1-P) - n*(1-P)^2] / (2P-1)^2
+            double d_hat_ij = ((double)d_tilde_ij
+                              - (d_tilde[i] + d_tilde[j]) * twoP1 * oneMP
+                              - (double)n * oneMP * oneMP)
+                              / twoP1_sq;
+
+            // Eq(3): D(d_tilde_ij) ~ (d_tilde_i + d_tilde_j)*P*(2P-1)*(1-P) + n*P*(1-P)^2*(2-P)
+            double D_d_tilde_ij = (d_tilde[i] + d_tilde[j]) * P * twoP1 * oneMP
+                                + (double)n * P * oneMP * oneMP * (2.0 - P);
+
+            // Eq(2): D(d_hat_ij) = D(d_tilde_ij)/(2P-1)^4 + (1-P)^2/(2P-1)^2 * 4/eps0^2
+            // Eq(4): B_hat_ij = d_hat_ij*(d_hat_ij-1)/2 - (1/2)*D(d_hat_ij)
+            //       = d_hat_ij*(d_hat_ij-1)/2 - D(d_tilde_ij)/[2*(2P-1)^4] - (1-P)^2*2/[eps0^2*(2P-1)^2]
+            double B_hat_ij = d_hat_ij * (d_hat_ij - 1.0) / 2.0
+                            - D_d_tilde_ij / (2.0 * twoP1_4)
+                            - oneMP * oneMP * 2.0 / (eps0 * eps0 * twoP1_sq);
+
+            total_btf += B_hat_ij;
+        }
+    }
+
+    cout << "  PBC butterfly estimate = " << total_btf << endl;
+    return total_btf;
 }

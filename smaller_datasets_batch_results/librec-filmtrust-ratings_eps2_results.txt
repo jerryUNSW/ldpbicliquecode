@@ -1,0 +1,1038 @@
+=== Algorithm Comparison: (2,Q)-Biclique Counting ===
+Dataset: ../bidata/librec-filmtrust-ratings
+Epsilon: 2
+Rounds: 10
+Q values: [4, 5, 6, 7, 8, 9, 10]
+Algorithms: 0=Naive, 1=oneR, 2=ADV, 3=ADV+, 4=ADV++
+=====================================================
+n1: 1509, n2: 2072
+|E| = 35494
+computing degrees
+computing priority
+Graph loaded successfully:
+  Vertices: 3581 (V1: 1509, V2: 2072)
+  Edges: 35494
+
+Computing ground truth for (2,Q)-bicliques...
+Dataset: librec-filmtrust-ratings, p = 2, q = 4, biclique count = 10788094993
+Dataset: librec-filmtrust-ratings, p = 2, q = 5, biclique count = 89184963379
+Dataset: librec-filmtrust-ratings, p = 2, q = 6, biclique count = 625040958308
+Dataset: librec-filmtrust-ratings, p = 2, q = 7, biclique count = 3757290116355
+Dataset: librec-filmtrust-ratings, p = 2, q = 8, biclique count = 19657813010881
+Dataset: librec-filmtrust-ratings, p = 2, q = 9, biclique count = 91078670115908
+Dataset: librec-filmtrust-ratings, p = 2, q = 10, biclique count = 382828862363238
+  (2,4)-bicliques: 10788094993
+  (2,5)-bicliques: 89184963379
+  (2,6)-bicliques: 625040958308
+  (2,7)-bicliques: 3757290116355
+  (2,8)-bicliques: 19657813010881
+  (2,9)-bicliques: 91078670115908
+  (2,10)-bicliques: 382828862363238
+
+
+=== Testing Naive (Algorithm 0) ===
+Running Naive algorithm...
+Running naive batch algorithm...
+noisy edges = 399288
+expected E = 399738
+noisy edges = 399288
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=399288
+costEstimate 11 ms
+load graph
+ans 135336193187.00
+Q4 naive estimate = 1.35336e+11
+costEstimate 16 ms
+load graph
+ans 1284103175939.00
+Q5 naive estimate = 1.2841e+12
+costEstimate 12 ms
+load graph
+ans 10769687303211.00
+Q6 naive estimate = 1.07697e+13
+costEstimate 12 ms
+load graph
+ans 81511063759166.00
+Q7 naive estimate = 8.15111e+13
+costEstimate 13 ms
+load graph
+ans 562795923935140.00
+Q8 naive estimate = 5.62796e+14
+costEstimate 13 ms
+load graph
+ans 3566540419715289.00
+Q9 naive estimate = 3.56654e+15
+costEstimate 13 ms
+load graph
+ans 20838081903829022.00
+Q10 naive estimate = 2.08381e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.35336e+11 Q5=1.2841e+12 Q6=1.07697e+13 Q7=8.15111e+13 Q8=5.62796e+14 Q9=3.56654e+15 Q10=2.08381e+16 
+Running naive batch algorithm...
+noisy edges = 399929
+expected E = 399738
+noisy edges = 399929
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=399929
+costEstimate 12 ms
+load graph
+ans 137608807164.00
+Q4 naive estimate = 1.37609e+11
+costEstimate 11 ms
+load graph
+ans 1314379667154.00
+Q5 naive estimate = 1.31438e+12
+costEstimate 11 ms
+load graph
+ans 11117427832813.00
+Q6 naive estimate = 1.11174e+13
+costEstimate 11 ms
+load graph
+ans 85038810178572.00
+Q7 naive estimate = 8.50388e+13
+costEstimate 11 ms
+load graph
+ans 595027961252973.00
+Q8 naive estimate = 5.95028e+14
+costEstimate 11 ms
+load graph
+ans 3837392864269460.00
+Q9 naive estimate = 3.83739e+15
+costEstimate 11 ms
+load graph
+ans 22980730129022050.00
+Q10 naive estimate = 2.29807e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.37609e+11 Q5=1.31438e+12 Q6=1.11174e+13 Q7=8.50388e+13 Q8=5.95028e+14 Q9=3.83739e+15 Q10=2.29807e+16 
+Running naive batch algorithm...
+noisy edges = 398686
+expected E = 399738
+noisy edges = 398686
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=398686
+costEstimate 11 ms
+load graph
+ans 134740998240.00
+Q4 naive estimate = 1.34741e+11
+costEstimate 11 ms
+load graph
+ans 1280587395313.00
+Q5 naive estimate = 1.28059e+12
+costEstimate 11 ms
+load graph
+ans 10774742227063.00
+Q6 naive estimate = 1.07747e+13
+costEstimate 11 ms
+load graph
+ans 81934084150301.00
+Q7 naive estimate = 8.19341e+13
+costEstimate 11 ms
+load graph
+ans 569363290209700.00
+Q8 naive estimate = 5.69363e+14
+costEstimate 11 ms
+load graph
+ans 3641754639653539.00
+Q9 naive estimate = 3.64175e+15
+costEstimate 10 ms
+load graph
+ans 21601587936864689.00
+Q10 naive estimate = 2.16016e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.34741e+11 Q5=1.28059e+12 Q6=1.07747e+13 Q7=8.19341e+13 Q8=5.69363e+14 Q9=3.64175e+15 Q10=2.16016e+16 
+Running naive batch algorithm...
+noisy edges = 399739
+expected E = 399738
+noisy edges = 399739
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=399739
+costEstimate 11 ms
+load graph
+ans 138624082781.00
+Q4 naive estimate = 1.38624e+11
+costEstimate 11 ms
+load graph
+ans 1330516273850.00
+Q5 naive estimate = 1.33052e+12
+costEstimate 10 ms
+load graph
+ans 11319110569804.00
+Q6 naive estimate = 1.13191e+13
+costEstimate 11 ms
+load graph
+ans 87115343907166.00
+Q7 naive estimate = 8.71153e+13
+costEstimate 11 ms
+load graph
+ans 613146367838170.00
+Q8 naive estimate = 6.13146e+14
+costEstimate 11 ms
+load graph
+ans 3973968321514316.00
+Q9 naive estimate = 3.97397e+15
+costEstimate 11 ms
+load graph
+ans 23885497572715623.00
+Q10 naive estimate = 2.38855e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.38624e+11 Q5=1.33052e+12 Q6=1.13191e+13 Q7=8.71153e+13 Q8=6.13146e+14 Q9=3.97397e+15 Q10=2.38855e+16 
+Running naive batch algorithm...
+noisy edges = 399832
+expected E = 399738
+noisy edges = 399832
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=399832
+costEstimate 12 ms
+load graph
+ans 137561317180.00
+Q4 naive estimate = 1.37561e+11
+costEstimate 11 ms
+load graph
+ans 1316731915329.00
+Q5 naive estimate = 1.31673e+12
+costEstimate 11 ms
+load graph
+ans 11159792404863.00
+Q6 naive estimate = 1.11598e+13
+costEstimate 11 ms
+load graph
+ans 85491242688807.00
+Q7 naive estimate = 8.54912e+13
+costEstimate 11 ms
+load graph
+ans 598543521339553.00
+Q8 naive estimate = 5.98544e+14
+costEstimate 10 ms
+load graph
+ans 3856128588572345.00
+Q9 naive estimate = 3.85613e+15
+costEstimate 10 ms
+load graph
+ans 23001132921991681.00
+Q10 naive estimate = 2.30011e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.37561e+11 Q5=1.31673e+12 Q6=1.11598e+13 Q7=8.54912e+13 Q8=5.98544e+14 Q9=3.85613e+15 Q10=2.30011e+16 
+Running naive batch algorithm...
+noisy edges = 400196
+expected E = 399738
+noisy edges = 400196
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=400196
+costEstimate 12 ms
+load graph
+ans 139583953310.00
+Q4 naive estimate = 1.39584e+11
+costEstimate 11 ms
+load graph
+ans 1340867435804.00
+Q5 naive estimate = 1.34087e+12
+costEstimate 11 ms
+load graph
+ans 11400391652618.00
+Q6 naive estimate = 1.14004e+13
+costEstimate 11 ms
+load graph
+ans 87520265731000.00
+Q7 naive estimate = 8.75203e+13
+costEstimate 11 ms
+load graph
+ans 612854919547181.00
+Q8 naive estimate = 6.12855e+14
+costEstimate 10 ms
+load graph
+ans 3936047483889183.00
+Q9 naive estimate = 3.93605e+15
+costEstimate 11 ms
+load graph
+ans 23278609421293226.00
+Q10 naive estimate = 2.32786e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.39584e+11 Q5=1.34087e+12 Q6=1.14004e+13 Q7=8.75203e+13 Q8=6.12855e+14 Q9=3.93605e+15 Q10=2.32786e+16 
+Running naive batch algorithm...
+noisy edges = 401345
+expected E = 399738
+noisy edges = 401345
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=401345
+costEstimate 12 ms
+load graph
+ans 140843518487.00
+Q4 naive estimate = 1.40844e+11
+costEstimate 11 ms
+load graph
+ans 1351207080241.00
+Q5 naive estimate = 1.35121e+12
+costEstimate 11 ms
+load graph
+ans 11461237213464.00
+Q6 naive estimate = 1.14612e+13
+costEstimate 11 ms
+load graph
+ans 87729250733622.00
+Q7 naive estimate = 8.77293e+13
+costEstimate 11 ms
+load graph
+ans 612436168159582.00
+Q8 naive estimate = 6.12436e+14
+costEstimate 11 ms
+load graph
+ans 3922174710593706.00
+Q9 naive estimate = 3.92217e+15
+costEstimate 11 ms
+load graph
+ans 23142175308495620.00
+Q10 naive estimate = 2.31422e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.40844e+11 Q5=1.35121e+12 Q6=1.14612e+13 Q7=8.77293e+13 Q8=6.12436e+14 Q9=3.92217e+15 Q10=2.31422e+16 
+Running naive batch algorithm...
+noisy edges = 399868
+expected E = 399738
+noisy edges = 399868
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=399868
+costEstimate 12 ms
+load graph
+ans 138136986001.00
+Q4 naive estimate = 1.38137e+11
+costEstimate 11 ms
+load graph
+ans 1321838136352.00
+Q5 naive estimate = 1.32184e+12
+costEstimate 11 ms
+load graph
+ans 11195313143468.00
+Q6 naive estimate = 1.11953e+13
+costEstimate 11 ms
+load graph
+ans 85644559476074.00
+Q7 naive estimate = 8.56446e+13
+costEstimate 11 ms
+load graph
+ans 598044446565185.00
+Q8 naive estimate = 5.98044e+14
+costEstimate 11 ms
+load graph
+ans 3835033199835109.00
+Q9 naive estimate = 3.83503e+15
+costEstimate 11 ms
+load graph
+ans 22697381479517778.00
+Q10 naive estimate = 2.26974e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.38137e+11 Q5=1.32184e+12 Q6=1.11953e+13 Q7=8.56446e+13 Q8=5.98044e+14 Q9=3.83503e+15 Q10=2.26974e+16 
+Running naive batch algorithm...
+noisy edges = 398757
+expected E = 399738
+noisy edges = 398757
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=398757
+costEstimate 21 ms
+load graph
+ans 135272271564.00
+Q4 naive estimate = 1.35272e+11
+costEstimate 10 ms
+load graph
+ans 1290981210992.00
+Q5 naive estimate = 1.29098e+12
+costEstimate 20 ms
+load graph
+ans 10918788806999.00
+Q6 naive estimate = 1.09188e+13
+costEstimate 11 ms
+load graph
+ans 83562895101726.00
+Q7 naive estimate = 8.35629e+13
+costEstimate 18 ms
+load graph
+ans 585586877445431.00
+Q8 naive estimate = 5.85587e+14
+costEstimate 12 ms
+load graph
+ans 3792166198921354.00
+Q9 naive estimate = 3.79217e+15
+costEstimate 18 ms
+load graph
+ans 22957458199736435.00
+Q10 naive estimate = 2.29575e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.35272e+11 Q5=1.29098e+12 Q6=1.09188e+13 Q7=8.35629e+13 Q8=5.85587e+14 Q9=3.79217e+15 Q10=2.29575e+16 
+Running naive batch algorithm...
+noisy edges = 399014
+expected E = 399738
+noisy edges = 399014
+expected E = 399738
+Converted graph: n1=1509, n2=2072, m=399014
+costEstimate 20 ms
+load graph
+ans 136908066835.00
+Q4 naive estimate = 1.36908e+11
+costEstimate 11 ms
+load graph
+ans 1309572700052.00
+Q5 naive estimate = 1.30957e+12
+costEstimate 21 ms
+load graph
+ans 11094715039967.00
+Q6 naive estimate = 1.10947e+13
+costEstimate 17 ms
+load graph
+ans 84942238083346.00
+Q7 naive estimate = 8.49422e+13
+costEstimate 13 ms
+load graph
+ans 593888398052086.00
+Q8 naive estimate = 5.93888e+14
+costEstimate 11 ms
+load graph
+ans 3816189555796619.00
+Q9 naive estimate = 3.81619e+15
+costEstimate 11 ms
+load graph
+ans 22670046081174295.00
+Q10 naive estimate = 2.267e+16
+Naive batch results for Q=[4,5,6,7,8,9,10]: Q4=1.36908e+11 Q5=1.30957e+12 Q6=1.10947e+13 Q7=8.49422e+13 Q8=5.93888e+14 Q9=3.81619e+15 Q10=2.267e+16 
+
+=== Testing oneR (Algorithm 1) ===
+Running oneR algorithm...
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 399288
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.04349e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 8.5393e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 5.91833e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.51257e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 1.80818e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 8.17331e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.28057e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.04349e+10 Q5=8.5393e+10 Q6=5.91833e+11 Q7=3.51257e+12 Q8=1.80818e+13 Q9=8.17331e+13 Q10=3.28057e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 399929
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.06485e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 8.78971e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.14933e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.68587e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 1.91634e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 8.74446e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.5404e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.06485e+10 Q5=8.78971e+10 Q6=6.14933e+11 Q7=3.68587e+12 Q8=1.91634e+13 Q9=8.74446e+13 Q10=3.5404e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 398686
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.0788e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 8.95451e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.29654e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.79532e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 1.9914e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 9.27328e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.93812e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.0788e+10 Q5=8.95451e+10 Q6=6.29654e+11 Q7=3.79532e+12 Q8=1.9914e+13 Q9=9.27328e+13 Q10=3.93812e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 399739
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.11195e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 9.27963e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.56449e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.98483e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 2.10889e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 9.93023e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 4.28353e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.11195e+10 Q5=9.27963e+10 Q6=6.56449e+11 Q7=3.98483e+12 Q8=2.10889e+13 Q9=9.93023e+13 Q10=4.28353e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 399832
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.05493e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 8.69864e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.0872e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.65936e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 1.91946e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 8.95618e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.8204e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.05493e+10 Q5=8.69864e+10 Q6=6.0872e+11 Q7=3.65936e+12 Q8=1.91946e+13 Q9=8.95618e+13 Q10=3.8204e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 400196
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.08859e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 9.00397e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.30321e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.77234e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 1.95245e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 8.83294e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.52498e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08859e+10 Q5=9.00397e+10 Q6=6.30321e+11 Q7=3.77234e+12 Q8=1.95245e+13 Q9=8.83294e+13 Q10=3.52498e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 401345
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.10212e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 9.15043e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.43998e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.88169e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 2.02756e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 9.27507e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.74742e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.10212e+10 Q5=9.15043e+10 Q6=6.43998e+11 Q7=3.88169e+12 Q8=2.02756e+13 Q9=9.27507e+13 Q10=3.74742e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 399868
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.10697e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 9.21218e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.48969e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.91382e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 2.04811e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 9.42624e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 3.86937e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.10697e+10 Q5=9.21218e+10 Q6=6.48969e+11 Q7=3.91382e+12 Q8=2.04811e+13 Q9=9.42624e+13 Q10=3.86937e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 398757
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.06786e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 8.80985e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.17853e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.74935e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 2.02851e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 1.03248e+14
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 5.40233e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.06786e+10 Q5=8.80985e+10 Q6=6.17853e+11 Q7=3.74935e+12 Q8=2.02851e+13 Q9=1.03248e+14 Q10=5.40233e+14 
+Running one_round_biclique_2_K batch algorithm...
+noisy edges = 399014
+expected E = 399738
+p__ = 2
+Counting biclique on noisy graph
+Processing Q = 4
+Counting Bi numbers (optimized) for Q=4
+Q4 one_round estimate = 1.11388e+10
+Processing Q = 5
+Counting Bi numbers (optimized) for Q=5
+Q5 one_round estimate = 9.27376e+10
+Processing Q = 6
+Counting Bi numbers (optimized) for Q=6
+Q6 one_round estimate = 6.53471e+11
+Processing Q = 7
+Counting Bi numbers (optimized) for Q=7
+Q7 one_round estimate = 3.94822e+12
+Processing Q = 8
+Counting Bi numbers (optimized) for Q=8
+Q8 one_round estimate = 2.07669e+13
+Processing Q = 9
+Counting Bi numbers (optimized) for Q=9
+Q9 one_round estimate = 9.67112e+13
+Processing Q = 10
+Counting Bi numbers (optimized) for Q=10
+Q10 one_round estimate = 4.07089e+14
+One_round batch results for Q=[4,5,6,7,8,9,10]: Q4=1.11388e+10 Q5=9.27376e+10 Q6=6.53471e+11 Q7=3.94822e+12 Q8=2.07669e+13 Q9=9.67112e+13 Q10=4.07089e+14 
+
+=== Testing ADV (Algorithm 2) ===
+Running ADV algorithm...
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742352
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.05769e+10 Q5=8.64174e+10 Q6=5.97484e+11 Q7=3.53215e+12 Q8=1.80874e+13 Q9=8.11626e+13 Q10=3.22414e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743550
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.04725e+10 Q5=8.58664e+10 Q6=5.98421e+11 Q7=3.57856e+12 Q8=1.85978e+13 Q9=8.49819e+13 Q10=3.45192e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 741845
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.12011e+10 Q5=9.30175e+10 Q6=6.54924e+11 Q7=3.94968e+12 Q8=2.06832e+13 Q9=9.53617e+13 Q10=3.92985e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742444
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.12417e+10 Q5=9.41917e+10 Q6=6.71225e+11 Q7=4.12198e+12 Q8=2.228e+13 Q9=1.09321e+14 Q10=5.11251e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743302
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.07745e+10 Q5=8.86965e+10 Q6=6.18613e+11 Q7=3.69495e+12 Q8=1.91902e+13 Q9=8.82352e+13 Q10=3.68058e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742983
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08213e+10 Q5=8.91824e+10 Q6=6.23923e+11 Q7=3.74335e+12 Q8=1.95311e+13 Q9=8.98951e+13 Q10=3.70837e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 744386
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.13464e+10 Q5=9.4976e+10 Q6=6.75037e+11 Q7=4.11109e+12 Q8=2.1713e+13 Q9=1.00537e+14 Q10=4.12078e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743417
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08467e+10 Q5=8.96224e+10 Q6=6.27314e+11 Q7=3.75759e+12 Q8=1.95427e+13 Q9=8.96271e+13 Q10=3.69271e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 740712
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08413e+10 Q5=8.94747e+10 Q6=6.2812e+11 Q7=3.79891e+12 Q8=2.02077e+13 Q9=9.7413e+13 Q10=4.46242e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742803
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08188e+10 Q5=8.87844e+10 Q6=6.17027e+11 Q7=3.67508e+12 Q8=1.90708e+13 Q9=8.79182e+13 Q10=3.69865e+14 
+
+=== Testing ADV+ (Algorithm 3) ===
+Running ADV+ algorithm...
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742352
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.06803e+10 Q5=8.78836e+10 Q6=6.12161e+11 Q7=3.64914e+12 Q8=1.88515e+13 Q9=8.54142e+13 Q10=3.43299e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743550
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.044e+10 Q5=8.5466e+10 Q6=5.93092e+11 Q7=3.52703e+12 Q8=1.82085e+13 Q9=8.2671e+13 Q10=3.34624e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 741845
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.11313e+10 Q5=9.28316e+10 Q6=6.56126e+11 Q7=3.97601e+12 Q8=2.09585e+13 Q9=9.76796e+13 Q10=4.10908e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742444
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.12221e+10 Q5=9.39836e+10 Q6=6.67694e+11 Q7=4.06859e+12 Q8=2.15605e+13 Q9=1.00899e+14 Q10=4.24969e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743302
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.05557e+10 Q5=8.66799e+10 Q6=6.0329e+11 Q7=3.60224e+12 Q8=1.87578e+13 Q9=8.70646e+13 Q10=3.72693e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742983
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.07091e+10 Q5=8.79301e+10 Q6=6.11822e+11 Q7=3.64896e+12 Q8=1.89182e+13 Q9=8.66087e+13 Q10=3.57092e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 744386
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.10771e+10 Q5=9.24669e+10 Q6=6.54507e+11 Q7=3.96901e+12 Q8=2.08711e+13 Q9=9.62708e+13 Q10=3.93694e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743417
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.09565e+10 Q5=9.09068e+10 Q6=6.38461e+11 Q7=3.83726e+12 Q8=1.99925e+13 Q9=9.1471e+13 Q10=3.72493e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 740712
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.07815e+10 Q5=8.8983e+10 Q6=6.23027e+11 Q7=3.74692e+12 Q8=1.96779e+13 Q9=9.2237e+13 Q10=3.99103e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742803
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.07392e+10 Q5=8.82804e+10 Q6=6.15497e+11 Q7=3.6909e+12 Q8=1.94273e+13 Q9=9.26181e+13 Q10=4.22252e+14 
+
+=== Testing ADV++ (Algorithm 4) ===
+Running ADV++ algorithm...
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742352
+expected E = 742804
+constructing g3
+noisy edges = 742002
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.06648e+10 Q5=8.76921e+10 Q6=6.10751e+11 Q7=3.64273e+12 Q8=1.88443e+13 Q9=8.56251e+13 Q10=3.46247e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743550
+expected E = 742804
+constructing g3
+noisy edges = 743824
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08101e+10 Q5=8.93208e+10 Q6=6.25734e+11 Q7=3.75996e+12 Q8=1.96526e+13 Q9=9.07288e+13 Q10=3.76938e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 741845
+expected E = 742804
+constructing g3
+noisy edges = 741649
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.11292e+10 Q5=9.30609e+10 Q6=6.59585e+11 Q7=4.00757e+12 Q8=2.11587e+13 Q9=9.84686e+13 Q10=4.10651e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742444
+expected E = 742804
+constructing g3
+noisy edges = 742428
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.11579e+10 Q5=9.34758e+10 Q6=6.63924e+11 Q7=4.0433e+12 Q8=2.14102e+13 Q9=1.0012e+14 Q10=4.21622e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743302
+expected E = 742804
+constructing g3
+noisy edges = 743272
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.06766e+10 Q5=8.80558e+10 Q6=6.15217e+11 Q7=3.68395e+12 Q8=1.91826e+13 Q9=8.83097e+13 Q10=3.67386e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742983
+expected E = 742804
+constructing g3
+noisy edges = 742939
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.06848e+10 Q5=8.78942e+10 Q6=6.13195e+11 Q7=3.66919e+12 Q8=1.90951e+13 Q9=8.77929e+13 Q10=3.63864e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 744386
+expected E = 742804
+constructing g3
+noisy edges = 744092
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08977e+10 Q5=9.03806e+10 Q6=6.35386e+11 Q7=3.82882e+12 Q8=2.00476e+13 Q9=9.25605e+13 Q10=3.83606e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 743417
+expected E = 742804
+constructing g3
+noisy edges = 743501
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08787e+10 Q5=8.98353e+10 Q6=6.28368e+11 Q7=3.7652e+12 Q8=1.95886e+13 Q9=8.9737e+13 Q10=3.67853e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 740712
+expected E = 742804
+constructing g3
+noisy edges = 740658
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.05945e+10 Q5=8.72603e+10 Q6=6.09228e+11 Q7=3.64652e+12 Q8=1.89702e+13 Q9=8.70764e+13 Q10=3.59311e+14 
+construct_noisy_graph(g); 
+constructing g2
+noisy edges = 742803
+expected E = 742804
+constructing g3
+noisy edges = 742831
+expected E = 742804
+local counting (batch mode)
+start__ = 0
+end__ = 1509
+n1 n2 tells me to use U(G)
+Batch results for Q=[4,5,6,7,8,9,10]: Q4=1.08624e+10 Q5=8.98215e+10 Q6=6.30683e+11 Q7=3.81286e+12 Q8=2.02555e+13 Q9=9.75846e+13 Q10=4.50361e+14 
+
+=== Algorithm Comparison Results ===
+Total execution time: 214369 ms
+Average time per algorithm: 42873 ms
+
+
+=== Naive Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	10788094993	137461619474.90	1.174e+01	1.729e-01
+5	89184963379	1314078499102.60	1.373e+01	2.509e-01
+6	625040958308	11121120619427.00	1.679e+01	3.666e-01
+7	3757290116355	85048975380978.00	2.164e+01	5.490e-01
+8	19657813010881	594168787434500.10	2.923e+01	8.438e-01
+9	91078670115908	3817739598276092.00	4.092e+01	1.328e+00
+10	382828862363238	22705270095464041.90	5.831e+01	2.161e+00
+
+=== oneR Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	10788094993	10833430192.93	1.980e-02	1.070e-02
+5	89184963379	89711985129.57	2.467e-02	1.335e-02
+6	625040958308	629620281871.22	2.871e-02	1.662e-02
+7	3757290116355	3790336627307.11	3.126e-02	2.172e-02
+8	19657813010881	19877582989697.03	3.831e-02	2.323e-02
+9	91078670115908	92607624094052.02	5.466e-02	3.893e-02
+10	382828862363238	394780141820856.21	9.536e-02	1.140e-01
+
+=== ADV Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	10788094993	10894117705.27	1.985e-02	1.813e-02
+5	89184963379	90022952515.60	2.504e-02	2.318e-02
+6	625040958308	631208807412.73	3.218e-02	2.803e-02
+7	3757290116355	3796335143093.81	4.033e-02	3.375e-02
+8	19657813010881	19890384058773.53	5.178e-02	4.029e-02
+9	91078670115908	92445243970965.75	6.914e-02	5.393e-02
+10	382828862363238	390819259628187.45	9.993e-02	9.278e-02
+
+=== ADV+ Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	10788094993	10829294453.98	1.907e-02	1.279e-02
+5	89184963379	89541201544.51	2.617e-02	1.579e-02
+6	625040958308	627567692068.53	3.327e-02	1.918e-02
+7	3757290116355	3771605992861.09	3.993e-02	2.319e-02
+8	19657813010881	19722390008589.48	4.526e-02	2.851e-02
+9	91078670115908	91293349122487.09	5.189e-02	3.226e-02
+10	382828862363238	383112791073911.39	7.072e-02	3.629e-02
+
+=== ADV++ Results ===
+Q	Ground Truth	Mean Estimate	Mean Rel Error	Std Rel Error
+-	------------	-------------	-------------	-------------
+4	10788094993	10835670501.62	1.427e-02	1.008e-02
+5	89184963379	89679739686.14	1.864e-02	1.460e-02
+6	625040958308	629207202075.21	2.323e-02	1.919e-02
+7	3757290116355	3786011266552.23	2.823e-02	2.362e-02
+8	19657813010881	19820527497646.82	3.487e-02	2.700e-02
+9	91078670115908	91800343286377.28	4.570e-02	2.983e-02
+10	382828862363238	384783922840005.47	6.538e-02	4.762e-02
+
+=== Algorithm Comparison Summary ===
+Q	Naive		oneR		ADV		ADV+		ADV++
+-	-----		----		---		----		-----
+4	1.17e+01	1.98e-02	1.98e-02	1.91e-02	1.43e-02
+5	1.37e+01	2.47e-02	2.50e-02	2.62e-02	1.86e-02
+6	1.68e+01	2.87e-02	3.22e-02	3.33e-02	2.32e-02
+7	2.16e+01	3.13e-02	4.03e-02	3.99e-02	2.82e-02
+8	2.92e+01	3.83e-02	5.18e-02	4.53e-02	3.49e-02
+9	4.09e+01	5.47e-02	6.91e-02	5.19e-02	4.57e-02
+10	5.83e+01	9.54e-02	9.99e-02	7.07e-02	6.54e-02
+

@@ -1,0 +1,75 @@
+=== CN Normality & Higher-q Tests ===
+Trials per pair: 5000
+Start: Wed Feb 25 04:48:55 PM UTC 2026
+
+[16:48:55] Running co eps=0.5 (5000 trials)...
+    E[C2_hat]=183.4144332802 (true=253.0000000000)
+    E[C3_hat]=2552.4419246049 (true=1771.0000000000)
+    E[C4_hat]=-28035.7962766058 (true=8855.0000000000)
+  Samples written to: cn_btf_results/cn_normality_co_eps0.5_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_co_eps0.5_moment_summary.csv
+
+[16:49:53] Running co eps=1.0 (5000 trials)...
+    E[C2_hat]=255.8473974559 (true=253.0000000000)
+    E[C3_hat]=1842.7898392885 (true=1771.0000000000)
+    E[C4_hat]=9493.6592839865 (true=8855.0000000000)
+  Samples written to: cn_btf_results/cn_normality_co_eps1.0_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_co_eps1.0_moment_summary.csv
+
+[16:50:43] Running co eps=2.0 (5000 trials)...
+    E[C2_hat]=253.7867792599 (true=253.0000000000)
+    E[C3_hat]=1778.7444663217 (true=1771.0000000000)
+    E[C4_hat]=8895.3794588342 (true=8855.0000000000)
+  Samples written to: cn_btf_results/cn_normality_co_eps2.0_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_co_eps2.0_moment_summary.csv
+
+[16:51:21] Running to eps=0.5 (5000 trials)...
+    E[C2_hat]=15.1067056542 (true=10.0000000000)
+    E[C3_hat]=-185.8896710578 (true=10.0000000000)
+    E[C4_hat]=-70262.5043666751 (true=5.0000000000)
+  Samples written to: cn_btf_results/cn_normality_to_eps0.5_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_to_eps0.5_moment_summary.csv
+
+[16:51:50] Running to eps=1.0 (5000 trials)...
+    E[C2_hat]=5.9458847454 (true=10.0000000000)
+    E[C3_hat]=29.2877309210 (true=10.0000000000)
+    E[C4_hat]=17.2930271973 (true=5.0000000000)
+  Samples written to: cn_btf_results/cn_normality_to_eps1.0_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_to_eps1.0_moment_summary.csv
+
+[16:52:13] Running to eps=2.0 (5000 trials)...
+    E[C2_hat]=9.9299793700 (true=10.0000000000)
+    E[C3_hat]=10.4279032806 (true=10.0000000000)
+    E[C4_hat]=6.8149354817 (true=5.0000000000)
+  Samples written to: cn_btf_results/cn_normality_to_eps2.0_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_to_eps2.0_moment_summary.csv
+
+[16:52:31] Running unicode eps=0.5 (5000 trials)...
+    E[C2_hat]=84.8500941058 (true=45.0000000000)
+    E[C3_hat]=-9183.6998750244 (true=120.0000000000)
+    E[C4_hat]=-126303.1383592599 (true=210.0000000000)
+  Samples written to: cn_btf_results/cn_normality_unicode_eps0.5_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_unicode_eps0.5_moment_summary.csv
+
+[16:58:51] Running unicode eps=1.0 (5000 trials)...
+    E[C2_hat]=40.4936635915 (true=45.0000000000)
+    E[C3_hat]=104.4583149628 (true=120.0000000000)
+    E[C4_hat]=-238.1332027755 (true=210.0000000000)
+  Samples written to: cn_btf_results/cn_normality_unicode_eps1.0_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_unicode_eps1.0_moment_summary.csv
+
+[17:04:20] Running unicode eps=2.0 (5000 trials)...
+    E[C2_hat]=45.1797121028 (true=45.0000000000)
+    E[C3_hat]=122.4817810681 (true=120.0000000000)
+    E[C4_hat]=232.1564112539 (true=210.0000000000)
+  Samples written to: cn_btf_results/cn_normality_unicode_eps2.0_sprime_samples.csv
+  Summary written to: cn_btf_results/cn_normality_unicode_eps2.0_moment_summary.csv
+
+[17:08:22] Running lrcwiki eps=0.5 (5000 trials)...
+    EmpVar=132666.2371031303 E[Var_hat]=134125.7477373562
+    E[C2_hat]=-728.3182753109 (true=0.0000000000)
+    E[C3_hat]=301837.6188294926 (true=-0.0000000000)
+    E[C4_hat]=10560935.9754496850 (true=0.0000000000)
+  Pair (u=50, v=67): true_S=1, C(S,2)=0.0000000000, C(S,3)=-0.0000000000, C(S,4)=0.0000000000
+
+[17:18:22] Running lrcwiki eps=1.0 (5000 trials)...

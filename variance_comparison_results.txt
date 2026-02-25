@@ -1,0 +1,2 @@
+Dataset,UpperVertices,LowerVertices,Edges,MaxVariance,AvgVariance,Top10Percent
+co.e,73,251,328,19.904877,0.768946,46.17

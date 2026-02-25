@@ -1,0 +1,1792 @@
+==========================================
+DATASET: rmwiki  ALG=0  Q=4
+==========================================
+P___ = 3
+K___ = 4
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 4, biclique count = 7.724810e+12
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 2859805524
+naive_biclique
+noisy edges = 2694044
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2694044
+costEstimate 138 ms
+load graph
+ans 9544818350501298.00
+res = 9.544818e+15
+estimate = 9.544818e+15
+relative error = 1.234606e+03
+
+time:1329.656907
+# Mean = 9544818350501298.000000
+real count = 7.724810e+12
+adv rel err = 1.234606e+03
+
+==========================================
+DATASET: rmwiki  ALG=0  Q=5
+==========================================
+P___ = 3
+K___ = 5
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 5, biclique count = 1.531726e+15
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 2823916346
+naive_biclique
+noisy edges = 2694319
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2694319
+costEstimate 139 ms
+load graph
+ans 333527515396029036.00
+res = 3.335275e+17
+estimate = 3.335275e+17
+relative error = 2.167461e+02
+
+time:1335.015597
+# Mean = 333527515396029056.000000
+real count = 1.531726e+15
+adv rel err = 2.167461e+02
+
+==========================================
+DATASET: rmwiki  ALG=0  Q=6
+==========================================
+P___ = 3
+K___ = 6
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 6, biclique count = 2.875600e+17
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 3397563363
+naive_biclique
+noisy edges = 2690806
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2690806
+costEstimate 139 ms
+load graph
+ans 10091491050579172568.00
+res = 1.009149e+19
+estimate = 1.009149e+19
+relative error = 3.409351e+01
+
+time:1341.579179
+# Mean = 10091491050579173376.000000
+real count = 2.875600e+17
+adv rel err = 3.409351e+01
+
+==========================================
+DATASET: rmwiki  ALG=0  Q=7
+==========================================
+P___ = 3
+K___ = 7
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 7, biclique count = 5.017162e+19
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 1038221898
+naive_biclique
+noisy edges = 2693386
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2693386
+costEstimate 139 ms
+load graph
+ans 302534545260632010752.00
+res = 3.025345e+20
+estimate = 3.025345e+20
+relative error = 5.029993e+00
+
+time:1333.197553
+# Mean = 302534545260632014848.000000
+real count = 5.017162e+19
+adv rel err = 5.029993e+00
+
+==========================================
+DATASET: rmwiki  ALG=0  Q=8
+==========================================
+P___ = 3
+K___ = 8
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 8, biclique count = 8.105265e+21
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 1850934924
+naive_biclique
+noisy edges = 2693722
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2693722
+costEstimate 139 ms
+load graph
+ans 8937173434220881358336.00
+res = 8.937173e+21
+estimate = 8.937173e+21
+relative error = 1.026380e-01
+
+time:1337.726358
+# Mean = 8937173434220881641472.000000
+real count = 8.105265e+21
+adv rel err = 1.026380e-01
+
+==========================================
+DATASET: rmwiki  ALG=0  Q=9
+==========================================
+P___ = 3
+K___ = 9
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 9, biclique count = 1.213568e+24
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 631796847
+naive_biclique
+noisy edges = 2693648
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2693648
+costEstimate 139 ms
+load graph
+ans 297174236439919004188672.00
+res = 2.971742e+23
+estimate = 2.971742e+23
+relative error = 7.551236e-01
+
+time:1336.472067
+# Mean = 297174236439918994784256.000000
+real count = 1.213568e+24
+adv rel err = 7.551236e-01
+
+==========================================
+DATASET: rmwiki  ALG=0  Q=10
+==========================================
+P___ = 3
+K___ = 10
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 10, biclique count = 1.688211e+26
+Naive algorithm for biclique counting
+EPS = 1.000000e+00
+Using EXACT COUNTING approach: no sampling
+random seed = 2710511932
+naive_biclique
+noisy edges = 2692571
+expected E = 2.693592e+06
+Converted graph: n1=1226, n2=8088, m=2692571
+costEstimate 140 ms
+load graph
+ans 9600796553962503239892992.00
+res = 9.600797e+24
+estimate = 9.600797e+24
+relative error = 9.431303e-01
+
+time:1340.671242
+# Mean = 9600796553962502779568128.000000
+real count = 1.688211e+26
+adv rel err = 9.431303e-01
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=4
+==========================================
+P___ = 3
+K___ = 4
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 4, biclique count = 7.724810e+12
+
+ADV
+EPS = 1.000000e+00
+random seed = 95498963
+construct_noisy_graph(g); 
+noisy edges = 3532038
+expected E = 3.530526e+06
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 5.941456e+01
+estimate = 4444826223512.6559495926
+real = 7724810129614.0000000000
+relative error = 0.4246038221
+
+
+ADV
+EPS = 1.0000000000
+random seed = 631248849
+construct_noisy_graph(g); 
+noisy edges = 3527223
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.0599188961
+estimate = 31661950660142.7925949097
+real = 7724810129614.0000000000
+relative error = 3.0987351312
+
+
+ADV
+EPS = 1.0000000000
+random seed = 662041397
+construct_noisy_graph(g); 
+noisy edges = 3529614
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.8307576741
+estimate = 13085974975536.9182987213
+real = 7724810129614.0000000000
+relative error = 0.6940189799
+
+
+ADV
+EPS = 1.0000000000
+random seed = 4087043768
+construct_noisy_graph(g); 
+noisy edges = 3529883
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.7905920220
+estimate = 8426925968202.8760476112
+real = 7724810129614.0000000000
+relative error = 0.0908910157
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3231305032
+construct_noisy_graph(g); 
+noisy edges = 3529964
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.0450905971
+estimate = 7100261970448.2461466789
+real = 7724810129614.0000000000
+relative error = 0.0808496453
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3725515667
+construct_noisy_graph(g); 
+noisy edges = 3532677
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.0210380328
+estimate = 18131443832957.0889015198
+real = 7724810129614.0000000000
+relative error = 1.3471701607
+
+
+ADV
+EPS = 1.0000000000
+random seed = 378566151
+construct_noisy_graph(g); 
+noisy edges = 3529373
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.6802565120
+estimate = 13744745138271.2400722504
+real = 7724810129614.0000000000
+relative error = 0.7792987669
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1843174499
+construct_noisy_graph(g); 
+noisy edges = 3531715
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.1600569070
+estimate = 29540974095071.7245559692
+real = 7724810129614.0000000000
+relative error = 2.8241683096
+
+
+ADV
+EPS = 1.0000000000
+random seed = 734109740
+construct_noisy_graph(g); 
+noisy edges = 3531979
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.7984777899
+estimate = 18494375520748.9244594574
+real = 7724810129614.0000000000
+relative error = 1.3941527637
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3344302101
+construct_noisy_graph(g); 
+noisy edges = 3533151
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.7274190891
+estimate = 8643999535177.5507836342
+real = 7724810129614.0000000000
+relative error = 0.1189918445
+
+time:589.645073
+# Mean = 15327547792007.001856
+real count = 7724810129614.0000000000
+adv rel err = 1.0852880439
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=5
+==========================================
+P___ = 3
+K___ = 5
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 5, biclique count = 1.531726e+15
+
+ADV
+EPS = 1.000000e+00
+random seed = 713750944
+construct_noisy_graph(g); 
+noisy edges = 3529722
+expected E = 3.530526e+06
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 6.053685e+01
+estimate = 594485195690442.6303100586
+real = 1531726379886682.0000000000
+relative error = 0.6118855146
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1272782864
+construct_noisy_graph(g); 
+noisy edges = 3527904
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.2564795988
+estimate = 294707491773386.7446899414
+real = 1531726379886682.0000000000
+relative error = 0.8075978219
+
+
+ADV
+EPS = 1.0000000000
+random seed = 4082690468
+construct_noisy_graph(g); 
+noisy edges = 3529725
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.2444313860
+estimate = -55256927156878.5167312622
+real = 1531726379886682.0000000000
+relative error = 1.0360749334
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3097204997
+construct_noisy_graph(g); 
+noisy edges = 3531801
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.8673877651
+estimate = 270745215437243.1965637207
+real = 1531726379886682.0000000000
+relative error = 0.8232417885
+
+
+ADV
+EPS = 1.0000000000
+random seed = 4275328003
+construct_noisy_graph(g); 
+noisy edges = 3532838
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.2936180029
+estimate = 385342001868318.0629272461
+real = 1531726379886682.0000000000
+relative error = 0.7484263463
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1860561024
+construct_noisy_graph(g); 
+noisy edges = 3529514
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.1733807779
+estimate = 1213957672366024.3272705078
+real = 1531726379886682.0000000000
+relative error = 0.2074578800
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2452125138
+construct_noisy_graph(g); 
+noisy edges = 3528316
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.1180461028
+estimate = -145829303456974.3781433105
+real = 1531726379886682.0000000000
+relative error = 1.0952058444
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3259661722
+construct_noisy_graph(g); 
+noisy edges = 3530878
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.0249267591
+estimate = -12397385933017.9370317459
+real = 1531726379886682.0000000000
+relative error = 1.0080937340
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2945102669
+construct_noisy_graph(g); 
+noisy edges = 3533752
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.3387164359
+estimate = -656957156999668.1339721680
+real = 1531726379886682.0000000000
+relative error = 1.4288998124
+
+
+ADV
+EPS = 1.0000000000
+random seed = 605932634
+construct_noisy_graph(g); 
+noisy edges = 3529185
+expected E = 3530526.1819926023
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.5948051480
+estimate = -70292601232900.5056152344
+real = 1531726379886682.0000000000
+relative error = 1.0458910953
+
+time:602.557830
+# Mean = 181850420235597.541412
+real count = 1531726379886682.0000000000
+adv rel err = 0.8812774771
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=6
+==========================================
+P___ = 3
+K___ = 6
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 6, biclique count = 2.875600e+17
+
+ADV
+EPS = 1.000000e+00
+random seed = 3284508092
+construct_noisy_graph(g); 
+noisy edges = 3532803
+expected E = 3.530526e+06
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 6.066326e+01
+estimate = 17459337736178308.7382812500
+real = 287560037413077248.0000000000
+relative error = 0.9392845477
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2500505108
+construct_noisy_graph(g); 
+noisy edges = 3530937
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.7197090930
+estimate = 53497655014948945.9140625000
+real = 287560037413077248.0000000000
+relative error = 0.8139600499
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1537564977
+construct_noisy_graph(g); 
+noisy edges = 3529784
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.2531614951
+estimate = 35027542373376065.4570312500
+real = 287560037413077248.0000000000
+relative error = 0.8781905070
+
+
+ADV
+EPS = 1.0000000000
+random seed = 768931682
+construct_noisy_graph(g); 
+noisy edges = 3531405
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4649594079
+estimate = 3285775845896925.6882324219
+real = 287560037413077248.0000000000
+relative error = 0.9885736006
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3181472449
+construct_noisy_graph(g); 
+noisy edges = 3527816
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4674598689
+estimate = 5116953263055662.3691406250
+real = 287560037413077248.0000000000
+relative error = 0.9822056176
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1386029738
+construct_noisy_graph(g); 
+noisy edges = 3532222
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4752334231
+estimate = 101513311280705516.0625000000
+real = 287560037413077248.0000000000
+relative error = 0.6469839405
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2045327552
+construct_noisy_graph(g); 
+noisy edges = 3531304
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.5668874569
+estimate = 17396232364365154.9355468750
+real = 287560037413077248.0000000000
+relative error = 0.9395039988
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3128613369
+construct_noisy_graph(g); 
+noisy edges = 3530399
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.3714105499
+estimate = 1651142468839188.4404296875
+real = 287560037413077248.0000000000
+relative error = 0.9942580948
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1072903077
+construct_noisy_graph(g); 
+noisy edges = 3529864
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.6232596629
+estimate = 20315424581947590.1269531250
+real = 287560037413077248.0000000000
+relative error = 0.9293524067
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1708715095
+construct_noisy_graph(g); 
+noisy edges = 3533269
+expected E = 3530526.1819926023
+p = 3
+q = 6
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.8690870451
+estimate = 77358165066320444.3203125000
+real = 287560037413077248.0000000000
+relative error = 0.7309842989
+
+time:596.595206
+# Mean = 33262153999563380.599609
+real count = 287560037413077248.0000000000
+adv rel err = 0.8843297062
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=7
+==========================================
+P___ = 3
+K___ = 7
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 7, biclique count = 5.017162e+19
+
+ADV
+EPS = 1.000000e+00
+random seed = 2869365968
+construct_noisy_graph(g); 
+noisy edges = 3530253
+expected E = 3.530526e+06
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 6.036993e+01
+estimate = 15822799487186810212.0000000000
+real = 50171621525261721600.0000000000
+relative error = 0.6846265079
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1469270352
+construct_noisy_graph(g); 
+noisy edges = 3530927
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.0794678652
+estimate = 4886496964990369778.0000000000
+real = 50171621525261721600.0000000000
+relative error = 0.9026043645
+
+
+ADV
+EPS = 1.0000000000
+random seed = 416833306
+construct_noisy_graph(g); 
+noisy edges = 3534126
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.9988470911
+estimate = 7859961685324787719.0000000000
+real = 50171621525261721600.0000000000
+relative error = 0.8433384960
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3107412305
+construct_noisy_graph(g); 
+noisy edges = 3526569
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.2806920409
+estimate = 477471058497054567.8125000000
+real = 50171621525261721600.0000000000
+relative error = 0.9904832444
+
+
+ADV
+EPS = 1.0000000000
+random seed = 429045528
+construct_noisy_graph(g); 
+noisy edges = 3528765
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.0345146440
+estimate = 59519696163559116244.0000000000
+real = 50171621525261721600.0000000000
+relative error = 0.1863219556
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3072540095
+construct_noisy_graph(g); 
+noisy edges = 3531241
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.2281491021
+estimate = 685353430121801472.5625000000
+real = 50171621525261721600.0000000000
+relative error = 0.9863398190
+
+
+ADV
+EPS = 1.0000000000
+random seed = 4188013139
+construct_noisy_graph(g); 
+noisy edges = 3529860
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.3132205699
+estimate = 10004501787532016319.0000000000
+real = 50171621525261721600.0000000000
+relative error = 0.8005944101
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1600216028
+construct_noisy_graph(g); 
+noisy edges = 3530854
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.1882039080
+estimate = 6640674837602424815.0000000000
+real = 50171621525261721600.0000000000
+relative error = 0.8676408169
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1448253627
+construct_noisy_graph(g); 
+noisy edges = 3530050
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.1660896160
+estimate = 2736707296439931262.2500000000
+real = 50171621525261721600.0000000000
+relative error = 0.9454530826
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1347484897
+construct_noisy_graph(g); 
+noisy edges = 3527975
+expected E = 3530526.1819926023
+p = 3
+q = 7
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 60.0907602410
+estimate = -898413397752846431.0000000000
+real = 50171621525261721600.0000000000
+relative error = 1.0179068041
+
+time:601.856108
+# Mean = 10773524931350146253.000000
+real count = 50171621525261721600.0000000000
+adv rel err = 0.8225309501
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=8
+==========================================
+P___ = 3
+K___ = 8
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 8, biclique count = 8.105265e+21
+
+ADV
+EPS = 1.000000e+00
+random seed = 3227457583
+construct_noisy_graph(g); 
+noisy edges = 3532367
+expected E = 3.530526e+06
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 5.823193e+01
+estimate = 2165437434463080711040.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.7328357024
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1655344427
+construct_noisy_graph(g); 
+noisy edges = 3530242
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.0930050090
+estimate = 30288526872857818320896.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 2.7368953164
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2558380379
+construct_noisy_graph(g); 
+noisy edges = 3532157
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.6853455650
+estimate = 1236701072729092024704.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.8474200325
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1567946271
+construct_noisy_graph(g); 
+noisy edges = 3528383
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4000096999
+estimate = 776559035359717915840.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.9041907903
+
+
+ADV
+EPS = 1.0000000000
+random seed = 552516736
+construct_noisy_graph(g); 
+noisy edges = 3530710
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.1422023901
+estimate = 42520588380634642509824.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 4.2460454164
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2388431457
+construct_noisy_graph(g); 
+noisy edges = 3530289
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.3920470329
+estimate = 102106039513732443800.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.9874025045
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2461265651
+construct_noisy_graph(g); 
+noisy edges = 3531800
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.3294199542
+estimate = 95207251922376313784.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.9882536534
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3532283600
+construct_noisy_graph(g); 
+noisy edges = 3527667
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.0391614039
+estimate = 284767246639007036672.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.9648663867
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3802840765
+construct_noisy_graph(g); 
+noisy edges = 3533120
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.2960779518
+estimate = 261941719935152119664.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.9676825225
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3091224953
+construct_noisy_graph(g); 
+noisy edges = 3530198
+expected E = 3530526.1819926023
+p = 3
+q = 8
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.3530679229
+estimate = 1007389171871106875008.0000000000
+real = 8105265014926949220352.0000000000
+relative error = 0.8757117540
+
+time:590.069762
+# Mean = 7873922422592572602880.000000
+real count = 8105265014926949220352.0000000000
+adv rel err = 1.4251304079
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=9
+==========================================
+P___ = 3
+K___ = 9
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 9, biclique count = 1.213568e+24
+
+ADV
+EPS = 1.000000e+00
+random seed = 1459418292
+construct_noisy_graph(g); 
+noisy edges = 3529738
+expected E = 3.530526e+06
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 6.006296e+01
+estimate = 8547530051329023093760.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.9929566969
+
+
+ADV
+EPS = 1.0000000000
+random seed = 149184627
+construct_noisy_graph(g); 
+noisy edges = 3528877
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.7133107239
+estimate = -4100083678498076356608.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 1.0033785353
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1434153740
+construct_noisy_graph(g); 
+noisy edges = 3531072
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.7954993849
+estimate = -824123300193106378112.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 1.0006790909
+
+
+ADV
+EPS = 1.0000000000
+random seed = 615592224
+construct_noisy_graph(g); 
+noisy edges = 3530537
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.6673781490
+estimate = 1096714032855507918848000.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.0962898887
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1879972033
+construct_noisy_graph(g); 
+noisy edges = 3530951
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.7548114639
+estimate = 2373916223285638278938624.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.9561453853
+
+
+ADV
+EPS = 1.0000000000
+random seed = 587675232
+construct_noisy_graph(g); 
+noisy edges = 3532338
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.6029872790
+estimate = 481046794252837065195520.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.6036096567
+
+
+ADV
+EPS = 1.0000000000
+random seed = 342832510
+construct_noisy_graph(g); 
+noisy edges = 3530176
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.8297629768
+estimate = 66308101195381344198656.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.9453610515
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1581899737
+construct_noisy_graph(g); 
+noisy edges = 3531061
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.6600947499
+estimate = 164195800313315572563968.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.8647000033
+
+
+ADV
+EPS = 1.0000000000
+random seed = 921411725
+construct_noisy_graph(g); 
+noisy edges = 3530571
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.7803638398
+estimate = 1409670757729660240896.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 0.9988384085
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3105771607
+construct_noisy_graph(g); 
+noisy edges = 3531975
+expected E = 3530526.1819926023
+p = 3
+q = 9
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.8449970991
+estimate = -1001893934961534833216.0000000000
+real = 1213568398907613317693440.0000000000
+relative error = 1.0008255768
+
+time:597.818499
+# Mean = 418621205179808605437952.000000
+real count = 1213568398907613317693440.0000000000
+adv rel err = 0.8462784294
+
+==========================================
+DATASET: rmwiki  ALG=2  Q=10
+==========================================
+P___ = 3
+K___ = 10
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 10, biclique count = 1.688211e+26
+
+ADV
+EPS = 1.000000e+00
+random seed = 1173749165
+construct_noisy_graph(g); 
+noisy edges = 3530682
+expected E = 3.530526e+06
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 5.854714e+01
+estimate = 672735696194284175360000.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 0.9960150968
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3910737981
+construct_noisy_graph(g); 
+noisy edges = 3529594
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.8673331181
+estimate = 599446862470245528698880.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 0.9964492182
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1233678645
+construct_noisy_graph(g); 
+noisy edges = 3529929
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.6473134221
+estimate = 1074193097938241404534784.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 0.9936370918
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2860527858
+construct_noisy_graph(g); 
+noisy edges = 3531191
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.7887066968
+estimate = -54836154906028144594944.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 1.0003248182
+
+
+ADV
+EPS = 1.0000000000
+random seed = 311164687
+construct_noisy_graph(g); 
+noisy edges = 3531334
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 58.9735848058
+estimate = 110267283332415691776000.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 0.9993468394
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3604590727
+construct_noisy_graph(g); 
+noisy edges = 3526806
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4355434519
+estimate = 2640028431727838172085747712.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 14.6380250169
+
+
+ADV
+EPS = 1.0000000000
+random seed = 3168084479
+construct_noisy_graph(g); 
+noisy edges = 3529473
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4572351400
+estimate = -339502388777805226377216.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 1.0020110188
+
+
+ADV
+EPS = 1.0000000000
+random seed = 1495548887
+construct_noisy_graph(g); 
+noisy edges = 3529091
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.4598368891
+estimate = 70934850662154644439040.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 0.9995798223
+
+
+ADV
+EPS = 1.0000000000
+random seed = 2947096333
+construct_noisy_graph(g); 
+noisy edges = 3529557
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 61.8643935078
+estimate = 11467003429166345951903744.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 0.9320760018
+
+
+ADV
+EPS = 1.0000000000
+random seed = 837291077
+construct_noisy_graph(g); 
+noisy edges = 3531430
+expected E = 3530526.1819926023
+p = 3
+q = 10
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 59.2766171740
+estimate = -225964030660769090224128.0000000000
+real = 168821090187554429455040512.0000000000
+relative error = 1.0013384822
+
+time:593.455114
+# Mean = 265340271037325712954490880.000000
+real count = 168821090187554429455040512.0000000000
+adv rel err = 2.3558803406
+
+==========================================
+DATASET: rmwiki  ALG=3  Q=4
+==========================================
+P___ = 3
+K___ = 4
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 4, biclique count = 7.724810e+12
+
+ADV+
+EPS = 1.000000e+00
+random seed = 1232902126
+construct_noisy_graph(g); 
+noisy edges = 3532740
+expected E = 3.530526e+06
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 8.027256e+01
+estimate = 2348619057262.5707774162
+real = 7724810129614.0000000000
+relative error = 0.6959641703
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 1632656890
+construct_noisy_graph(g); 
+noisy edges = 3531268
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 80.0861094880
+estimate = 4602117453794.4905772209
+real = 7724810129614.0000000000
+relative error = 0.4042419973
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 3106763702
+construct_noisy_graph(g); 
+noisy edges = 3531058
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 79.8459774060
+estimate = 4754443063560.7537260056
+real = 7724810129614.0000000000
+relative error = 0.3845229871
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 3712417827
+construct_noisy_graph(g); 
+noisy edges = 3533188
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 79.9565147690
+estimate = 1334516370855.7418404818
+real = 7724810129614.0000000000
+relative error = 0.8272428256
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2057651566
+construct_noisy_graph(g); 
+noisy edges = 3529336
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 80.1618087171
+estimate = 9090180708417.0816211700
+real = 7724810129614.0000000000
+relative error = 0.1767513448
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2275133889
+construct_noisy_graph(g); 
+noisy edges = 3528548
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 79.9961742559
+estimate = 2111668832463.6736502647
+real = 7724810129614.0000000000
+relative error = 0.7266380925
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2013926483
+construct_noisy_graph(g); 
+noisy edges = 3527992
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 80.1325519150
+estimate = 2256678978515.7555365562
+real = 7724810129614.0000000000
+relative error = 0.7078660911
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 1294729350
+construct_noisy_graph(g); 
+noisy edges = 3533341
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 79.8655046509
+estimate = 12741288831102.9630413055
+real = 7724810129614.0000000000
+relative error = 0.6493983175
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 1095888277
+construct_noisy_graph(g); 
+noisy edges = 3530282
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 80.0238531721
+estimate = 4635645003351.7765164375
+real = 7724810129614.0000000000
+relative error = 0.3999017548
+
+
+ADV+
+EPS = 1.0000000000
+random seed = 2334465470
+construct_noisy_graph(g); 
+noisy edges = 3529905
+expected E = 3530526.1819926023
+p = 3
+q = 4
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 0.6527896640%)
+total triplets: 306377400
+Target sample size = 2000000
+time  = 80.0017730559
+estimate = 4417629134937.1576499939
+real = 7724810129614.0000000000
+relative error = 0.4281245674
+
+time:800.450150
+# Mean = 4829278743426.196435
+real count = 7724810129614.0000000000
+adv rel err = 0.5400652148
+
+==========================================
+DATASET: rmwiki  ALG=3  Q=5
+==========================================
+P___ = 3
+K___ = 5
+Budget allocation: alpha0=0.05, alpha1=0.6, alpha2=0.35
+Probability filtering: DISABLED
+Noisy edge sampling ratio: 1
+n1: 1226, n2: 8088
+|E| = 57992
+computing degrees
+computing priority
+fill_rate = 0.00584839
+Eps = 1
+Dataset: rmwiki, p = 3, q = 5, biclique count = 1.531726e+15
+
+ADV+
+EPS = 1.000000e+00
+random seed = 2491303152
+construct_noisy_graph(g); 
+noisy edges = 3531610
+expected E = 3.530526e+06
+p = 3
+q = 5
+Using REJECTION SAMPLING (T = 2000000 of 306377400 total = 6.527897e-01%)
+total triplets: 306377400
+Target sample size = 2000000

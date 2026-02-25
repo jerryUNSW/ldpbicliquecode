@@ -1,0 +1,139 @@
+Running f_avg distribution test...
+Dataset: librec-filmtrust-ratings
+Number of samples: 5
+=== Testing f_avg distribution for Gaussian assumption ===
+Method: 10 fixed pairs × 5 noise iterations
+n1: 1509, n2: 2072
+|E| = 35494
+computing degrees
+computing priority
+Loaded dataset: librec-filmtrust-ratings with 3581 nodes
+Selected 10 fixed pairs for p=2 analysis
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=987, w=1047
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=987, w=1047
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=987, w=1047
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=987, w=1047
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=987, w=1047
+Pair_0_p2_f_u: nan nan nan nan nan 
+Pair_0_p2_f_w: nan nan nan nan nan 
+Pair_0_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=686, w=9
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=686, w=9
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=686, w=9
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=686, w=9
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=686, w=9
+Pair_1_p2_f_u: nan nan nan nan nan 
+Pair_1_p2_f_w: nan nan nan nan nan 
+Pair_1_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=661, w=100
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=661, w=100
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=661, w=100
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=661, w=100
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=661, w=100
+Pair_2_p2_f_u: nan nan nan nan nan 
+Pair_2_p2_f_w: nan nan nan nan nan 
+Pair_2_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=448, w=1125
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=448, w=1125
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=448, w=1125
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=448, w=1125
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=448, w=1125
+Pair_3_p2_f_u: nan nan nan nan nan 
+Pair_3_p2_f_w: nan nan nan nan nan 
+Pair_3_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=416, w=1022
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=416, w=1022
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=416, w=1022
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=416, w=1022
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=416, w=1022
+Pair_4_p2_f_u: nan nan nan nan nan 
+Pair_4_p2_f_w: nan nan nan nan nan 
+Pair_4_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=531, w=1109
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=531, w=1109
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=531, w=1109
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=531, w=1109
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=531, w=1109
+Pair_5_p2_f_u: nan nan nan nan nan 
+Pair_5_p2_f_w: nan nan nan nan nan 
+Pair_5_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=549, w=591
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=549, w=591
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=549, w=591
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=549, w=591
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=549, w=591
+Pair_6_p2_f_u: nan nan nan nan nan 
+Pair_6_p2_f_w: nan nan nan nan nan 
+Pair_6_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1506, w=1046
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1506, w=1046
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1506, w=1046
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1506, w=1046
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1506, w=1046
+Pair_7_p2_f_u: nan nan nan nan nan 
+Pair_7_p2_f_w: nan nan nan nan nan 
+Pair_7_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=331, w=273
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=331, w=273
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=331, w=273
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=331, w=273
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=331, w=273
+Pair_8_p2_f_u: nan nan nan nan nan 
+Pair_8_p2_f_w: nan nan nan nan nan 
+Pair_8_p2_f_avg: nan nan nan nan nan 
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1113, w=1419
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1113, w=1419
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1113, w=1419
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1113, w=1419
+DEBUG: Invalid values - f_u=nan, f_w=nan, u=1113, w=1419
+Pair_9_p2_f_u: nan nan nan nan nan 
+Pair_9_p2_f_w: nan nan nan nan nan 
+Pair_9_p2_f_avg: nan nan nan nan nan 
+Selected 10 fixed triplets for p=3 analysis
+Triplet_0_p3_f_u: nan nan nan nan nan 
+Triplet_0_p3_f_v: nan nan nan nan nan 
+Triplet_0_p3_f_w: nan nan nan nan nan 
+Triplet_0_p3_f_avg: nan nan nan nan nan 
+Triplet_1_p3_f_u: nan nan nan nan nan 
+Triplet_1_p3_f_v: nan nan nan nan nan 
+Triplet_1_p3_f_w: nan nan nan nan nan 
+Triplet_1_p3_f_avg: nan nan nan nan nan 
+Triplet_2_p3_f_u: nan nan nan nan nan 
+Triplet_2_p3_f_v: nan nan nan nan nan 
+Triplet_2_p3_f_w: nan nan nan nan nan 
+Triplet_2_p3_f_avg: nan nan nan nan nan 
+Triplet_3_p3_f_u: nan nan nan nan nan 
+Triplet_3_p3_f_v: nan nan nan nan nan 
+Triplet_3_p3_f_w: nan nan nan nan nan 
+Triplet_3_p3_f_avg: nan nan nan nan nan 
+Triplet_4_p3_f_u: nan nan nan nan nan 
+Triplet_4_p3_f_v: nan nan nan nan nan 
+Triplet_4_p3_f_w: nan nan nan nan nan 
+Triplet_4_p3_f_avg: nan nan nan nan nan 
+Triplet_5_p3_f_u: nan nan nan nan nan 
+Triplet_5_p3_f_v: nan nan nan nan nan 
+Triplet_5_p3_f_w: nan nan nan nan nan 
+Triplet_5_p3_f_avg: nan nan nan nan nan 
+Triplet_6_p3_f_u: nan nan nan nan nan 
+Triplet_6_p3_f_v: nan nan nan nan nan 
+Triplet_6_p3_f_w: nan nan nan nan nan 
+Triplet_6_p3_f_avg: nan nan nan nan nan 
+Triplet_7_p3_f_u: nan nan nan nan nan 
+Triplet_7_p3_f_v: nan nan nan nan nan 
+Triplet_7_p3_f_w: nan nan nan nan nan 
+Triplet_7_p3_f_avg: nan nan nan nan nan 
+Triplet_8_p3_f_u: nan nan nan nan nan 
+Triplet_8_p3_f_v: nan nan nan nan nan 
+Triplet_8_p3_f_w: nan nan nan nan nan 
+Triplet_8_p3_f_avg: nan nan nan nan nan 
+Triplet_9_p3_f_u: nan nan nan nan nan 
+Triplet_9_p3_f_v: nan nan nan nan nan 
+Triplet_9_p3_f_w: nan nan nan nan nan 
+Triplet_9_p3_f_avg: nan nan nan nan nan 
+
+=== Data collection complete ===
+Generated: 10 pairs × 5 = 50 samples for p=2
+Generated: 10 triplets × 5 = 50 samples for p=3
+This isolates the noise distribution from graph structure
+
+Test completed successfully!

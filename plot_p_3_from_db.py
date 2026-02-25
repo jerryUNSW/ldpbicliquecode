@@ -215,40 +215,40 @@ def main():
     for dataset in datasets_to_plot:
         for epsilon in epsilon_values:
             print(f"\nProcessing {dataset}, ε={epsilon}...")
-            
-            try:
-                # Get data from database
+        
+        try:
+            # Get data from database
                 results, algorithms = get_data_from_db(db_path, dataset, epsilon=epsilon)
-                
-                if not results:
+            
+            if not results:
                     print(f"No results found for {dataset}, ε={epsilon}")
-                    continue
-                
+                continue
+            
                 print(f"Found results for {dataset} dataset, ε={epsilon}")
-                print(f"Q values: {sorted(results.keys())}")
-                print(f"Algorithms: {algorithms}")
-                
-                # Print summary of results
-                for q in sorted(results.keys()):
-                    print(f"  Q={q}:")
-                    for alg in algorithms:
-                        if alg in results[q]:
-                            print(f"    {alg}: {results[q][alg]:.3f}")
-                
-                # Create and save main plot
+            print(f"Q values: {sorted(results.keys())}")
+            print(f"Algorithms: {algorithms}")
+            
+            # Print summary of results
+            for q in sorted(results.keys()):
+                print(f"  Q={q}:")
+                for alg in algorithms:
+                    if alg in results[q]:
+                        print(f"    {alg}: {results[q][alg]:.3f}")
+            
+            # Create and save main plot
                 fig = create_p3_plot(dataset, epsilon, results, algorithms)
                 eps_str = str(int(epsilon)) if epsilon == int(epsilon) else str(epsilon).replace('.', '')
                 output_filename = f'algorithm_comparison_{dataset}_eps{eps_str}_FIXED_p3.pdf'
-                fig.savefig(output_filename, dpi=300, bbox_inches='tight')
-                print(f"Plot saved as: {output_filename}")
-                plt.close()
-                
+            fig.savefig(output_filename, dpi=300, bbox_inches='tight')
+            print(f"Plot saved as: {output_filename}")
+            plt.close()
+            
                 print(f"Completed plots for {dataset}, ε={epsilon}")
-                print("---")
-                
-            except Exception as e:
+            print("---")
+            
+        except Exception as e:
                 print(f"Error processing {dataset}, ε={epsilon}: {e}")
-                continue
+            continue
 
 if __name__ == "__main__":
     main()

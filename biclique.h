@@ -57,6 +57,11 @@ long double compute_local_res(int K, long double f_u_w, long double esti_var_f) 
 
 extern bool use_probability_filtering;
 
+// Post-processing mode for variance reduction
+extern int post_processing_mode;
+extern long double winsorize_percentile;
+extern long double truncation_bound;
+
 void fetch_or_compute_biclique_count(int P___, int K___, string dataset, BiGraph& g);
 
 // improved new approach
@@ -67,6 +72,20 @@ long double wedge_based_btf_avg(BiGraph& g, unsigned long seed);
 
 // Function to test f distribution for Gaussian assumption
 void test_f_distribution_p2(string dataset, int num_samples);
+
+// Common-neighbor based butterfly (2,2)-biclique counting
+// New paradigm: estimate S(u,v) from G', then use variance correction
+// to get unbiased C(S,2) estimator. #btf = sum_{u<v} C(S,2)_hat
+long double common_neighbor_butterfly_count(BiGraph& g, unsigned long seed);
+
+// CN-based (2,q)-biclique counting for general q >= 2
+long double common_neighbor_general_2q_count(BiGraph& g, unsigned long seed, int q);
+
+// PBC: 2-Path-Based Butterfly Counting (Li et al., ICC 2025)
+long double pbc_butterfly_count(BiGraph& g, unsigned long seed);
+
+// CN normality test & higher-q moment correction verification (switch 7)
+void cn_normality_and_higher_q_test(BiGraph& g, int num_trials, const string& output_prefix);
 
 double locally_compute_f_given_q_and_x_vp(int q, int x, BiGraph& g, BiGraph& g2, int& res__);
 
