@@ -193,15 +193,19 @@ We compare all five algorithms across 7 real-world bipartite graph datasets at v
 
 ### Key Observations
 
-1. **ADV++ dominates at low ε**: At ε ≤ 1.5, ADV++ consistently achieves the lowest MRE across all datasets, especially on larger graphs (lrcwiki, filmtrust, rmwiki).
+1. **PBC is not competitive**: We implemented and tested PBC (Li et al.) as a baseline. It consistently has MRE 10–100× worse than all other algorithms across every setting. It is not a useful approach.
 
-2. **CN catches up at higher ε**: At ε ≥ 2.0, the CN (common-neighbor) one-round estimator matches or beats ADV++ on smaller datasets (TO, CO, Unicode), while being simpler and requiring only one round of interaction.
+2. **CN ≈ OneR when p=q=2**: The CN (common-neighbor) estimator we implemented behaves very similarly to OneR for (2,2)-biclique counting. Both are one-round algorithms and their MRE values are nearly identical across all datasets and ε values. CN has a slight edge at higher ε.
 
-3. **PBC is consistently worst**: The PBC baseline from Li et al. has MRE 10–100× worse than the other algorithms across all settings.
+3. **ADV++ dominates at low ε**: At ε ≤ 1.5, ADV++ (multi-round) achieves the lowest MRE, especially on larger graphs.
 
-4. **Dataset size matters**: On large datasets (lrcwiki, filmtrust, rmwiki, MOOC) with millions/billions of butterflies, all algorithms except PBC achieve MRE < 0.1 even at ε = 1.0. The challenge is on small datasets where the true count is low.
+4. **CN/OneR catch up at higher ε**: At ε ≥ 2.0, the one-round algorithms (CN, OneR) match or beat ADV++ on smaller datasets.
 
-5. **OneR vs CN**: These two one-round algorithms perform very similarly, with CN having a slight edge at higher ε values.
+5. **Dataset size matters**: On large datasets with millions/billions of butterflies, all algorithms except PBC achieve MRE < 0.1 even at ε = 1.0.
+
+### Ongoing Work
+
+- **CN for q > 2**: We are currently testing the CN estimator for larger biclique sizes (q > 2). Results pending.
 
 ---
 
