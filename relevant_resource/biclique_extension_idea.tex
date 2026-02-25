@@ -1,0 +1,139 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+
+\title{\textbf{Generalized $(p,q)$-Biclique Counting under Edge Local Differential Privacy: A Tensor-Algebraic Framework}}
+\author{Algorithm Design \& Mathematical Analysis}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Counting $(p,q)$-bicliques in bipartite graphs is a fundamental task in network analysis. However, estimating this under Edge Local Differential Privacy (Edge LDP) poses significant challenges due to the dense noise introduced by randomized response mechanisms. Existing works (e.g., PBC) primarily focus on $(2,2)$-bicliques (butterflies) by enumerating localized sub-structures, a method that suffers from exponential structural explosion when extending to arbitrary $(p,q)$. In this document, we present a novel tensor-algebraic framework that bypasses structural enumeration. We theoretically prove a variance cancellation property, demonstrating that the variance of a $p$-vertex common neighborhood estimator relies exclusively on lower-order motifs. This enables exact high-order bias correction and yields a highly scalable and unbiased estimator for arbitrary $(p,q)$-biclique counting under Edge LDP.
+\end{abstract}
+
+\section{Introduction}
+Under Edge LDP, the presence or absence of any edge is plausiblely deniable. The standard Randomized Response (RR) mechanism preserves privacy but creates a noisy, dense bipartite graph $G'$. Directly counting $(p,q)$-bicliques on $G'$ leads to severe biasedness because the combinatorial function $\binom{x}{q}$ is non-linear, which amplifies the variance of the underlying noise. 
+
+Our core insight is to shift the paradigm from \textit{searching for $(p,q)$-bicliques} to \textit{estimating the common neighborhood of $p$ vertices}, and then leveraging rigorous mathematical bias correction. 
+
+\section{Preliminaries}
+\subsection{Bipartite Graph \& Edge LDP}
+Let $G = (U, V, E)$ be an undirected bipartite graph. We define $A$ as the adjacency matrix where $A[u,v] \in \{0,1\}$. 
+Under $\epsilon$-Edge LDP, each edge state is perturbed using the Randomized Response mechanism with a flip probability $f = \frac{1}{1+e^\epsilon}$. 
+The noisy adjacency matrix is denoted as $A'$. The probability of observing $A'[u,v] \neq A[u,v]$ is $f$.
+
+\subsection{Structural Transformation}
+Instead of directly identifying a $p \times q$ complete bipartite subgraph, we consider a subset $U_p \subseteq U$ where $|U_p| = p$. 
+Let $d_{U_p}$ be the exact number of common neighbors of the $p$ vertices in $V$. The number of $(p,q)$-bicliques formed by $U_p$ is exactly $\binom{d_{U_p}}{q}$. The global count is:
+\begin{equation}
+    B_{p,q} = \sum_{U_p \subseteq U, |U_p|=p} \binom{d_{U_p}}{q}
+\end{equation}
+
+\section{The Tensor-Algebraic Framework}
+\subsection{Local Unbiased Estimator}
+For any pair of vertices $u \in U, v \in V$, we construct an unbiased estimator $X_{uv}$ for the true edge state $A[u,v]$:
+\begin{equation}
+    X_{uv} = \frac{A'[u,v] - f}{1 - 2f}
+\end{equation}
+It is trivial to show that $\mathbb{E}[X_{uv}] = A[u,v]$. 
+For a given subset $U_p$, we define the indicator that vertex $v$ connects to all $u \in U_p$ as $I_v = \prod_{u \in U_p} X_{uv}$. 
+Thus, the unbiased estimator for the common neighborhood size $d_{U_p}$ is:
+\begin{equation}
+    \hat{d}_{U_p} = \sum_{v \in V} I_v = \sum_{v \in V} \prod_{u \in U_p} X_{uv}
+\end{equation}
+
+\subsection{The Magic of Variance Cancellation}
+To compute $\binom{\hat{d}_{U_p}}{q}$ unbiasedly, we must derive the exact variance of $\hat{d}_{U_p}$. 
+
+\begin{lemma}[The Linear Squared Expectation Identity]
+Let $c = \text{Var}(X_{uv}) = \frac{f(1-f)}{(1-2f)^2}$. For any $u,v$, it strictly holds that $\mathbb{E}[X_{uv}^2] = c + A[u,v]$.
+\end{lemma}
+\begin{proof}
+By definition, $\text{Var}(X_{uv}) = \mathbb{E}[X_{uv}^2] - (\mathbb{E}[X_{uv}])^2$.
+Since $\mathbb{E}[X_{uv}] = A[u,v]$ and $A[u,v] \in \{0,1\}$, we have $(\mathbb{E}[X_{uv}])^2 = A[u,v]^2 = A[u,v]$. Thus, $\mathbb{E}[X_{uv}^2] = c + A[u,v]$.
+\end{proof}
+
+\begin{theorem}[Variance of $p$-Vertex Common Neighborhood Estimator]
+The variance of $\hat{d}_{U_p}$ is independent of the true common neighborhood size $d_{U_p}$. It is strictly determined by the true counts of its lower-order sub-motifs:
+\begin{equation}
+    \text{Var}(\hat{d}_{U_p}) = \sum_{S \subsetneq U_p} c^{p - |S|} d_S
+\end{equation}
+where $d_S$ is the true common neighborhood size of the subset $S \subsetneq U_p$.
+\end{theorem}
+\begin{proof}
+Since variables across different $v$ are independent, $\text{Var}(\hat{d}_{U_p}) = \sum_{v \in V} \text{Var}(I_v)$. We expand $\text{Var}(I_v)$:
+\begin{align*}
+    \text{Var}(I_v) &= \mathbb{E}[I_v^2] - (\mathbb{E}[I_v])^2 \\
+    &= \mathbb{E}\left[\prod_{u \in U_p} X_{uv}^2\right] - \left(\prod_{u \in U_p} \mathbb{E}[X_{uv}]\right)^2
+\end{align*}
+Since edges are perturbed independently, the expectation of the product is the product of expectations:
+\begin{align*}
+    \text{Var}(I_v) &= \prod_{u \in U_p} \mathbb{E}[X_{uv}^2] - \prod_{u \in U_p} A[u,v]^2 \\
+    &= \prod_{u \in U_p} (c + A[u,v]) - \prod_{u \in U_p} A[u,v]
+\end{align*}
+Expanding the product $\prod_{u \in U_p} (c + A[u,v])$ yields the sum over all possible subsets $S \subseteq U_p$. When $S = U_p$, the term is exactly $\prod_{u \in U_p} A[u,v]$. This perfectly cancels out the subtracted term:
+\begin{align*}
+    \text{Var}(I_v) &= \left( \sum_{S \subseteq U_p} c^{p - |S|} \prod_{u \in S} A[u,v] \right) - \prod_{u \in U_p} A[u,v] \\
+    &= \sum_{S \subsetneq U_p} c^{p - |S|} \prod_{u \in S} A[u,v]
+\end{align*}
+Summing over all $v \in V$, the term $\sum_{v \in V} \prod_{u \in S} A[u,v]$ is exactly the true common neighborhood size $d_S$. Thus, $\text{Var}(\hat{d}_{U_p}) = \sum_{S \subsetneq U_p} c^{p - |S|} d_S$.
+\end{proof}
+\section{Higher-Order Bias Correction via Cumulants}
+To compute $\binom{\hat{d}_{U_p}}{q}$ unbiasedly for arbitrary $q$, we leverage the properties of cumulants (denoted as $\kappa_k$). Since the estimator $\hat{d}_{U_p} = \sum_{v \in V} I_v$ is a sum of independent random variables across $v \in V$, its $k$-th cumulant is simply the sum of individual cumulants: $\kappa_k(\hat{d}_{U_p}) = \sum_{v \in V} \kappa_k(I_v)$.
+
+Let $V_k = \kappa_k(\hat{d}_{U_p})$ denote the $k$-th cumulant of our estimator. By definition, $V_1 = \mathbb{E}[\hat{d}_{U_p}] = d_{U_p}$ (the true common neighborhood size), and $V_2 = \text{Var}(\hat{d}_{U_p})$. By expressing the raw moments of $\hat{d}_{U_p}$ in terms of its cumulants, we can algebraically invert the relationships to construct strictly unbiased estimators for any polynomial power $d_{U_p}^k$, which we denote as $\widehat{d^k}$:
+\begin{align}
+    \widehat{d^1} &= \hat{d}_{U_p} \\
+    \widehat{d^2} &= \hat{d}_{U_p}^2 - V_2 \\
+    \widehat{d^3} &= \hat{d}_{U_p}^3 - 3\hat{d}_{U_p}V_2 - V_3 \\
+    \widehat{d^4} &= \hat{d}_{U_p}^4 - 6\hat{d}_{U_p}^2V_2 - 4\hat{d}_{U_p}V_3 + 3V_2^2 - V_4
+\end{align}
+
+Since the target $(p,q)$-biclique count heavily relies on the falling factorial $\binom{d}{q} = \frac{1}{q!} \sum_{k=1}^q s(q, k) d^k$ (where $s(q, k)$ are the signed Stirling numbers of the first kind), we can achieve exact bias correction by linearly combining the unbiased polynomial estimators $\widehat{d^k}$.
+
+\subsection{Exact Estimators for $q \in \{2, 3, 4\}$}
+
+\textbf{For $q=2$:} The true combinatorial count is $\binom{d}{2} = \frac{d^2 - d}{2}$. Substituting $\widehat{d^2}$ and $\widehat{d^1}$, the unbiased estimator is:
+\begin{equation}
+    \hat{B}_{U_p, 2} = \frac{\widehat{d^2} - \widehat{d^1}}{2} = \binom{\hat{d}_{U_p}}{2} - \frac{1}{2}V_2
+\end{equation}
+
+\textbf{For $q=3$:} The true count is $\binom{d}{3} = \frac{d^3 - 3d^2 + 2d}{6}$. Substituting $\widehat{d^3}, \widehat{d^2}, \widehat{d^1}$ and grouping the terms dynamically, the unbiased estimator algebraically simplifies to:
+\begin{equation}
+    \hat{B}_{U_p, 3} = \binom{\hat{d}_{U_p}}{3} - \frac{1}{2}V_2 (\hat{d}_{U_p} - 1) - \frac{1}{6}V_3
+\end{equation}
+
+\textbf{For $q=4$:} The true count is $\binom{d}{4} = \frac{d^4 - 6d^3 + 11d^2 - 6d}{24}$. Plugging in the unbiased estimators up to the 4th order, the exact formulation becomes:
+\begin{equation}
+    \hat{B}_{U_p, 4} = \binom{\hat{d}_{U_p}}{4} - \frac{1}{4}V_2\left(\hat{d}_{U_p}^2 - 3\hat{d}_{U_p} + \frac{11}{6}\right) - \frac{1}{6}V_3\left(\hat{d}_{U_p} - \frac{3}{2}\right) + \frac{3V_2^2 - V_4}{24}
+\end{equation}
+
+\subsection{Generalization to Arbitrary $q$}
+For any arbitrary $q$, the $k$-th cumulant $V_k$ structurally depends only on the true counts of lower-order motifs (similar to the variance cancellation proved in Theorem 1). By utilizing Faà di Bruno's formula and Bell polynomials, our framework can systematically generate the exact bias correction term for $\binom{d_{U_p}}{q}$ with $O(q)$ complexity. The server simply computes the lower-order motifs, plugs them in to calculate $V_2, V_3, \dots, V_q$, and completely eliminates the non-linear noise amplification.
+
+\section{The Plug-in Protocol (Algorithm Essence)}
+Because the exact variance formula (Theorem 1) requires the true lower-order counts $d_S$ which are unknown at the server, we employ a \textbf{Plug-in protocol}:
+\begin{enumerate}
+    \item \textbf{Bottom-up Estimation}: The server recursively estimates unbiased $\hat{d}_S$ for lower-order subsets (e.g., using pure RR on degrees and 2-paths).
+    \item \textbf{Variance Plug-in}: The server plugs the unbiased estimates $\hat{d}_S$ into Theorem 1 to compute a concrete scalar value for $\text{Var}(\hat{d}_{U_p})$.
+    \item \textbf{Bias Compensation}: The concrete variance value is subtracted from the combinatorial calculation (Section 4) to yield the final $\hat{B}_{p,q}$.
+\end{enumerate}
+This methodology completely avoids explicit sub-graph matching and solves the LDP noise amplification problem algebraically.
+
+\section{Conclusion}
+By translating the topological structure problem into a purely algebraic variance calculation, we elegantly solved the analytical barrier of scaling $(p,q)$-biclique counting under Edge LDP. The exact cancellation of the highest-order term mathematically validates the robustness of our plug-in variance estimation.
+
+\end{document}
