@@ -9,6 +9,7 @@
 !*.ipp
 !makefile
 !.gitignore
+!README.md
 
 # Allow directories to be traversed
 !*/
