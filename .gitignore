@@ -10,6 +10,8 @@
 !makefile
 !.gitignore
 !README.md
+!cn_btf_results/
+!cn_btf_results/**
 
 # Allow directories to be traversed
 !*/
